@@ -11,6 +11,22 @@ event run by RIZN Youth at Celebration Church in Edmonton for students in grades
 Friday, October 30, 2026, 7:00-10:00pm, with roughly 150-400 students in costume. [...] This app
 replaces a show of hands or paper ballots." (full description in the `/speckit-specify` request)
 
+## Clarifications
+
+### Session 2026-10-20
+
+- Q: When rehearsal mode is on, should it ignore the event window so the crew can create passes
+  and practice before doors open? → A: Yes. Rehearsal mode ignores the event window; rehearsal
+  passes can be created and used any time while it is on.
+- Q: Should every pass get a nickname no one else has, or can nicknames repeat? → A: Every live
+  pass gets a unique nickname; the pass number is secondary.
+- Q: What should count as a suspicious cluster of votes for the vote log to flag? → A: No
+  automatic flag; crew sort the vote log by pass creation time and judge for themselves.
+- Q: Should everyone holding the crew passcode be able to do everything? → A: Yes. One shared
+  crew passcode with full access; there is no separate lead role.
+- Q: If the app goes down during the event, how should the contest continue? → A: No app support
+  for a fallback; crew improvise a show of hands if needed.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Student gets a Night Pass (Priority: P1)
@@ -173,21 +189,24 @@ revealed.
 
 ### User Story 7 - Crew reviews and voids suspicious votes (Priority: P3)
 
-Crew review a log of votes (time, voting pass, pass creation time, chosen entry) and void
-suspicious ones, such as many votes from passes created seconds apart.
+Crew review a log of votes (time, voting pass, pass creation time, chosen entry), sort it by
+pass creation time to spot patterns such as many passes created seconds apart that all voted for
+the same costume, and void the ones they judge suspicious. The system does not flag votes
+automatically.
 
 **Why this priority**: Protects fairness against the most likely abuse, but the contest can run
 without it.
 
 **Independent Test**: Create several passes in quick succession, vote from each, open the log,
-confirm the cluster is highlighted, void them, and confirm counts drop and the voids are logged.
+sort by pass creation time and confirm they appear together, void them, and confirm counts drop and the voids are logged.
 
 **Acceptance Scenarios**:
 
 1. **Given** votes exist, **When** crew open the vote log, **Then** each vote shows when it was cast,
    the pass, when the pass was created, and the entry chosen.
-2. **Given** several passes created within a short window that all voted, **When** crew view the
-   log, **Then** that cluster is visibly flagged (not by color alone).
+2. **Given** votes from passes created at different times, **When** crew sort the log by pass
+   creation time, **Then** votes appear in that order with creation times shown, so passes
+   created close together sit next to each other.
 3. **Given** a vote, **When** crew void it, **Then** it no longer counts, remains in the log marked
    void with who/when, and can be restored.
 
@@ -242,7 +261,7 @@ passes, entries, votes, or photos remain and the contest is back at setup.
 
 - **Cleared cookies / private browsing**: a phone that loses its pass gets a new one and could
   vote again. This cannot be fully prevented without collecting identifiers; it is mitigated by
-  the vote log, cluster flagging, and voiding (Story 7).
+  the vote log, sorting by pass creation time, and voiding (Story 7).
 - **Double-tap or retry on vote**: two submissions from one pass record exactly one vote.
 - **Voting closes mid-vote**: a vote submitted after the stage changed is rejected and the student
   is told voting has closed.
@@ -282,7 +301,8 @@ passes, entries, votes, or photos remain and the contest is back at setup.
 - **FR-001**: System MUST create a Night Pass on a student's first visit with no input from the
   student, and MUST NOT ask for a name, email, phone number, or any other personal identifier.
 - **FR-002**: Each pass MUST have a nickname drawn from a curated, crew-reviewed list and a
-  unique pass number.
+  unique pass number. Live passes MUST NOT share a nickname; rehearsal passes are checked
+  against each other separately and do not use up live nicknames.
 - **FR-003**: Students MUST NOT be able to edit their nickname, enter free text, or upload files.
 - **FR-004**: System MUST remember the pass on that phone using a first-party cookie only, so
   reopening the link shows the same pass.
@@ -292,7 +312,7 @@ passes, entries, votes, or photos remain and the contest is back at setup.
   end times (to the minute, Edmonton time) are configured by the organizers. Before the start,
   the link MUST show a "doors open at [time]" screen and issue no pass. After the end, passes MUST
   stop working, and the link MUST show an "event has ended" screen with no photos. Crew access is
-  not limited by the window.
+  not limited by the window. While rehearsal mode is on, the window does not apply (see FR-036).
 
 **Gallery and voting**
 
@@ -311,8 +331,10 @@ passes, entries, votes, or photos remain and the contest is back at setup.
 
 **Crew access and entries**
 
-- **FR-014**: Crew MUST sign in with a shared crew passcode set by the organizers; repeated failed
-  attempts MUST be slowed down.
+- **FR-014**: Crew MUST sign in with a single shared crew passcode set by the organizers, which
+  grants every crew capability in this spec; there are no separate roles. Repeated failed attempts
+  MUST be slowed down. Outcome-changing actions (stage changes, voids, reveal steps, rehearsal
+  wipe) rely on their confirmation step and audit log entry to guard against mistakes.
 - **FR-015**: Crew MUST be able to create an entry by selecting one or more passes (searchable by
   nickname or pass number), taking a photo with the device camera, and confirming student and
   parent consent; saving MUST be blocked until consent is confirmed.
@@ -347,8 +369,9 @@ passes, entries, votes, or photos remain and the contest is back at setup.
   MUST NOT show per-costume counts before voting closes.
 - **FR-027**: System MUST record every vote, void, restore, entry change, stage change, reveal
   step, and rehearsal wipe with a timestamp and the crew device or pass involved.
-- **FR-028**: Crew MUST be able to view the vote log, see clusters of voting passes created
-  within a short window flagged, void votes, and restore voided votes.
+- **FR-028**: Crew MUST be able to view the vote log, sort it by vote time or by pass creation
+  time, void votes, and restore voided votes. The system MUST NOT flag or void votes
+  automatically; judging what is suspicious is left to crew.
 - **FR-029**: After voting closes, crew MUST be able to view the full ranking with counts on the
   crew device only.
 - **FR-030**: Tied entries MUST share a place. Places MUST be assigned by distinct counted-vote
@@ -373,7 +396,8 @@ passes, entries, votes, or photos remain and the contest is back at setup.
 **Rehearsal**
 
 - **FR-036**: Crew MUST be able to turn rehearsal mode on and off; all data created while it is
-  on MUST be marked as test data.
+  on MUST be marked as test data. While it is on, rehearsal passes MUST be issuable and usable at
+  any time, regardless of the event window; turning it off restores the window rule.
 - **FR-037**: While rehearsal mode is on, every screen MUST show a visible "REHEARSAL" indicator.
 - **FR-038**: A single confirmed wipe action MUST permanently delete all rehearsal passes,
   entries, votes, photos, and log entries, return the contest to setup, and leave live data
@@ -447,8 +471,12 @@ passes, entries, votes, or photos remain and the contest is back at setup.
   it never changes contest stages, consistent with constitution Principle VI.
 - Undoing a stage keeps all votes and entries; it only changes what is allowed and shown.
 - The nickname list is curated and reviewed by RIZN staff before the event, with enough
-  combinations for at least 1,000 unique passes.
+  combinations for at least 1,000 unique passes (for example about 40 adjectives × 40 nouns);
+  if it were ever exhausted, new passes would be refused and crew alerted rather than reusing a
+  nickname.
 - The big screen is a crew-provided link opened on a church device; it is not linked from
   student screens.
+- If the app fails during the event, crew fall back to a show of hands; the app provides no
+  printable sheet, offline mode, or other fallback tooling.
 - Teams, points, badges, scavenger hunt, leaderboards, friend codes, carnival games, and any
   student-submitted content are out of scope.
