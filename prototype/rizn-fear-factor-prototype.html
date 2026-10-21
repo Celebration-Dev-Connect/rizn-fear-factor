@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>RIZN Fear Factor – Night Pass (prototype)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Creepster&family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4ecff;--bg2:#e7d8ff;--card:#ffffff;--card2:#f6efff;--ink:#1d0f36;--muted:#64527f;--line:#d6c4f1;
+  --accent:#ff7a00;--accent2:#7a2cff;--good:#129a45;--bad:#d01040;--shadow:0 8px 24px rgba(60,20,120,.16);
+  --red:#ff4d5e;--purple:#b98cff;--green:#35d972;--yellow:#ffc933;
+  --display:'Creepster','Chalkduster','Comic Sans MS',fantasy;
+  --body:'Fredoka',ui-rounded,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#120a1f;--bg2:#1b1030;--card:#231540;--card2:#2b1b4d;--ink:#f7f1ff;--muted:#b9a8d9;--line:#3e2a6b;
+    --accent:#ff8a1f;--accent2:#9d5cff;--good:#3be07a;--bad:#ff6b8a;--shadow:0 10px 30px rgba(0,0,0,.45);
+  }
+}
+:root[data-theme="dark"],.force-dark{
+  --bg:#120a1f;--bg2:#1b1030;--card:#231540;--card2:#2b1b4d;--ink:#f7f1ff;--muted:#b9a8d9;--line:#3e2a6b;
+  --accent:#ff8a1f;--accent2:#9d5cff;--good:#3be07a;--bad:#ff6b8a;--shadow:0 10px 30px rgba(0,0,0,.45);
+}
+*{box-sizing:border-box}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;height:100%;display:flex;flex-direction:column;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.35;
+  background-image:radial-gradient(900px 500px at 10% -10%,color-mix(in srgb,var(--accent2) 26%,transparent),transparent),radial-gradient(700px 420px at 100% 0,color-mix(in srgb,var(--accent) 16%,transparent),transparent);background-attachment:fixed}
+button{font-family:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.muted{color:var(--muted)}.sm{font-size:13px}.grow{flex:1;min-width:0}
+
+/* demo bar */
+.demobar{flex:none;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;padding:8px 10px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px)}
+.demobar .sep{width:1px;height:22px;background:var(--line)}
+.pill{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:7px 14px;font-weight:600;font-size:14px;cursor:pointer}
+.pill.on{background:var(--accent);border-color:var(--accent);color:#1d0f36}
+.protolabel{font-size:12px;color:var(--muted)}
+
+#stage{flex:1;min-height:0;display:flex;justify-content:center;padding:10px}
+.phone{width:100%;max-width:410px;height:100%;max-height:860px;display:flex;flex-direction:column;background:var(--bg);border-radius:30px;border:1px solid var(--line);box-shadow:var(--shadow);overflow:hidden;position:relative}
+@media (min-width:521px){.phone{border:8px solid #0b0615;border-radius:42px}}
+@media (max-width:520px){#stage{padding:0}.phone{max-width:none;max-height:none;border-radius:0;border:0;box-shadow:none}}
+
+.topbar{flex:none;display:flex;align-items:center;justify-content:space-between;padding:10px 14px 6px}
+.brand{font-family:var(--display);font-size:28px;letter-spacing:.05em;color:var(--accent);line-height:1}
+.brand small{display:block;font-family:var(--body);font-size:11px;letter-spacing:.14em;color:var(--muted);margin-top:1px}
+.scoreChip{display:flex;gap:7px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:5px 13px;font-weight:700}
+.dot{width:12px;height:12px;border-radius:50%;background:var(--tc,var(--accent));display:inline-block;flex:none}
+.scroll{flex:1;min-height:0;overflow:auto;padding:4px 14px 18px;-webkit-overflow-scrolling:touch}
+.tabbar{flex:none;display:grid;grid-template-columns:repeat(4,1fr);background:var(--card);border-top:1px solid var(--line)}
+.tab{background:none;border:0;color:var(--muted);font-size:12px;padding:8px 0 7px;display:flex;flex-direction:column;align-items:center;gap:1px;cursor:pointer}
+.tab .ic{font-size:22px;filter:grayscale(.7);transition:transform .2s}
+.tab.on{color:var(--ink);font-weight:700}.tab.on .ic{filter:none;transform:translateY(-2px) scale(1.12)}
+
+/* generic */
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px;margin:12px 0}
+.card h3{margin:0 0 6px;font-size:18px}
+.card h4{margin:0 0 8px;font-size:16px}
+.btn{background:var(--accent);color:#1d0f36;border:0;border-radius:14px;padding:12px 16px;font-weight:700;font-size:16px;cursor:pointer;box-shadow:0 4px 0 color-mix(in srgb,var(--accent) 55%,#000)}
+.btn:active{transform:translateY(2px);box-shadow:0 2px 0 color-mix(in srgb,var(--accent) 55%,#000)}
+.btn.full{width:100%}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line);box-shadow:none}
+.btn.small{padding:7px 12px;font-size:14px;border-radius:10px;box-shadow:none}
+.btn.danger{background:var(--bad);color:#fff;box-shadow:none}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+input,select,textarea{width:100%;font:inherit;color:var(--ink);background:var(--card2);border:1.5px solid var(--line);border-radius:12px;padding:11px 12px}
+label.f{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:4px;gap:4px;margin:8px 0}
+.seg button{border:0;background:none;color:var(--muted);font-weight:600;font-size:15px;padding:8px;border-radius:10px;cursor:pointer}
+.seg button.on{background:var(--accent);color:#1d0f36}
+.bar{height:10px;border-radius:999px;background:var(--card2);overflow:hidden;border:1px solid var(--line)}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:999px;transition:width .4s}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--card2);border:1px solid var(--line);border-radius:999px;padding:3px 10px;font-size:12px;font-weight:600}
+.banner{border-radius:14px;padding:10px 12px;margin:10px 0;font-weight:600;font-size:14px;background:color-mix(in srgb,var(--accent) 18%,var(--card));border:1px solid var(--accent)}
+.banner.warn{background:color-mix(in srgb,var(--bad) 16%,var(--card));border-color:var(--bad)}
+
+/* onboarding */
+.onb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:26px;gap:12px}
+.pumpkin{font-size:92px;animation:bob 3s ease-in-out infinite;filter:drop-shadow(0 10px 18px rgba(255,120,0,.35))}
+.otitle{font-family:var(--display);font-size:58px;line-height:.9;color:var(--accent);letter-spacing:.04em;text-shadow:0 3px 0 rgba(0,0,0,.35)}
+.spin{font-size:80px;animation:spin 1.1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes bob{50%{transform:translateY(-10px) rotate(3deg)}}
+
+/* pass */
+.passwrap{--tc:var(--purple);display:flex;flex-direction:column;align-items:center}
+.lanyard{position:relative;width:52px;height:54px;background:var(--tc);display:flex;justify-content:center;overflow:hidden;box-shadow:inset 6px 0 0 rgba(0,0,0,.14),inset -6px 0 0 rgba(0,0,0,.14)}
+.lanyard span{writing-mode:vertical-rl;font-weight:700;font-size:10px;letter-spacing:.22em;color:#1d0f36;white-space:nowrap;opacity:.8;align-self:center}
+.clip{width:30px;height:16px;border-radius:5px;background:linear-gradient(#ece6f7,#8f86a6);border:1px solid #6c6382;z-index:2;position:relative}
+.flip{perspective:1200px;width:100%;margin-top:-6px;cursor:pointer}
+.flipper{display:grid;transition:transform .7s cubic-bezier(.2,.8,.2,1);transform-style:preserve-3d}
+.flip.flipped .flipper{transform:rotateY(180deg)}
+.face{grid-area:1/1;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:22px;overflow:hidden;position:relative;border:2px solid color-mix(in srgb,var(--tc) 70%,#000);box-shadow:0 14px 34px rgba(0,0,0,.35);color:#f7f1ff}
+.front{background:linear-gradient(160deg,#2c1554,#150a2b 60%,#22103f);display:flex;flex-direction:column}
+.front::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.13) 45%,rgba(120,255,240,.11) 52%,rgba(255,120,220,.11) 58%,transparent 70%);background-size:250% 100%;animation:sheen 6s linear infinite;mix-blend-mode:screen}
+@keyframes sheen{0%{background-position:150% 0}100%{background-position:-100% 0}}
+.slot{width:72px;height:12px;border-radius:8px;background:#0b0615;margin:12px auto 0;box-shadow:inset 0 2px 4px #000,0 1px 0 rgba(255,255,255,.12)}
+.p-head{display:flex;justify-content:space-between;align-items:center;padding:8px 18px 0;font-size:11px;letter-spacing:.14em;font-weight:600;color:#c9b8ea}
+.p-logo{font-family:var(--display);font-size:26px;color:var(--accent);letter-spacing:.06em}
+.p-body{padding:4px 18px 14px;flex:1}
+.p-label{font-size:11px;letter-spacing:.3em;color:var(--tc);font-weight:700}
+.p-nick{font-family:var(--display);font-size:clamp(36px,11.5vw,48px);line-height:.95;letter-spacing:.03em;margin:4px 0 12px;text-shadow:0 2px 0 rgba(0,0,0,.4)}
+.p-meta{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.p-meta div{background:rgba(255,255,255,.08);border-radius:12px;padding:6px 8px;text-align:center}
+.p-meta b{display:block;font-size:22px;line-height:1.1}
+.p-meta small{font-size:10px;letter-spacing:.14em;color:#c9b8ea}
+.shelf{display:grid;grid-template-columns:repeat(5,1fr);gap:9px}
+.p-band{background:var(--tc);color:#1d0f36;font-weight:700;letter-spacing:.16em;display:flex;justify-content:space-between;align-items:center;padding:12px 18px;font-size:14px}
+.back{transform:rotateY(180deg);background:linear-gradient(160deg,#22113f,#120a25);padding:22px 20px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px}
+.back h4{margin:0;font-family:var(--display);font-size:26px;color:var(--accent);letter-spacing:.05em;font-weight:400}
+.qr{width:170px;height:170px;border-radius:12px;background:#fff;padding:6px}
+.fcode{font-size:26px;font-weight:700;letter-spacing:.14em}
+.rec{background:rgba(255,255,255,.08);border-radius:12px;padding:8px 14px;width:100%}
+.rec b{font-size:22px;letter-spacing:.3em}
+
+.bdg{aspect-ratio:1;width:100%;border-radius:50%;display:grid;place-items:center;font-size:24px;border:0;padding:0;cursor:pointer;position:relative;overflow:hidden;
+  background:linear-gradient(135deg,hsl(var(--h) 95% 68%),hsl(calc(var(--h) + 70) 90% 55%) 60%,hsl(calc(var(--h) + 140) 90% 65%));
+  box-shadow:0 0 0 2px rgba(255,255,255,.35) inset,0 4px 10px rgba(0,0,0,.35)}
+.bdg::after{content:"";position:absolute;inset:0;background:linear-gradient(120deg,transparent 35%,rgba(255,255,255,.55) 48%,transparent 60%);background-size:250% 100%;animation:sheen 3.6s linear infinite}
+.bdg span{position:relative;z-index:1;filter:drop-shadow(0 1px 1px rgba(0,0,0,.4))}
+.bdg.locked{background:rgba(255,255,255,.06);box-shadow:0 0 0 2px rgba(255,255,255,.16) inset;filter:grayscale(1);opacity:.5}
+.bdg.locked::after{display:none}
+.bdg.big{width:112px;font-size:56px;margin:4px auto 6px}
+.hint{font-size:12px;color:var(--muted);text-align:center;margin:8px 0 0}
+
+/* hunt */
+.letters{display:flex;gap:8px;justify-content:center;margin:10px 0 4px;flex-wrap:wrap}
+.ltr{width:44px;height:56px;border-radius:10px;border:2px dashed var(--line);display:grid;place-items:center;font-family:var(--display);font-size:34px;color:var(--muted)}
+.ltr.got{border:2px solid var(--accent);background:var(--accent);color:#1d0f36;transform:rotate(-3deg)}
+.clue{border:2px solid var(--accent);background:linear-gradient(160deg,color-mix(in srgb,var(--accent) 14%,var(--card)),var(--card))}
+.clue q{display:block;font-size:18px;font-weight:500;quotes:none;margin:6px 0 12px}
+.frow{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+.frow:first-of-type{border-top:0}
+.lbox{width:34px;height:34px;border-radius:9px;background:var(--accent);color:#1d0f36;display:grid;place-items:center;font-family:var(--display);font-size:22px;flex:none}
+.mons{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0}
+.mon{aspect-ratio:1;border-radius:14px;background:var(--card2);border:1.5px dashed var(--line);display:grid;place-items:center;font-size:28px;text-align:center;align-content:center;opacity:.75}
+.mon small{display:block;font-size:10px;line-height:1.05;margin-top:2px;font-weight:600}
+.mon.found{border:2px solid var(--good);background:color-mix(in srgb,var(--good) 18%,var(--card));opacity:1}
+.codein{display:flex;gap:8px}
+.codein input{font-size:22px;letter-spacing:.35em;text-align:center;font-weight:700}
+
+/* contest + board */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cos{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column}
+.cos .ph{aspect-ratio:3/4;display:grid;place-items:center;font-size:68px;position:relative;overflow:hidden}
+.cos .ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.cos .nm{padding:8px 10px 4px;font-weight:700;font-size:15px;line-height:1.15}
+.cos .ft{padding:4px 10px 10px;margin-top:auto}
+.cos.mine{border-color:var(--accent)}
+.trow2{display:grid;grid-template-columns:30px 1fr auto;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.trow2:first-of-type{border-top:0}
+.trow2.me{background:color-mix(in srgb,var(--accent) 16%,transparent);border-radius:12px;padding-left:8px;padding-right:8px}
+.rk{font-family:var(--display);font-size:26px;color:var(--muted);text-align:center}
+.tb{height:12px;border-radius:999px;background:var(--card2);margin-top:5px;overflow:hidden;border:1px solid var(--line)}
+.tb i{display:block;height:100%;background:var(--c);border-radius:999px}
+.val{font-weight:700;font-size:20px;text-align:right}
+
+/* toast + modal */
+#toast-root{position:fixed;left:0;right:0;bottom:calc(84px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;z-index:70;padding:0 16px}
+.toast{background:#1d0f36;color:#fff;border:2px solid var(--accent);border-radius:14px;padding:10px 16px;font-weight:600;font-size:15px;animation:toastin .3s,toastout .35s 2.3s forwards;text-align:center}
+@keyframes toastin{from{transform:translateY(14px);opacity:0}}
+@keyframes toastout{to{opacity:0;transform:translateY(-6px)}}
+.scrim{position:fixed;inset:0;background:rgba(10,4,20,.74);display:grid;place-items:center;padding:calc(16px + env(safe-area-inset-top,0px)) 16px calc(16px + env(safe-area-inset-bottom,0px));z-index:60;animation:fade .2s}
+.sheet{width:100%;max-width:400px;max-height:100%;overflow:auto;background:var(--card);border:2px solid var(--accent);border-radius:24px;padding:20px;text-align:center;animation:popin .35s cubic-bezier(.2,1.3,.4,1)}
+.sheet h2,.sheet h3{margin:6px 0}
+.sheet p{margin:6px 0}
+.sheet .btn{margin-top:10px}
+.sheet .left{text-align:left}
+.teamreveal{font-family:var(--display);font-size:40px;letter-spacing:.06em;color:#1d0f36;background:var(--tc);border-radius:16px;padding:6px 10px;margin:10px 0;transform:rotate(-2deg)}
+.shake{animation:shake .4s}
+@keyframes shake{20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
+@keyframes fade{from{opacity:0}}
+@keyframes popin{from{transform:scale(.8);opacity:0}}
+.bats{height:38px;position:relative;overflow:hidden;margin:-6px -8px 4px}
+.bats span{position:absolute;top:6px;left:-12%;font-size:26px;animation:fly 2.4s linear infinite}
+@keyframes fly{0%{left:-12%;transform:translateY(0)}25%{transform:translateY(10px)}50%{transform:translateY(-4px)}75%{transform:translateY(8px)}100%{left:108%;transform:translateY(0)}}
+.dgrid{display:grid;gap:8px;margin-top:10px}
+
+/* admin */
+.adminwrap{width:100%;max-width:680px;height:100%;display:flex;flex-direction:column;min-height:0}
+.ahead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:2px 0 4px}
+.ahead h2{margin:0;font-family:var(--display);font-weight:400;font-size:32px;color:var(--accent);letter-spacing:.04em}
+.arow{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line);flex-wrap:wrap}
+.arow:first-of-type{border-top:0}
+.arow.dim{opacity:.6}
+.ctrls{display:flex;gap:8px;align-items:center;margin-left:auto}
+.sw{position:relative;width:52px;height:30px;border-radius:999px;background:var(--line);border:0;cursor:pointer;flex:none}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:left .2s}
+.sw.on{background:var(--good)}.sw.on::after{left:25px}
+.stepper{display:flex;align-items:center;gap:6px}
+.stepper button{width:30px;height:30px;border-radius:9px;border:1.5px solid var(--line);background:var(--card2);color:var(--ink);font-weight:700;font-size:16px;cursor:pointer}
+.stepper b{min-width:30px;text-align:center}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}
+.stat{border-radius:12px;padding:8px;text-align:center;background:var(--card2);border-top:5px solid var(--c,var(--accent))}
+.stat b{display:block;font-size:20px}.stat small{font-size:11px;color:var(--muted)}
+.afeed .it{display:flex;gap:8px;padding:6px 0;border-top:1px solid var(--line);font-size:14px;align-items:baseline}
+.afeed .it:first-child{border-top:0}
+.afeed time{margin-left:auto;color:var(--muted);font-size:12px;flex:none}
+.lcode{font-size:54px;font-weight:700;letter-spacing:.2em;text-align:center;font-variant-numeric:tabular-nums;margin:6px 0}
+.thumb{width:48px;height:64px;border-radius:8px;overflow:hidden;display:grid;place-items:center;font-size:26px;flex:none;position:relative}
+.thumb img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.prev{width:100%;max-height:200px;object-fit:cover;border-radius:12px;margin-top:8px}
+.note{font-size:12px;color:var(--muted);margin:6px 0 0}
+
+/* big screen */
+.big{position:relative;width:100%;height:100%;overflow:auto;background:var(--bg);color:var(--ink);border-radius:20px;border:1px solid var(--line);
+  display:grid;grid-template-rows:auto 1fr auto;gap:clamp(8px,1.5vw,22px);padding:clamp(10px,1.8vw,28px);
+  background-image:radial-gradient(700px 400px at 0 0,color-mix(in srgb,var(--accent2) 30%,transparent),transparent),radial-gradient(600px 360px at 100% 100%,color-mix(in srgb,var(--accent) 20%,transparent),transparent)}
+.bhead{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.blogo{font-family:var(--display);font-size:clamp(34px,6vw,92px);line-height:.9;color:var(--accent);letter-spacing:.04em;text-shadow:0 4px 0 rgba(0,0,0,.4)}
+.bsub{color:var(--muted);font-size:clamp(13px,1.5vw,22px);margin-top:4px}
+.live i{display:inline-block;width:.6em;height:.6em;border-radius:50%;background:#ff3b4e;margin-right:.3em;animation:pulse 1.4s infinite}
+@keyframes pulse{50%{opacity:.25}}
+.bcount{display:flex;gap:clamp(14px,3vw,48px)}
+.bcount div{text-align:center}
+.bcount b{display:block;font-size:clamp(34px,6.2vw,96px);line-height:1;font-weight:700;font-variant-numeric:tabular-nums}
+.bcount small{font-size:clamp(11px,1.3vw,20px);letter-spacing:.14em;color:var(--muted)}
+.bmain{display:grid;grid-template-columns:2fr 1fr;gap:clamp(10px,2vw,30px);min-height:0}
+.bteams{display:flex;flex-direction:column;justify-content:space-around;gap:10px}
+.trow{display:grid;grid-template-columns:clamp(90px,13vw,200px) 1fr clamp(70px,9vw,150px);align-items:center;gap:clamp(8px,1.4vw,20px)}
+.tname{font-family:var(--display);font-size:clamp(24px,3.8vw,60px);letter-spacing:.04em;color:var(--c);line-height:1;text-shadow:0 2px 0 rgba(0,0,0,.35)}
+.track{height:clamp(38px,6.6vw,96px);background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden;border:2px solid color-mix(in srgb,var(--c) 40%,transparent)}
+.fill{height:100%;width:8%;border-radius:999px;background:repeating-linear-gradient(45deg,var(--c) 0 16px,color-mix(in srgb,var(--c) 78%,#fff) 16px 32px);transition:width 1.3s cubic-bezier(.2,.9,.3,1);display:flex;align-items:center;justify-content:flex-end;padding-right:clamp(10px,1.6vw,24px);font-weight:700;color:#1d0f36;font-size:clamp(12px,1.7vw,26px);white-space:nowrap;overflow:hidden}
+.tpts{font-size:clamp(26px,4vw,64px);font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
+.bside{background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:18px;padding:clamp(10px,1.4vw,20px);min-height:0;overflow:hidden;display:flex;flex-direction:column;gap:8px}
+.bside h4{margin:0;font-family:var(--display);font-weight:400;font-size:clamp(20px,2.4vw,36px);color:var(--accent);letter-spacing:.05em}
+#bFeed{flex:1;min-height:0;overflow:hidden}
+.bside .it{display:flex;gap:8px;padding:6px 0;border-top:1px solid var(--line);font-size:clamp(13px,1.45vw,22px);align-items:baseline}
+.bside .it.new{animation:slidein .6s}
+@keyframes slidein{from{transform:translateX(30px);opacity:0}}
+.bfoot{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;color:var(--muted);font-size:clamp(13px,1.5vw,22px)}
+.bqr{display:flex;gap:12px;align-items:center}
+.bqr .qr{width:clamp(60px,8vw,120px);height:clamp(60px,8vw,120px)}
+.testrib{background:var(--bad);color:#fff;font-weight:700;padding:2px 10px;border-radius:8px;margin-right:8px}
+.bigpop{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;z-index:5}
+.bigpop .in{background:linear-gradient(160deg,#2c1554,#150a2b);color:#f7f1ff;border:5px solid var(--bc,var(--accent));border-radius:30px;padding:clamp(18px,3vw,44px) clamp(24px,5vw,70px);text-align:center;font-size:clamp(20px,3.2vw,50px);animation:popin .5s cubic-bezier(.2,1.3,.4,1);box-shadow:0 0 80px rgba(255,138,31,.45);max-width:90%}
+.bigpop .bi{font-size:clamp(60px,9vw,140px);line-height:1.1}
+
+@media (max-width:820px){.bmain{grid-template-columns:1fr}.bside{min-height:260px}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header class="demobar">
+  <button class="pill" data-act="view" data-arg="student">📱 Student phone</button>
+  <button class="pill" data-act="view" data-arg="big">📺 Big screen</button>
+  <button class="pill" data-act="view" data-arg="admin">🛠️ Crew console</button>
+  <span class="sep"></span>
+  <button class="pill" data-act="live" id="livePill">● Live sim</button>
+  <button class="pill" data-act="demo">🧪 Demo tools</button>
+  <button class="pill" data-act="theme" id="themePill" aria-label="Switch colour theme">🌓</button>
+  <span class="protolabel">Prototype · fake data · one shared state across all three views</span>
+</header>
+<main id="stage"></main>
+<div id="modal-root"></div>
+<div id="toast-root" aria-live="polite"></div>
+
+<script>
+(function(){
+'use strict';
+const $=(s,e=document)=>e.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const rnd=n=>Math.floor(Math.random()*n);
+const pick=a=>a[rnd(a.length)];
+const shuffle=a=>[...a].sort(()=>Math.random()-.5);
+const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+const norm=s=>String(s).toLowerCase().replace(/[^a-z0-9 ]/g,'').trim();
+const TEAMS=[{id:'red',name:'Red'},{id:'purple',name:'Purple'},{id:'green',name:'Green'},{id:'yellow',name:'Yellow'}];
+const ADJ=['Midnight','Captain','Sneaky','Wicked','Spooky','Crispy','Haunted','Grumpy','Cosmic','Fuzzy','Sleepy','Mystic','Rowdy','Giggly','Phantom','Toxic','Sassy','Electric','Moody','Jolly'];
+const NOUN=['Gremlin','Cobweb','Skeleton','Pumpkin','Banshee','Werewolf','Goblin','Mummy','Vampire','Zombie','Ghoul','Raven','Cauldron','Gargoyle','Spider','Bat','Scarecrow','Wizard','Pixie','Yeti'];
+const EMOJI=['🧛','🧙‍♀️','🦸','🧟','👻','🤖','🦄','🐱','🧜‍♀️','🥷','👽','🎃','💀','🦖','🧚'];
+
+const BADGES=[
+ {id:'first',icon:'🎟️',name:'First Steps',desc:'Signed in to Fear Factor',hue:30,test:p=>true},
+ {id:'spot',icon:'👀',name:'Monster Spotter',desc:'Found your first Monster (a costumed leader)',hue:280,test:p=>p.leaders.size>=1},
+ {id:'hunter',icon:'🧟',name:'Monster Hunter',desc:'Found 5 Monsters',hue:140,test:p=>p.leaders.size>=5},
+ {id:'slayer',icon:'🗡️',name:'Monster Slayer',desc:'Found 10 Monsters',hue:0,test:p=>p.leaders.size>=10},
+ {id:'hunt',icon:'🗝️',name:'Hunt Complete',desc:'Solved every scavenger hunt clue',hue:50,test:p=>huntComplete(p)},
+ {id:'carnival',icon:'🎡',name:'Carnival Champ',desc:'Earned 25 points at the carnival games',hue:320,test:p=>p.carnival>=25},
+ {id:'friend',icon:'🤝',name:'Brought a Friend',desc:'A new friend joined with your friend code',hue:190,test:p=>p.friends>=1},
+ {id:'costume',icon:'🎭',name:'Costume Contestant',desc:'Entered in the costume contest',hue:340,test:p=>p.costume},
+ {id:'voter',icon:'🗳️',name:'Voter',desc:'Cast your costume vote',hue:100,test:p=>p.voted!=null},
+ {id:'owl',icon:'🌟',name:'Night Owl',desc:'Reached 100 points',hue:60,test:p=>p.points>=100}
+];
+
+const S={view:'student',stuTab:'pass',boardMode:'teams',teamMode:'total',flipped:false,theme:'auto',live:true,
+  configVersion:1,huntStatus:'live',testMode:false,round2:false,votingOpen:true,
+  passes:[],stations:[],leaders:[],costumes:[],feed:[],form:{},onboard:'start',resetScroll:false};
+let popQueue=[],bigPop=[],bigPopShowing=false,idSeq=0,cid=0,lastFeedHtml='';
+
+/* ---------- data helpers ---------- */
+const me=()=>S.passes.find(p=>p.isMe);
+function pickTeam(){
+  const counts=TEAMS.map(t=>({id:t.id,n:S.passes.filter(p=>p.team===t.id).length}));
+  const min=Math.min(...counts.map(c=>c.n));
+  return pick(counts.filter(c=>c.n===min)).id; // balanced-random
+}
+function makeNick(){
+  for(let i=0;i<60;i++){const n=pick(ADJ)+' '+pick(NOUN);if(!S.passes.some(p=>p.nick===n))return n;}
+  return pick(ADJ)+' '+pick(NOUN)+' '+(10+rnd(89));
+}
+function newPass(){
+  const p={id:'p'+(++idSeq),no:S.passes.length+1,nick:makeNick(),team:pickTeam(),points:0,carnival:0,leaders:new Set(),found:{},friends:0,
+    badges:new Set(),voted:null,costume:false,recovery:String(1000+rnd(9000)),isMe:false};
+  S.passes.push(p);return p;
+}
+function availStations(){return S.stations.filter(s=>s.status==='active'&&(s.round===1||S.round2)).sort((a,b)=>a.order-b.order)}
+function activeStations(){return S.stations.filter(s=>s.status==='active').sort((a,b)=>a.order-b.order)}
+function nextStation(p){return availStations().find(s=>!(s.id in p.found))||null}
+function huntComplete(p){const a=activeStations();return a.length>0&&a.every(s=>s.id in p.found)}
+function sortedPasses(){return [...S.passes].sort((a,b)=>b.points-a.points||a.no-b.no)}
+function rankOf(p){return sortedPasses().findIndex(x=>x.id===p.id)+1}
+function teamStats(){return TEAMS.map(t=>{const ps=S.passes.filter(p=>p.team===t.id);const pts=ps.reduce((a,p)=>a+p.points,0);
+  return {...t,passes:ps.length,points:pts,avg:ps.length?Math.round(pts/ps.length*10)/10:0}})}
+function logFeed(icon,text,team){S.feed.unshift({t:Date.now(),icon,text,team});if(S.feed.length>40)S.feed.pop()}
+function ago(t){const s=Math.round((Date.now()-t)/1000);return s<5?'now':s<60?s+'s':Math.floor(s/60)+'m'}
+function leaderCode(id,off){const slot=Math.floor(Date.now()/30000)+(off||0);return String(((id+3)*7919+slot*15485863)%10000).padStart(4,'0')}
+
+function checkBadges(p,silent){
+  BADGES.forEach(b=>{
+    if(!p.badges.has(b.id)&&b.test(p)){
+      p.badges.add(b.id);
+      if(silent)return;
+      if(p.isMe)popQueue.push(b);
+      if(b.id!=='first'){
+        logFeed('🏅',`${p.nick} earned ${b.name}`,p.team);
+        if(S.view==='big'&&bigPop.length<4)bigPop.push({nick:p.nick,team:p.team,b});
+      }
+    }
+  });
+  if(p.isMe)showNextPopup();
+}
+function award(p,n,icon,text,toastMsg){
+  p.points=Math.max(0,p.points+n);
+  logFeed(icon,text,p.team);
+  if(p.isMe&&toastMsg!==null)toast((n>0?'+':'')+n+' pts — '+(toastMsg||text));
+  checkBadges(p);
+}
+function addCostume(p,img){
+  if(S.costumes.some(c=>c.passId===p.id))return null;
+  const c={id:'c'+(++cid),passId:p.id,nick:p.nick,img:img||null,emoji:pick(EMOJI),h:rnd(360),votes:0};
+  S.costumes.push(c);p.costume=true;checkBadges(p,p.isMe?false:true);return c;
+}
+
+function initData(){
+  idSeq=0;cid=0;popQueue=[];bigPop=[];bigPopShowing=false;lastFeedHtml='';
+  Object.assign(S,{passes:[],feed:[],costumes:[],configVersion:1,huntStatus:'live',testMode:false,round2:false,votingOpen:true,
+    form:{leaderSel:'1',atype:'carnival',aamt:'10'},onboard:'start',flipped:false,stuTab:'pass'});
+  S.stations=[
+   {id:'k7x2q',order:1,round:1,letter:'G',label:'Graveyard Gate',clue:'Where coats hang low and a crooked fence stands tall, find the gate that guards it all.',q:'How many skulls are on the shelf?',answers:['12','twelve'],points:10,bonus:0,status:'active',firstBy:null},
+   {id:'m9d4a',order:2,round:1,letter:'H',label:'Cobweb Corner',clue:'Eight-legged decorators spun a home by the stairs. Go see whose name is carved there.',q:'What name is written on the gravestone?',answers:['mortimer'],points:10,bonus:0,status:'active',firstBy:null},
+   {id:'b3v8z',order:3,round:1,letter:'O',label:'Witch’s Cauldron',clue:'Something bubbles near the snack table. Follow the green glow.',q:'What colour is the bubbling potion?',answers:['green','lime'],points:15,bonus:0,status:'active',firstBy:null},
+   {id:'r5t1w',order:4,round:2,letter:'S',label:'Haunted Hallway',clue:'Round 2! Climb where the pumpkins light your way.',q:'How many pumpkins glow on the stairs?',answers:['7','seven'],points:15,bonus:0,status:'active',firstBy:null},
+   {id:'q8n6j',order:5,round:2,letter:'T',label:'Bat Cave',clue:'Look up. Something is hanging around the lobby ceiling.',q:'What animal hangs upside down from the ceiling?',answers:['bat','bats'],points:20,bonus:10,status:'active',firstBy:null}
+  ];
+  S.leaders=[['🧟','Mummy'],['🧛','Vampire'],['🧙','Witch'],['🎃','Pumpkin King'],['👻','Ghost'],['💀','Skeleton'],['🕷️','Spider'],['🐺','Werewolf'],['🦇','Bat'],['👽','Alien'],['🧌','Troll'],['🦴','Bone Collector']].map((x,i)=>({id:i+1,emoji:x[0],name:x[1]}));
+  for(let i=0;i<34;i++){
+    const p=newPass();
+    S.stations.slice(0,rnd(4)).forEach(s=>p.found[s.id]=s.points);
+    shuffle(S.leaders).slice(0,rnd(5)).forEach(l=>p.leaders.add(l.id));
+    p.carnival=pick([0,0,5,10,15,20,25,30]);p.friends=Math.random()<.2?1:0;
+    p.points=1+Object.values(p.found).reduce((a,b)=>a+b,0)+p.leaders.size*5+p.carnival+p.friends*10;
+    checkBadges(p,true);
+  }
+  shuffle(S.passes).slice(0,6).forEach(p=>{const c=addCostume(p,null);c.votes=rnd(9)});
+  logFeed('🎟️','Doors open — welcome to Fear Factor!',null);
+}
+
+/* ---------- fake QR (placeholder, not scannable) ---------- */
+function fakeQR(seed,n){
+  n=n||21;let h=1;for(const c of String(seed))h=(Math.imul(h,31)+c.charCodeAt(0))>>>0;h=h||1;
+  const rand=()=>{h^=h<<13;h>>>=0;h^=h>>>17;h^=h<<5;h>>>=0;return h/4294967296};
+  const g=[];for(let y=0;y<n;y++){g[y]=[];for(let x=0;x<n;x++)g[y][x]=rand()>.52}
+  [[0,0],[n-7,0],[0,n-7]].forEach(([ox,oy])=>{for(let y=-1;y<8;y++)for(let x=-1;x<8;x++){
+    const gx=ox+x,gy=oy+y;if(gx<0||gy<0||gx>=n||gy>=n)continue;
+    const d=Math.max(Math.abs(x-3),Math.abs(y-3));g[gy][gx]=(x<0||y<0||x>6||y>6)?false:(d===3||d<=1)}});
+  let r='';for(let y=0;y<n;y++)for(let x=0;x<n;x++)if(g[y][x])r+=`<rect x="${x}" y="${y}" width="1.02" height="1.02"/>`;
+  return `<svg class="qr" viewBox="-1 -1 ${n+2} ${n+2}" role="img" aria-label="Placeholder QR code (not scannable)"><rect x="-1" y="-1" width="${n+2}" height="${n+2}" fill="#fff"/><g fill="#1d0f36">${r}</g></svg>`;
+}
+
+/* ---------- toast / modal ---------- */
+function toast(msg){const r=$('#toast-root');const d=document.createElement('div');d.className='toast';d.textContent=msg;r.appendChild(d);setTimeout(()=>d.remove(),2700)}
+function modal(inner,style){$('#modal-root').innerHTML=`<div class="scrim" data-act="scrim"><div class="sheet" role="dialog" aria-modal="true" style="${style||''}">${inner}</div></div>`}
+function closeModal(){$('#modal-root').innerHTML='';setTimeout(showNextPopup,250)}
+function batsHTML(){return `<div class="bats" aria-hidden="true"><span style="top:4px;animation-delay:0s">🦇</span><span style="top:14px;animation-delay:.8s">🦇</span><span style="top:0;animation-delay:1.5s">🦇</span></div>`}
+function showNextPopup(){
+  if(!me()||$('#modal-root').firstChild||!popQueue.length)return;
+  const b=popQueue.shift();
+  modal(`${batsHTML()}<div class="bdg big" style="--h:${b.hue}"><span>${b.icon}</span></div><h2>Badge unlocked!</h2><p><b>${esc(b.name)}</b><br><span class="muted">${esc(b.desc)}</span></p><button class="btn full" data-act="close">Add to my pass</button>`);
+}
+
+/* ---------- student views ---------- */
+function viewOnboard(){
+  if(S.onboard==='loading')return `<div class="onb"><div class="spin">🎃</div><h2>Summoning your Night Pass…</h2><p class="muted">Picking a nickname and a team</p></div>`;
+  return `<div class="onb">${batsHTML()}<div class="pumpkin">🎃</div><div class="otitle">RIZN<br>Fear Factor</div><p class="muted">Friday, October 30 · 7–10pm</p>
+   <button class="btn full" data-act="onboard">📷 I scanned the poster QR</button>
+   <p class="sm muted">In real life, this screen is what opens after a student scans the poster with their phone camera. No name or email needed. Just a spooky nickname.</p></div>`;
+}
+function viewStudent(){
+  const p=me();
+  if(!p)return `<div class="phone">${viewOnboard()}</div>`;
+  const tab=S.stuTab;
+  const body=tab==='pass'?tPass(p):tab==='hunt'?tHunt(p):tab==='contest'?tContest(p):tBoard(p);
+  const tabs=[['pass','🎟️','Pass'],['hunt','🗺️','Hunt'],['contest','🎭','Costumes'],['board','🏆','Board']];
+  return `<div class="phone" style="--tc:var(--${p.team})">
+   <div class="topbar"><div class="brand">RIZN<small>FEAR FACTOR</small></div><div class="scoreChip"><span class="dot"></span>${p.points} pts</div></div>
+   <div class="scroll">${body}</div>
+   <nav class="tabbar">${tabs.map(t=>`<button class="tab ${tab===t[0]?'on':''}" data-act="tab" data-arg="${t[0]}"><span class="ic">${t[1]}</span>${t[2]}</button>`).join('')}</nav></div>`;
+}
+function tPass(p){
+  const parts=p.nick.split(' ');const first=parts.shift();const rest=parts.join(' ');
+  const ns=nextStation(p);
+  const shelf=BADGES.map(b=>`<button class="bdg ${p.badges.has(b.id)?'':'locked'}" style="--h:${b.hue}" data-act="badge" data-arg="${b.id}" aria-label="${esc(b.name)}${p.badges.has(b.id)?'':' (locked)'}"><span>${b.icon}</span></button>`).join('');
+  return `<div class="passwrap" style="--tc:var(--${p.team})">
+   <div class="lanyard" aria-hidden="true"><span>RIZN ✦ FEAR FACTOR ✦ RIZN</span></div><div class="clip" aria-hidden="true"></div>
+   <div class="flip ${S.flipped?'flipped':''}" data-act="flip"><div class="flipper">
+    <div class="face front">
+     <div class="slot"></div>
+     <div class="p-head"><span class="p-logo">RIZN</span><span>FEAR FACTOR 2026</span><span>ALL ACCESS</span></div>
+     <div class="p-body">
+      <div class="p-label">ATTENDEE</div>
+      <div class="p-nick">${esc(first)}<br>${esc(rest)}</div>
+      <div class="p-meta"><div><b>${String(p.no).padStart(4,'0')}</b><small>PASS</small></div><div><b>${p.points}</b><small>POINTS</small></div><div><b>#${rankOf(p)}</b><small>RANK</small></div></div>
+      <div class="shelf">${shelf}</div>
+     </div>
+     <div class="p-band"><span>Team ${cap(p.team)}</span><span>Oct 30 · 7PM</span></div>
+    </div>
+    <div class="face back">
+     <h4>Friend code</h4>${fakeQR('friend'+p.id)}
+     <div class="fcode">FR-${p.recovery.split('').reverse().join('')}</div>
+     <p class="sm" style="color:#c9b8ea;margin:0">A new friend scans this and you both get +10 (up to 3 friends).</p>
+     <div class="rec"><small>RECOVERY CODE</small><br><b>${p.recovery}</b></div>
+     <p class="sm" style="color:#c9b8ea;margin:0">Lost your pass or switched browsers? Show this to a crew member.</p>
+    </div>
+   </div></div>
+   <p class="hint">Tap the pass to flip it · Tap a badge to see how to earn it</p>
+  </div>
+  <div class="card clue" style="margin-top:14px">
+   <h4>📍 ${ns?'Next clue':huntComplete(p)?'Hunt complete!':'Scavenger hunt'}</h4>
+   ${ns?`<div class="muted">${esc(ns.clue)}</div><button class="btn full small" style="margin-top:10px" data-act="tab" data-arg="hunt">Open the hunt</button>`:
+   huntComplete(p)?`<div class="muted">You solved every clue. Legend.</div>`:`<div class="muted">Round 1 done! Round 2 unlocks during the afterparty.</div>`}
+  </div>`;
+}
+function tHunt(p){
+  const act=activeStations();const got=act.filter(s=>s.id in p.found).length;const ns=nextStation(p);
+  const letters=act.map(s=>s.id in p.found?`<span class="ltr got">${esc(s.letter)}</span>`:`<span class="ltr">_</span>`).join('');
+  const foundRows=act.filter(s=>s.id in p.found).map(s=>`<div class="frow"><span class="lbox">${esc(s.letter)}</span><div class="grow"><b>${esc(s.label)}</b></div><b>+${p.found[s.id]}</b></div>`).join('');
+  const r2locked=!S.round2&&act.some(s=>s.round===2);
+  let clue;
+  if(ns)clue=`<div class="card clue"><h4>Clue ${got+1}</h4><q>${esc(ns.clue)}</q><button class="btn full" data-act="scan" data-arg="${ns.id}">📷 I found the QR. Scan it!</button><p class="note">Real life: students scan the printed code with their camera. Here, this button stands in for the scan.</p></div>`;
+  else if(huntComplete(p))clue=`<div class="card clue"><h4>🎉 You solved the whole hunt!</h4><div class="muted">Check your pass for the Hunt Complete badge.</div></div>`;
+  else clue=`<div class="card clue"><h4>🔒 Round 2 unlocks soon</h4><div class="muted">${r2locked?'The crew opens it during the afterparty. Stay close!':'No active clues right now. Check back in a minute.'}</div></div>`;
+  const mons=S.leaders.map(l=>p.leaders.has(l.id)?`<div class="mon found"><div>${l.emoji}<small>${esc(l.name)}</small></div></div>`:`<div class="mon"><div>❓</div></div>`).join('');
+  return `${S.huntStatus!=='live'?`<div class="banner warn">⏸ The hunt is paused by the crew. Hang tight!</div>`:''}
+   <div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">Scavenger hunt</h3><span class="chip" title="Hunt settings version">↻ v${S.configVersion}</span></div>
+    <div class="letters" aria-label="Secret word letters">${letters}</div>
+    <div class="bar"><i style="width:${act.length?got/act.length*100:0}%"></i></div><div class="sm muted" style="margin-top:6px">${got} of ${act.length} clues solved. The letters spell a secret word.</div></div>
+   ${clue}
+   ${foundRows?`<div class="card"><h4>Solved</h4>${foundRows}</div>`:''}
+   <div class="card"><h3>🧟 Monster hunt</h3><div class="sm muted">Costumed leaders are hiding in the crowd. Find one, ask for their secret code, and type it in. It changes every 30 seconds!</div>
+    <div class="mons">${mons}</div><div class="sm muted" style="margin-bottom:8px">${p.leaders.size} of ${S.leaders.length} found · 1, 5 and 10 earn badges</div>
+    <div class="codein"><input id="lcode" data-form="lcode" inputmode="numeric" maxlength="4" placeholder="0000" value="${esc(S.form.lcode||'')}" aria-label="Monster code"><button class="btn" data-act="submitCode">Go</button></div></div>
+   <div class="card"><h4>📄 No phone?</h4><div class="sm muted">Grab a paper Night Pass at the welcome table. Write your answers and letters on it, and a crew member scans it at each station.</div></div>`;
+}
+function costumeArt(c){return c.img?`<img alt="Costume photo for ${esc(c.nick)}" src="${c.img}">`:`<span>${c.emoji}</span>`}
+function costumeBg(c){return `linear-gradient(135deg,hsl(${c.h} 70% 42%),hsl(${(c.h+50)%360} 70% 26%))`}
+function tContest(p){
+  const open=S.votingOpen;
+  const cards=S.costumes.map(c=>{
+    const mine=c.passId===p.id,voted=p.voted===c.id;
+    let btn;
+    if(mine)btn=`<button class="btn small ghost full" disabled>That’s you! 🎭</button>`;
+    else if(voted)btn=`<button class="btn small full" disabled>✓ Your vote</button>`;
+    else if(p.voted!=null)btn=`<button class="btn small ghost full" disabled>Vote used</button>`;
+    else if(!open)btn=`<button class="btn small ghost full" disabled>Voting closed</button>`;
+    else btn=`<button class="btn small full" data-act="vote" data-arg="${c.id}">Vote</button>`;
+    return `<div class="cos ${mine?'mine':''}"><div class="ph" style="background:${costumeBg(c)}">${costumeArt(c)}</div><div class="nm">${esc(c.nick)}</div><div class="ft">${btn}</div></div>`;
+  }).join('');
+  return `<div class="card"><h3>🎭 Costume contest</h3><div class="sm muted">You get one vote. Crew members take the photos at the photo spot, so you can’t upload in the app.</div></div>
+   ${open?(p.voted==null?'':`<div class="banner">✓ Your vote is in. Results are announced on the big screen!</div>`):`<div class="banner">🔒 Voting isn’t open yet. The crew will open it soon.</div>`}
+   ${S.costumes.length?`<div class="grid2">${cards}</div>`:`<div class="card"><h4>No costumes yet</h4><div class="muted">Want to be in the contest? Find the photo spot and a crew member will snap your costume.</div></div>`}`;
+}
+function tBoard(p){
+  const seg=`<div class="seg"><button class="${S.boardMode==='teams'?'on':''}" data-act="boardMode" data-arg="teams">Teams</button><button class="${S.boardMode==='ind'?'on':''}" data-act="boardMode" data-arg="ind">Individuals</button></div>`;
+  if(S.boardMode==='teams'){
+    const avg=S.teamMode==='avg';
+    const ts=teamStats().sort((a,b)=>avg?b.avg-a.avg:b.points-a.points);
+    const max=Math.max(1,...ts.map(t=>avg?t.avg:t.points));
+    return seg+`<div class="seg"><button class="${!avg?'on':''}" data-act="teamMode" data-arg="total">Total points</button><button class="${avg?'on':''}" data-act="teamMode" data-arg="avg">Average per pass</button></div>
+     <div class="card">${ts.map((t,i)=>`<div class="trow2 ${t.id===p.team?'me':''}" style="--c:var(--${t.id})"><div class="rk">${i+1}</div><div><b>${t.name}${t.id===p.team?' (your team)':''}</b><div class="tb"><i style="width:${(avg?t.avg:t.points)/max*100}%"></i></div><div class="sm muted">${t.passes} passes</div></div><div class="val">${avg?t.avg:t.points}</div></div>`).join('')}</div>`;
+  }
+  const sp=sortedPasses();const top=sp.slice(0,10);const myRank=rankOf(p);
+  const row=(x,i)=>`<div class="trow2 ${x.isMe?'me':''}" style="--tc:var(--${x.team})"><div class="rk">${i}</div><div><span class="dot"></span> <b>${esc(x.nick)}</b>${x.isMe?' (you)':''}</div><div class="val">${x.points}</div></div>`;
+  return seg+`<div class="card">${top.map((x,i)=>row(x,i+1)).join('')}${myRank>10?`<div class="sm muted" style="text-align:center;padding:4px 0">···</div>${row(p,myRank)}`:''}</div>`;
+}
+
+/* ---------- big screen ---------- */
+function viewBig(){
+  lastFeedHtml='';
+  return `<div class="big force-dark" id="big">
+   <div class="bhead"><div><div class="blogo">RIZN Fear Factor</div><div class="bsub">🎃 Friday, Oct 30 · Live scoreboard · <span class="live"><i></i>LIVE</span></div></div>
+    <div class="bcount"><div><b id="bPasses">0</b><small>NIGHT PASSES</small></div><div><b id="bPoints">0</b><small>TOTAL POINTS</small></div></div></div>
+   <div class="bmain"><div class="bteams">${TEAMS.map(t=>`<div class="trow" style="--c:var(--${t.id})"><div class="tname" id="bn-${t.id}">${t.name}</div><div class="track"><div class="fill" id="bar-${t.id}"><span id="bp-${t.id}"></span></div></div><div class="tpts" id="bt-${t.id}">0</div></div>`).join('')}</div>
+    <aside class="bside"><h4>Live feed</h4><div id="bFeed"></div><h4>Top passes</h4><div id="bTop"></div></aside></div>
+   <div class="bfoot"><div id="bInfo"></div><div class="bqr">${fakeQR('poster')}<span>Scan with your camera app<br>to get your Night Pass</span></div></div>
+   <div class="bigpop" id="bigpop"></div></div>`;
+}
+function updateBig(){
+  if(!$('#big'))return;
+  const ts=teamStats();const max=Math.max(1,...ts.map(t=>t.points));
+  const lead=ts.reduce((a,b)=>b.points>a.points?b:a).id;
+  $('#bPasses').textContent=S.passes.length;
+  $('#bPoints').textContent=ts.reduce((a,t)=>a+t.points,0).toLocaleString();
+  ts.forEach(t=>{
+    $('#bar-'+t.id).style.width=Math.max(10,t.points/max*100)+'%';
+    $('#bp-'+t.id).textContent=t.passes+' passes';
+    $('#bt-'+t.id).textContent=t.points.toLocaleString();
+    $('#bn-'+t.id).textContent=(t.id===lead&&t.points>0?'👑 ':'')+t.name;
+  });
+  const fh=S.feed.slice(0,9).map(f=>`<div class="it ${Date.now()-f.t<1500?'new':''}"><span>${f.icon}</span><span>${esc(f.text)}</span></div>`).join('');
+  if(fh!==lastFeedHtml){$('#bFeed').innerHTML=fh;lastFeedHtml=fh}
+  const th=sortedPasses().slice(0,5).map((p,i)=>`<div class="it" style="--tc:var(--${p.team})"><span>${i+1}.</span><span class="grow"><span class="dot"></span> ${esc(p.nick)}</span><b>${p.points}</b></div>`).join('');
+  if($('#bTop').innerHTML!==th)$('#bTop').innerHTML=th;
+  const votes=S.costumes.reduce((a,c)=>a+c.votes,0);
+  $('#bInfo').innerHTML=`${S.testMode?'<span class="testrib">TEST MODE</span>':''}🎭 Costume voting: <b>${S.votingOpen?'OPEN':'closed'}</b> · ${votes} votes · 🗺️ Hunt: <b>${S.huntStatus==='live'?'live':'paused'}</b>${S.round2?' · Round 2 open':''}`;
+  if(bigPop.length&&!bigPopShowing){
+    bigPopShowing=true;const x=bigPop.shift();
+    $('#bigpop').innerHTML=`<div class="in" style="--bc:var(--${x.team||'purple'})"><div class="bi">${x.b.icon}</div><div>🦇 <b>${esc(x.nick)}</b> just earned<br><b style="color:var(--accent)">${esc(x.b.name)}</b>!</div></div>`;
+    setTimeout(()=>{const bp=$('#bigpop');if(bp)bp.innerHTML='';bigPopShowing=false},3800);
+  }
+}
+
+/* ---------- admin ---------- */
+const sel=(v,c)=>v===c?' selected':'';
+function passOptions(cur){return `<option value="">Choose a pass…</option>`+[...S.passes].sort((a,b)=>a.nick.localeCompare(b.nick)).map(p=>`<option value="${p.id}"${sel(p.id,cur)}>${esc(p.nick)} · ${cap(p.team)}${p.isMe?' (you)':''}</option>`).join('')}
+function sw(on,act,arg){return `<button class="sw ${on?'on':''}" role="switch" aria-checked="${on}" data-act="${act}" ${arg?`data-arg="${arg}"`:''}></button>`}
+function adminStatsHTML(){
+  return teamStats().map(t=>`<div class="stat" style="--c:var(--${t.id})"><b>${t.points}</b><small>${t.name} · ${t.passes}</small></div>`).join('');
+}
+function adminFeedHTML(){return S.feed.slice(0,14).map(f=>`<div class="it"><span>${f.icon}</span><span>${esc(f.text)}</span><time>${ago(f.t)}</time></div>`).join('')}
+function leaderBoxHTML(){
+  const id=+S.form.leaderSel||1;const l=S.leaders.find(x=>x.id===id)||S.leaders[0];
+  const rem=30-Math.floor((Date.now()%30000)/1000);
+  return `<div class="lcode">${leaderCode(l.id,0)}</div><div class="bar"><i style="width:${rem/30*100}%"></i></div><div class="sm muted" style="text-align:center;margin-top:6px">${l.emoji} ${esc(l.name)} · changes in ${rem}s</div>`;
+}
+function adminCostumesHTML(){
+  if(!S.costumes.length)return `<div class="muted sm">No entries yet.</div>`;
+  return [...S.costumes].sort((a,b)=>b.votes-a.votes).map(c=>`<div class="arow"><div class="thumb" style="background:${costumeBg(c)}">${costumeArt(c)}</div><div class="grow"><b>${esc(c.nick)}</b><div class="sm muted">${c.votes} vote${c.votes===1?'':'s'}</div></div><button class="btn small ghost" data-act="rmCostume" data-arg="${c.id}">Remove</button></div>`).join('');
+}
+function viewAdmin(){
+  const f=S.form;
+  const rows=S.stations.map(s=>{const found=S.passes.filter(p=>s.id in p.found).length;
+    return `<div class="arow ${s.status!=='active'?'dim':''}"><span class="lbox">${esc(s.letter)}</span><div class="grow"><b>${esc(s.label)}</b><div class="sm muted">Round ${s.round} · code /h/${s.id} · ${found} found${s.status!=='active'?' · '+s.status:''}</div></div>
+     <div class="ctrls"><div class="stepper"><button data-act="stPts" data-arg="${s.id}|-5" aria-label="Fewer points">−</button><b>${s.points}</b><button data-act="stPts" data-arg="${s.id}|5" aria-label="More points">+</button></div>
+     ${sw(s.status==='active','stToggle',s.id)}<button class="btn small ghost" data-act="stEdit" data-arg="${s.id}">Edit</button></div></div>`}).join('');
+  return `<div class="adminwrap"><div class="scroll">
+   <div class="ahead"><h2>Crew console</h2><span class="chip">config v${S.configVersion}</span>${S.testMode?'<span class="chip" style="background:var(--bad);color:#fff">TEST MODE</span>':''}</div>
+   <div class="card"><h3>Live now</h3><div class="stats" id="adminStats">${adminStatsHTML()}</div><div class="afeed" id="adminFeed">${adminFeedHTML()}</div></div>
+   <div class="card"><h3>Event controls</h3>
+    <div class="arow"><div class="grow"><b>Scavenger hunt is live</b><div class="sm muted">Pause to freeze all station scans</div></div>${sw(S.huntStatus==='live','toggleHunt')}</div>
+    <div class="arow"><div class="grow"><b>Round 2 unlocked</b><div class="sm muted">Release the next wave of clues</div></div>${sw(S.round2,'toggleRound2')}</div>
+    <div class="arow"><div class="grow"><b>Costume voting open</b><div class="sm muted">Students can cast one vote each</div></div>${sw(S.votingOpen,'toggleVoting')}</div>
+    <div class="arow"><div class="grow"><b>Test mode</b><div class="sm muted">For the pre-doors walkthrough</div></div>${sw(S.testMode,'toggleTest')}</div>
+    ${S.testMode?`<button class="btn small danger" data-act="wipe">Wipe test data &amp; restart</button>`:''}
+   </div>
+   <div class="card"><h3>Hunt stations</h3><div class="sm muted">Each QR code holds only an ID, so you can change anything here without reprinting.</div>${rows}
+    <button class="btn small ghost" style="margin-top:10px" data-act="addStation">+ Use a spare QR code</button>
+    <p class="note">Points changes apply to future scans only. Paused stations are skipped in every student’s chain automatically.</p></div>
+   <div class="card"><h3>Monster phone</h3><div class="sm muted">What a costumed leader shows on their own phone.</div>
+    <label class="f" for="lsel">Leader</label><select id="lsel" data-form="leaderSel">${S.leaders.map(l=>`<option value="${l.id}"${sel(String(l.id),String(f.leaderSel))}>${l.emoji} ${esc(l.name)}</option>`).join('')}</select>
+    <div id="leaderBox">${leaderBoxHTML()}</div></div>
+   <div class="card"><h3>Costume contest</h3>
+    <label class="f" for="cpass">Student</label><select id="cpass" data-form="cpass">${passOptions(f.cpass)}</select>
+    <label class="f" for="cphoto">Photo (taken by crew)</label><input id="cphoto" type="file" accept="image/*" capture="environment" data-file="photo">
+    ${f.photo?`<img class="prev" src="${f.photo}" alt="Photo preview">`:''}
+    <p class="note">Photos are resized and re-encoded on the device, which strips location data. Nicknames only are shown to students.</p>
+    <button class="btn full" style="margin-top:10px" data-act="addCostume">Add to contest</button>
+    <div id="adminCostumes" style="margin-top:12px">${adminCostumesHTML()}</div></div>
+   <div class="card"><h3>Award points</h3>
+    <label class="f" for="apass">Student</label><select id="apass" data-form="apass">${passOptions(f.apass)}</select>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div><label class="f" for="atype">Type</label><select id="atype" data-form="atype"><option value="carnival"${sel('carnival',f.atype)}>Carnival game</option><option value="manual"${sel('manual',f.atype)}>Manual change</option></select></div>
+    <div><label class="f" for="aamt">Points</label><input id="aamt" type="number" data-form="aamt" value="${esc(f.aamt||'10')}"></div></div>
+    <label class="f" for="areason">Reason (required for manual)</label><input id="areason" data-form="areason" value="${esc(f.areason||'')}" placeholder="e.g. helped set up">
+    <button class="btn full" style="margin-top:10px" data-act="award">Apply</button></div>
+  </div></div>`;
+}
+function updateAdminLive(){
+  const a=$('#adminStats');if(a)a.innerHTML=adminStatsHTML();
+  const b=$('#adminFeed');if(b)b.innerHTML=adminFeedHTML();
+  const c=$('#adminCostumes');if(c)c.innerHTML=adminCostumesHTML();
+}
+function updateLeaderBox(){const b=$('#leaderBox');if(b)b.innerHTML=leaderBoxHTML()}
+
+/* ---------- render ---------- */
+function render(force){
+  const stage=$('#stage');
+  if(!force){const a=document.activeElement;if(a&&stage.contains(a)&&a.matches('input,textarea,select'))return}
+  const sc=$('.scroll',stage);const top=sc?sc.scrollTop:0;
+  stage.innerHTML=S.view==='student'?viewStudent():S.view==='big'?viewBig():viewAdmin();
+  if(S.view==='big')updateBig();
+  const sc2=$('.scroll',stage);if(sc2&&!S.resetScroll)sc2.scrollTop=top;
+  S.resetScroll=false;
+  document.querySelectorAll('.demobar [data-act="view"]').forEach(b=>b.classList.toggle('on',b.dataset.arg===S.view));
+  $('#livePill').classList.toggle('on',S.live);
+  $('#livePill').textContent=S.live?'● Live sim on':'○ Live sim off';
+}
+function refreshLive(){
+  if(S.view==='big')updateBig();
+  else if(S.view==='admin')updateAdminLive();
+  else if(S.view==='student'&&S.stuTab==='board')render(false);
+}
+
+/* ---------- simulation ---------- */
+function simTick(){
+  if(!S.live)return;
+  const others=S.passes.filter(p=>!p.isMe);const r=Math.random();
+  if(r<.38&&S.passes.length<160){
+    const p=newPass();award(p,1,'🎟️',`${p.nick} joined Team ${cap(p.team)}`,null);
+  }else if(r<.62){
+    const p=pick(others);const ns=nextStation(p);
+    if(ns){p.found[ns.id]=ns.points;let pts=ns.points;if(ns.bonus&&!ns.firstBy){ns.firstBy=p.id;pts+=ns.bonus;p.found[ns.id]=pts}
+      award(p,pts,'🗺️',`${p.nick} solved “${ns.label}”`,null)}
+  }else if(r<.78){
+    const p=pick(others);const l=shuffle(S.leaders).find(x=>!p.leaders.has(x.id));
+    if(l){p.leaders.add(l.id);award(p,5,l.emoji,`${p.nick} found a Monster`,null)}
+  }else if(r<.9){
+    const p=pick(others);const n=pick([5,10,15]);p.carnival+=n;award(p,n,'🎡',`${p.nick} won a carnival game`,null);
+  }else if(S.votingOpen&&S.costumes.length){
+    pick(S.costumes).votes++;
+  }
+  refreshLive();
+}
+
+/* ---------- actions ---------- */
+function bump(msg,icon){S.configVersion++;logFeed(icon||'🛠️',msg,null);render(true)}
+function openStation(id){
+  const s=S.stations.find(x=>x.id===id);if(!s)return;
+  modal(`<h3>📍 ${esc(s.label)}</h3><p class="muted sm">You scanned a real QR code! Answer the question about what you see around you.</p><p style="font-size:19px;font-weight:600">${esc(s.q)}</p>
+   <input id="ans" autocomplete="off" placeholder="Your answer" aria-label="Your answer"><div id="ansMsg" class="sm" style="min-height:22px;margin-top:6px"></div>
+   <button class="btn full" data-act="submitAns" data-arg="${s.id}">Check answer</button><button class="btn ghost full" data-act="close">Not yet</button>
+   <p class="note">📄 On a paper card? Write your answer on it and a crew member will stamp it.</p>`,'');
+  setTimeout(()=>{const a=$('#ans');if(a)a.focus()},60);
+}
+const ACT={
+  view(a){S.view=a;S.resetScroll=true;render(true)},
+  live(){S.live=!S.live;render(true)},
+  theme(){S.theme=S.theme==='auto'?'dark':S.theme==='dark'?'light':'auto';
+    if(S.theme==='auto')document.documentElement.removeAttribute('data-theme');else document.documentElement.setAttribute('data-theme',S.theme);
+    $('#themePill').textContent=S.theme==='auto'?'🌓':S.theme==='dark'?'🌙':'☀️';toast('Theme: '+S.theme)},
+  demo(){
+    modal(`<h3>🧪 Demo tools</h3><p class="muted sm">Shortcuts so you can see features without a crowd. These act on the student pass.</p><div class="dgrid">
+     <button class="btn ghost" data-act="demoAct" data-arg="carnival">🎡 Win a carnival game (+10)</button>
+     <button class="btn ghost" data-act="demoAct" data-arg="friend">🤝 A new friend scans my code (+10)</button>
+     <button class="btn ghost" data-act="demoAct" data-arg="monster">🧟 Find the next Monster (+5)</button>
+     <button class="btn ghost" data-act="demoAct" data-arg="answer">🔎 Show the answer to my current clue</button>
+     <button class="btn ghost" data-act="demoAct" data-arg="solve">🗝️ Solve all open clues</button>
+     <button class="btn ghost" data-act="demoAct" data-arg="costume">🎭 Enter me in the costume contest</button>
+     <button class="btn ghost" data-act="demoAct" data-arg="pop">🏅 Fire a big-screen badge popup</button>
+     <button class="btn ghost" data-act="demoAct" data-arg="reset">↺ Reset the whole demo</button>
+     <button class="btn" data-act="close">Close</button></div>`);
+  },
+  demoAct(a){
+    const p=me();closeModal();
+    if(a==='reset'){initData();render(true);return}
+    if(a==='pop'){bigPop.push({nick:'Midnight Gremlin',team:'purple',b:BADGES[2]});if(S.view!=='big')toast('Switch to Big screen to see it');else updateBig();return}
+    if(!p){toast('Get a Night Pass first (Student phone view)');return}
+    if(a==='carnival'){p.carnival+=10;award(p,10,'🎡',`${p.nick} won a carnival game`,'Carnival game!')}
+    if(a==='friend'){
+      if(p.friends>=3){toast('Max 3 friend bonuses');return}
+      p.friends++;const f=newPass();award(f,11,'🤝',`${f.nick} joined with ${p.nick}’s friend code`,null);
+      award(p,10,'🤝',`${p.nick} brought a friend`,'Friend joined!')}
+    if(a==='monster'){const l=S.leaders.find(x=>!p.leaders.has(x.id));if(!l){toast('You found them all!');return}
+      p.leaders.add(l.id);award(p,5,l.emoji,`${p.nick} found a Monster (${l.name})`,`Found the ${l.name}!`)}
+    if(a==='answer'){const ns=nextStation(p);toast(ns?`Answer: ${ns.answers[0]}`:'No open clue right now')}
+    if(a==='solve'){availStations().forEach(s=>{if(!(s.id in p.found)){p.found[s.id]=s.points;award(p,s.points,'🗺️',`${p.nick} solved “${s.label}”`,null)}});toast('All open clues solved')}
+    if(a==='costume'){if(addCostume(p,null))logFeed('🎭',`${p.nick} entered the costume contest`,p.team);else toast('Already entered')}
+    render(true);
+  },
+  close(){closeModal()},
+  tab(a){S.stuTab=a;S.resetScroll=true;render(true)},
+  flip(a,el){el.classList.toggle('flipped');S.flipped=el.classList.contains('flipped')},
+  boardMode(a){S.boardMode=a;render(true)},
+  teamMode(a){S.teamMode=a;render(true)},
+  badge(a){
+    const b=BADGES.find(x=>x.id===a);const p=me();const has=p.badges.has(a);
+    modal(`<div class="bdg big ${has?'':'locked'}" style="--h:${b.hue}"><span>${b.icon}</span></div><h3>${esc(b.name)}</h3><p class="muted">${esc(b.desc)}</p><p><b>${has?'✓ Earned':'Not yet earned'}</b></p><button class="btn full" data-act="close">Got it</button>`);
+  },
+  onboard(){
+    S.onboard='loading';render(true);
+    setTimeout(()=>{
+      const p=newPass();p.isMe=true;S.stuTab='pass';S.onboard='done';
+      award(p,1,'🎟️',`${p.nick} joined Team ${cap(p.team)}`,null);
+      render(true);
+      modal(`${batsHTML()}<h2>Welcome, ${esc(p.nick)}!</h2><p>Your Night Pass is ready. You’re on</p><div class="teamreveal" style="--tc:var(--${p.team})">Team ${cap(p.team)}</div><p><b>+1 point</b> for signing in 🎉</p><button class="btn full" data-act="close">Show my pass</button>`);
+    },1100);
+  },
+  scan(a){if(S.huntStatus!=='live')return toast('⏸ The hunt is paused by the crew');openStation(a)},
+  submitAns(a){
+    const s=S.stations.find(x=>x.id===a);const p=me();const box=$('#ansMsg');const v=norm(($('#ans')||{}).value||'');
+    if(S.huntStatus!=='live'||s.status!=='active'){box.textContent='The crew paused this station. Try another clue!';return}
+    if(!v){box.textContent='Type your answer first.';return}
+    if(s.answers.map(norm).includes(v)){
+      let pts=s.points,extra='';
+      if(s.bonus&&!s.firstBy){s.firstBy=p.id;pts+=s.bonus;extra=` (includes +${s.bonus} first-find bonus!)`}
+      p.found[s.id]=pts;closeModal();
+      award(p,pts,'🗺️',`${p.nick} solved “${s.label}”`,`Letter ${s.letter} unlocked${extra}`);
+      render(true);
+    }else{
+      box.textContent='Not quite. Look around again 👀';box.style.color='var(--bad)';
+      const sh=$('.sheet');sh.classList.remove('shake');void sh.offsetWidth;sh.classList.add('shake');
+    }
+  },
+  submitCode(){
+    const p=me();const v=(S.form.lcode||'').replace(/\D/g,'');
+    if(S.huntStatus!=='live')return toast('⏸ The hunt is paused by the crew');
+    if(v.length!==4)return toast('Enter the 4-digit code on the Monster’s phone');
+    const l=S.leaders.find(x=>v===leaderCode(x.id,0)||v===leaderCode(x.id,-1));
+    if(!l)return toast('🤔 That code isn’t valid. It changes every 30 seconds!');
+    if(p.leaders.has(l.id))return toast(`You already found the ${l.name}!`);
+    p.leaders.add(l.id);S.form.lcode='';
+    award(p,5,l.emoji,`${p.nick} found a Monster (${l.name})`,`You found the ${l.name}!`);
+    render(true);
+  },
+  vote(a){
+    const c=S.costumes.find(x=>x.id===a);
+    modal(`<h3>Vote for ${esc(c.nick)}?</h3><div class="cos" style="max-width:180px;margin:10px auto"><div class="ph" style="background:${costumeBg(c)}">${costumeArt(c)}</div></div><p class="muted sm">You only get one vote and can’t change it.</p><button class="btn full" data-act="confirmVote" data-arg="${c.id}">Cast my vote</button><button class="btn ghost full" data-act="close">Not yet</button>`);
+  },
+  confirmVote(a){
+    const p=me();const c=S.costumes.find(x=>x.id===a);if(!c||p.voted!=null)return;
+    p.voted=c.id;c.votes++;logFeed('🗳️','A vote was cast in the costume contest',null);
+    closeModal();checkBadges(p);toast('🗳️ Vote cast!');render(true);
+  },
+  /* admin */
+  toggleHunt(){S.huntStatus=S.huntStatus==='live'?'paused':'live';bump('Hunt '+(S.huntStatus==='live'?'resumed':'paused'),'⏯️')},
+  toggleRound2(){S.round2=!S.round2;bump(S.round2?'Round 2 unlocked!':'Round 2 locked','🔓')},
+  toggleVoting(){S.votingOpen=!S.votingOpen;bump('Costume voting '+(S.votingOpen?'opened':'closed'),'🗳️')},
+  toggleTest(){S.testMode=!S.testMode;bump('Test mode '+(S.testMode?'on':'off'),'🧪')},
+  wipe(){initData();S.testMode=false;render(true);toast('Test data wiped')},
+  stToggle(a){const s=S.stations.find(x=>x.id===a);s.status=s.status==='active'?'paused':'active';bump(`${s.label} ${s.status==='active'?'resumed':'paused'}`,'📍')},
+  stPts(a){const [id,d]=a.split('|');const s=S.stations.find(x=>x.id===id);s.points=Math.max(0,s.points+parseInt(d,10));bump(`${s.label} now worth ${s.points} pts`,'📍')},
+  addStation(){
+    const id='s'+Math.random().toString(36).slice(2,6);
+    S.stations.push({id,order:Math.max(...S.stations.map(s=>s.order))+1,round:S.round2?2:1,letter:'★',label:'New station',clue:'Edit this clue.',q:'Edit this question.',answers:['yes'],points:10,bonus:0,status:'active',firstBy:null});
+    bump('Spare QR code assigned: /h/'+id,'➕');ACT.stEdit(id);
+  },
+  stEdit(a){
+    const s=S.stations.find(x=>x.id===a);
+    modal(`<h3>Edit station</h3><div class="left">
+     <label class="f" for="e_label">Name</label><input id="e_label" value="${esc(s.label)}">
+     <label class="f" for="e_letter">Secret-word letter</label><input id="e_letter" maxlength="1" value="${esc(s.letter)}">
+     <label class="f" for="e_clue">Clue that leads here</label><textarea id="e_clue" rows="2">${esc(s.clue)}</textarea>
+     <label class="f" for="e_q">Question at the station</label><input id="e_q" value="${esc(s.q)}">
+     <label class="f" for="e_ans">Accepted answers (comma separated)</label><input id="e_ans" value="${esc(s.answers.join(', '))}">
+     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px"><div><label class="f" for="e_pts">Points</label><input id="e_pts" type="number" value="${s.points}"></div><div><label class="f" for="e_bonus">First-find bonus</label><input id="e_bonus" type="number" value="${s.bonus}"></div><div><label class="f" for="e_round">Round</label><input id="e_round" type="number" min="1" max="2" value="${s.round}"></div></div>
+     <label class="f" for="e_status">Status</label><select id="e_status"><option value="active"${sel('active',s.status)}>Active</option><option value="paused"${sel('paused',s.status)}>Paused</option><option value="retired"${sel('retired',s.status)}>Retired (keeps history)</option></select></div>
+     <button class="btn full" data-act="stSave" data-arg="${s.id}">Save changes</button><button class="btn ghost full" data-act="close">Cancel</button>`);
+  },
+  stSave(a){
+    const s=S.stations.find(x=>x.id===a);const g=id=>$('#'+id).value;
+    s.label=g('e_label').trim()||s.label;s.letter=(g('e_letter').trim()||'★').slice(0,1).toUpperCase();s.clue=g('e_clue');s.q=g('e_q');
+    s.answers=g('e_ans').split(',').map(x=>x.trim()).filter(Boolean);if(!s.answers.length)s.answers=['yes'];
+    s.points=Math.max(0,parseInt(g('e_pts'),10)||0);s.bonus=Math.max(0,parseInt(g('e_bonus'),10)||0);s.round=parseInt(g('e_round'),10)===2?2:1;s.status=g('e_status');
+    closeModal();bump(`Edited ${s.label}`,'✏️');toast('Saved. Phones pick it up on their next refresh.');
+  },
+  addCostume(){
+    const p=S.passes.find(x=>x.id===S.form.cpass);if(!p)return toast('Choose a student first');
+    const c=addCostume(p,S.form.photo||null);if(!c)return toast('That student is already entered');
+    logFeed('🎭',`${p.nick} entered the costume contest`,p.team);S.form.photo=null;S.form.cpass='';render(true);toast('Entered in contest');
+  },
+  rmCostume(a){const c=S.costumes.find(x=>x.id===a);S.costumes=S.costumes.filter(x=>x.id!==a);
+    const p=S.passes.find(x=>x.id===c.passId);if(p)p.costume=false;S.passes.forEach(x=>{if(x.voted===a)x.voted=null});render(true)},
+  award(){
+    const f=S.form;const p=S.passes.find(x=>x.id===f.apass);if(!p)return toast('Choose a student first');
+    const type=f.atype||'carnival';let amt=parseInt(f.aamt,10);if(!amt)return toast('Enter a points amount');
+    if(type==='manual'&&!(f.areason||'').trim())return toast('A reason is required for manual changes');
+    if(type==='carnival'){amt=Math.abs(amt);p.carnival+=amt}
+    if(p.points+amt<0)amt=-p.points;
+    award(p,amt,type==='carnival'?'🎡':'✍️',`${p.nick}: ${amt>0?'+':''}${amt} (${type==='carnival'?'carnival game':f.areason.trim()})`,type==='carnival'?'Carnival game points!':'Crew adjustment');
+    f.areason='';render(true);toast('Applied to '+p.nick);
+  }
+};
+
+document.addEventListener('click',e=>{
+  const el=e.target.closest('[data-act]');if(!el)return;
+  if(el.dataset.act==='scrim'){if(e.target===el)closeModal();return}
+  const fn=ACT[el.dataset.act];if(fn)fn(el.dataset.arg,el,e);
+});
+document.addEventListener('input',e=>{const k=e.target.dataset&&e.target.dataset.form;if(k)S.form[k]=e.target.value});
+document.addEventListener('change',e=>{
+  const t=e.target;if(t.dataset&&t.dataset.form){S.form[t.dataset.form]=t.value;if(t.dataset.form==='leaderSel')updateLeaderBox()}
+  if(t.dataset&&t.dataset.file&&t.files&&t.files[0]){
+    const rd=new FileReader();
+    rd.onload=()=>{const img=new Image();img.onload=()=>{
+      const k=Math.min(1,640/Math.max(img.width,img.height));const c=document.createElement('canvas');
+      c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+      S.form.photo=c.toDataURL('image/jpeg',.82);render(true)};img.src=rd.result};
+    rd.readAsDataURL(t.files[0]);
+  }
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter'){
+    if(e.target.id==='ans'){const b=$('[data-act="submitAns"]');if(b)b.click()}
+    if(e.target.id==='lcode')ACT.submitCode();
+  }
+  if(e.key==='Escape'&&$('#modal-root').firstChild)closeModal();
+});
+
+initData();render(true);
+setInterval(simTick,2300);
+setInterval(()=>{if(S.view==='admin')updateLeaderBox();if(S.view==='big')updateBig()},1000);
+})();
+</script>
+</body>
+</html>
