@@ -68,5 +68,4 @@ Rules from the constitution that are easy to break while coding:
    secrets or `.env` files are included.
 4. Use conventional messages (`feat:`, `fix:`, `docs:`, `test:`, `chore:`) that name the task
    or requirement, for example `feat: enforce one vote per pass (FR-009)`.
-5. Do feature work on a feature branch named after its spec directory (for example
-   `001-costume-contest`), not on `main`.
+5. Work directly on `main`.
