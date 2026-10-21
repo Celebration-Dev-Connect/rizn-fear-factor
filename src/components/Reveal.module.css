@@ -1,0 +1,89 @@
+.wrap {
+  display: grid;
+  gap: var(--space-5);
+  margin-bottom: var(--space-6);
+}
+.place {
+  position: relative;
+  overflow: hidden;
+  background: var(--surface);
+  border: 3px solid var(--border);
+  border-radius: 20px;
+  padding: var(--space-5) var(--space-4);
+  text-align: center;
+  animation: pop 700ms cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+.p1 { border-color: var(--accent); }
+.label {
+  font-size: 34px;
+  margin-bottom: var(--space-4);
+}
+.winners {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-4);
+}
+.winner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: min(100%, 280px);
+}
+.photo {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 14px;
+  border: 3px solid var(--accent);
+}
+.name {
+  font-family: var(--font-display);
+  font-size: 28px;
+  color: var(--text);
+}
+.big .label { font-size: 64px; }
+.big .name { font-size: 48px; }
+.big .winner { width: min(100%, 420px); }
+
+.confetti i {
+  position: absolute;
+  top: -12px;
+  width: 10px;
+  height: 16px;
+  border-radius: 2px;
+  background: var(--accent);
+  opacity: 0;
+  animation: fall 2.4s ease-in 200ms both;
+}
+.confetti i:nth-child(3n) { background: #b98cff; }
+.confetti i:nth-child(3n + 1) { background: #6ee7a8; }
+.confetti i:nth-child(1) { left: 5%; animation-delay: 0.1s; }
+.confetti i:nth-child(2) { left: 12%; animation-delay: 0.4s; }
+.confetti i:nth-child(3) { left: 19%; animation-delay: 0.2s; }
+.confetti i:nth-child(4) { left: 27%; animation-delay: 0.6s; }
+.confetti i:nth-child(5) { left: 34%; animation-delay: 0.3s; }
+.confetti i:nth-child(6) { left: 41%; animation-delay: 0.7s; }
+.confetti i:nth-child(7) { left: 48%; animation-delay: 0.15s; }
+.confetti i:nth-child(8) { left: 55%; animation-delay: 0.5s; }
+.confetti i:nth-child(9) { left: 62%; animation-delay: 0.25s; }
+.confetti i:nth-child(10) { left: 69%; animation-delay: 0.65s; }
+.confetti i:nth-child(11) { left: 76%; animation-delay: 0.35s; }
+.confetti i:nth-child(12) { left: 83%; animation-delay: 0.55s; }
+.confetti i:nth-child(13) { left: 90%; animation-delay: 0.45s; }
+.confetti i:nth-child(14) { left: 96%; animation-delay: 0.05s; }
+
+@keyframes pop {
+  from { transform: scale(0.6); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+@keyframes fall {
+  0% { opacity: 1; transform: translateY(0) rotate(0); }
+  100% { opacity: 0; transform: translateY(520px) rotate(540deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .confetti { display: none; }
+}

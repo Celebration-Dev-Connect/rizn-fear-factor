@@ -1,4 +1,4 @@
-import { and, eq, inArray, isNull, sql } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../db/client";
 import { entries } from "../db/schema";
 import { countPlaces, getContest } from "./contest-state";

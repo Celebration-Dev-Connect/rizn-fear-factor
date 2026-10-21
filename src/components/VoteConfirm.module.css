@@ -1,0 +1,38 @@
+.dialog {
+  width: min(92vw, 440px);
+  border: 2px solid var(--accent);
+  border-radius: 18px;
+  background: var(--surface);
+  color: var(--text);
+  padding: var(--space-5);
+  text-align: center;
+}
+.dialog::backdrop {
+  background: rgb(10 4 20 / 0.8);
+}
+.photo {
+  width: 100%;
+  max-height: 50vh;
+  object-fit: contain;
+  border-radius: 12px;
+  background: var(--bg);
+}
+.name {
+  font-family: var(--font-display);
+  font-size: 30px;
+  color: var(--accent);
+  margin: var(--space-3) 0 var(--space-1);
+}
+.warn {
+  color: var(--text-muted);
+  margin: 0 0 var(--space-4);
+}
+.actions {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.actions button {
+  flex: 1 1 140px;
+}

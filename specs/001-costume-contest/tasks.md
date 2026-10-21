@@ -177,7 +177,7 @@ depends on these.
 - [X] T024 [P] Create `src/server/nicknames.ts` with curated `ADJECTIVES` and `NOUNS` arrays of
   at least 40 each, kid-safe and spooky, giving at least 1,600 combinations. Add
   `scripts/check-nicknames.ts`, which prints every combination for staff review
-- [ ] T025 Create `scripts/seed-dev.ts` for the rehearsal realm, so stories can be tested
+- [X] T025 Create `scripts/seed-dev.ts` for the rehearsal realm, so stories can be tested
   independently: 5 passes, 3 entries with generated placeholder WebP photos written to
   `PHOTO_DIR`, and an option to set the stage. Runs only when `NODE_ENV !== 'production'`
 
@@ -287,14 +287,14 @@ then reload, go back, and resend. Exactly one vote is recorded and the thank-you
   - stream `<PHOTO_DIR>/<photoId>-480.webp` or `-1200.webp`
   - `Cache-Control: private, max-age=86400, immutable`
   - reject path traversal by validating `photoId` as a uuid
-- [ ] T038 [P] [US2] Create `src/components/Gallery.tsx`:
+- [X] T038 [P] [US2] Create `src/components/Gallery.tsx`:
   - a responsive grid of `EntryCard` thumbnails (`loading="lazy"`, width/height set, alt text)
     with the nickname under each
   - selectable cards are 44 px+ buttons
   - the student's own entry is disabled with the text "That's you!"
-- [ ] T039 [P] [US2] Create `src/components/VoteConfirm.tsx`: a confirm dialog showing the chosen
+- [X] T039 [P] [US2] Create `src/components/VoteConfirm.tsx`: a confirm dialog showing the chosen
   photo and nickname, with "Cast my vote" and "Go back" buttons, focus trapped, and Escape closes
-- [ ] T040 [US2] Create the contest page `src/app/contest/page.tsx`:
+- [X] T040 [US2] Create the contest page `src/app/contest/page.tsx`:
   - `usePoll('/api/state', 4000)` and `usePoll('/api/entries')`
   - a stage banner with text: "Voting opens soon", "Vote now!", "Voting is closed",
     "Results are in!"
@@ -371,13 +371,13 @@ appears in `/contest` within 5 s. Removing it releases its votes.
   - `POST /api/crew/entries` (multer memory storage, 3 MB limit, `image/*` only; adds
     `warning: 'added_during_voting'` when the stage is `voting_open`, FR-024)
   - `PATCH /api/crew/entries/:id` and `DELETE /api/crew/entries/:id`
-- [ ] T047 [P] [US3] Create `src/lib/resizeImage.ts`: resize to a 1600 px long edge in the
+- [X] T047 [P] [US3] Create `src/lib/resizeImage.ts`: resize to a 1600 px long edge in the
   browser with canvas / `createImageBitmap` (applying orientation), output JPEG quality 0.8,
   return a Blob
-- [ ] T048 [P] [US3] Create the crew sign-in and layout in `src/app/crew/layout.tsx` and
+- [X] T048 [P] [US3] Create the crew sign-in and layout in `src/app/crew/layout.tsx` and
   `src/app/crew/SignIn.tsx`: a passcode field plus a device-label select (no free text), and a
   nav for Dashboard, Entries, Assist, Votes, and Results
-- [ ] T049 [US3] Create the entry workflow `src/app/crew/entries/page.tsx`:
+- [X] T049 [US3] Create the entry workflow `src/app/crew/entries/page.tsx`:
   1. Search a pass by nickname or number with large result buttons, or "Student has no phone →
      create pass", which shows the new nickname for the crew to tell the student.
   2. Take a photo with `<input type="file" accept="image/*" capture="environment">`; if the
@@ -441,13 +441,13 @@ within 5 s, nothing changes without a press, and two devices acting at once reso
   `src/server/routes/crew/stage.ts` and `src/server/routes/crew/dashboard.ts`. The dashboard
   returns `totals: { passes, votesCounted }` (counted votes only; never per-entry counts,
   FR-026) and `screenUrl` = `${PUBLIC_URL}/screen?t=${SCREEN_TOKEN}`
-- [ ] T055 [P] [US4] Create `src/components/StageControls.tsx`:
+- [X] T055 [P] [US4] Create `src/components/StageControls.tsx`:
   - a stepper showing all four stages, with the current one marked by an icon and text (not color
     alone)
   - a big "Next: <stage>" button and an "Undo" button, each opening a confirm dialog that names
     exactly what will change
   - on `stage_conflict`, refresh to the server state and show "Someone else changed the stage"
-- [ ] T056 [US4] Create the crew dashboard `src/app/crew/page.tsx`:
+- [X] T056 [US4] Create the crew dashboard `src/app/crew/page.tsx`:
   - `usePoll('/api/crew/dashboard', 2000)`
   - `StageControls`
   - totals "N votes of M passes"
@@ -471,10 +471,10 @@ elsewhere. Both appear within 5 s, and nothing on the screen can change contest 
   - `GET /screen?t=` is handled by Express before Next: if `t` equals `SCREEN_TOKEN`
     (timing-safe), set the signed `screen` cookie (30 days) and redirect to `/screen`
   - `GET /api/screen/totals` (requireScreen) → `{ passes, votesCounted }`
-- [ ] T058 [P] [US5] Create `src/components/ScreenGallery.tsx`: rotates through entries with the
+- [X] T058 [P] [US5] Create `src/components/ScreenGallery.tsx`: rotates through entries with the
   `full` image every 6 s, with the nickname as a large caption. Under reduced motion it uses a
   plain swap instead of a crossfade
-- [ ] T059 [US5] Create the screen page `src/app/screen/page.tsx`:
+- [X] T059 [US5] Create the screen page `src/app/screen/page.tsx`:
   - without the screen cookie (any `401`), show "Ask a crew member for the screen link"
   - otherwise a 16:9 layout with `ScreenGallery`, `<img src="/api/qr.svg">` plus "Scan to get
     your Night Pass" and the short URL, a stage-specific instruction line, and the totals
@@ -515,18 +515,18 @@ the big screen and phones.
 - [X] T062 [US6] Implement `GET /api/crew/ranking` (only in `voting_closed`/`results_revealed`,
   else `409`) and `GET /api/results` (pass|screen) in `src/server/routes/crew/ranking.ts` and
   `src/server/routes/results.ts`
-- [ ] T063 [P] [US6] Create `src/components/Reveal.tsx`:
+- [X] T063 [P] [US6] Create `src/components/Reveal.tsx`:
   - renders `RevealedPlace[]` with the place label ("3rd Place" or "Tied for 2nd"), photo(s),
     and nickname(s)
   - a celebratory CSS animation (scale-in plus confetti made only from CSS) that becomes a static
     card under `prefers-reduced-motion`
   - the newest place is announced through an `aria-live="polite"` region
-- [ ] T064 [US6] Create the crew results page `src/app/crew/results/page.tsx`:
+- [X] T064 [US6] Create the crew results page `src/app/crew/results/page.tsx`:
   - the full ranking table with counts and a tie badge (text "TIE")
   - a "Reveal 3rd / 2nd / 1st" button that sends the stage `advance` with confirm
   - "Undo last reveal"
   - a note when fewer than three places exist
-- [ ] T065 [US6] Wire `Reveal` into `src/app/screen/page.tsx` and `src/app/contest/page.tsx`:
+- [X] T065 [US6] Wire `Reveal` into `src/app/screen/page.tsx` and `src/app/contest/page.tsx`:
   when the stage is `results_revealed`, fetch `/api/results` whenever `state.version` changes and
   show the revealed places. On the screen, `Reveal` replaces the gallery. On `/contest`, it is
   shown above the gallery, which stays visible (FR-007)
@@ -553,7 +553,7 @@ and they rise again.
 - [X] T068 [US7] Implement `GET /api/crew/votes`, `POST /api/crew/votes/:id/void`,
   `POST /api/crew/votes/:id/restore`, and `GET /api/crew/audit` in
   `src/server/routes/crew/votes.ts` and `src/server/routes/crew/audit.ts`
-- [ ] T069 [US7] Create the vote log page `src/app/crew/votes/page.tsx`:
+- [X] T069 [US7] Create the vote log page `src/app/crew/votes/page.tsx`:
   - a table of cast time, pass `#number nickname`, pass created time (to the second), origin,
     assisted, entry, and status
   - sort toggles for cast time and pass creation time
@@ -577,7 +577,7 @@ vote. The vote counts once and is marked assisted, and the student's own entry c
 - [X] T071 [US8] Implement `POST /api/crew/assisted-votes` in
   `src/server/routes/crew/assisted.ts`, calling `castVote(realm, passId, entryId,
   crewSessionId)`
-- [ ] T072 [US8] Create `src/app/crew/assist/page.tsx`:
+- [X] T072 [US8] Create `src/app/crew/assist/page.tsx`:
   1. Find the crew-created pass by nickname or number, or create one.
   2. Hand the device to the student, who sees the `Gallery` with their own entry disabled.
   3. `VoteConfirm`.
@@ -615,7 +615,7 @@ are no rehearsal rows or photo files, and live data is untouched.
   (`{ confirm: 'WIPE' }` required) in `src/server/routes/crew/rehearsal.ts`, and
   `PUT /api/crew/settings/window` in `src/server/routes/crew/settings.ts` (`end` must be after
   `start`; audit `settings.window`)
-- [ ] T076 [US9] Wire the dashboard in `src/app/crew/page.tsx`:
+- [X] T076 [US9] Wire the dashboard in `src/app/crew/page.tsx`:
   - a rehearsal on/off toggle with confirm
   - a "Wipe rehearsal data" button that requires typing `WIPE` and shows the deleted counts
   - event window start and end inputs (datetime-local in America/Edmonton)
@@ -661,11 +661,11 @@ are no rehearsal rows or photo files, and live data is untouched.
   - assert p95 under 300 ms, 0 non-2xx/304 errors except expected 409s, and exactly 350 counted
     votes in the DB
   - wire it to `npm run test:load`
-- [ ] T083 [P] Create `tests/e2e/student.spec.ts`:
+- [X] T083 [P] Create `tests/e2e/student.spec.ts`:
   - fresh context → `/` shows a pass → `/contest` → vote → thank-you, in under 60 s (SC-001)
   - reload and `page.goBack()` show no vote controls (SC-002)
   - the own entry is disabled
-- [ ] T084 [P] Create `tests/e2e/a11y.spec.ts`:
+- [X] T084 [P] Create `tests/e2e/a11y.spec.ts`:
   - runs `@axe-core/playwright` on `/`, `/contest`, `/crew`, `/crew/entries`, and `/screen` with
     WCAG 2 AA rules and zero violations
   - asserts every button and link has a bounding box of at least 44×44

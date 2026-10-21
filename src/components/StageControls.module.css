@@ -1,0 +1,33 @@
+.stepper {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 var(--space-4);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--space-2);
+}
+.stepper li {
+  padding: var(--space-3);
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+.stepper li.done {
+  color: var(--text);
+}
+.stepper li.current {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--surface);
+}
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+.buttons button {
+  flex: 1 1 220px;
+  min-height: 56px;
+  font-size: 18px;
+}

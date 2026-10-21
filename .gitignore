@@ -44,3 +44,4 @@ dist/
 *.tsbuildinfo
 next-env.d.ts
 .test-photos/
+test-results/
