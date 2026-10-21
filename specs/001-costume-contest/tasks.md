@@ -626,36 +626,36 @@ are no rehearsal rows or photo files, and live data is untouched.
 
 **Purpose**: Deletion, deployment, load, and accessibility verification.
 
-- [ ] T077 Implement `src/server/services/purge.ts` and `scripts/purge.ts`:
+- [X] T077 Implement `src/server/services/purge.ts` and `scripts/purge.ts`:
   - `purgePhotos()` deletes every file in `PHOTO_DIR` and writes a system audit event
   - `purgeAll()` additionally truncates all tables except `settings`/`contest` and resets
     `contest`
   - in `src/server/index.ts`, schedule an hourly check that calls `purgePhotos()` once
     `now >= PHOTO_DELETE_AT` (deletion only; never touches `contest`)
   - `npm run purge -- --all` runs `purgeAll()`
-- [ ] T078 [P] Add security headers middleware in `src/server/middleware/security.ts`:
+- [X] T078 [P] Add security headers middleware in `src/server/middleware/security.ts`:
   - CSP `default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline';
     script-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'`
   - `Referrer-Policy: no-referrer`
   - `X-Content-Type-Options: nosniff`
   - `Permissions-Policy: camera=(self)`
   This enforces "no third-party origins" (Constitution I)
-- [ ] T079 [P] Create the `Dockerfile`:
+- [X] T079 [P] Create the `Dockerfile`:
   - multi-stage on node:24-alpine, with libvips for sharp
   - `npm ci`, `next build`, compile the server
   - the runtime stage copies `.next`, `dist`, `drizzle`, `public`, `node_modules` (prod)
   - runs as a non-root user
   - `CMD` runs migrations, then the server
   - `HEALTHCHECK` on `/healthz`
-- [ ] T080 [P] Create `compose.yml`:
+- [X] T080 [P] Create `compose.yml`:
   - `app` (built image, `env_file: .env`, `photos` volume at `PHOTO_DIR`, depends on a healthy db)
   - `db` (postgres:17-alpine, `pgdata` volume, healthcheck)
   - `caddy` (ports 80/443, `Caddyfile`, `caddy_data` volume)
   Create the `Caddyfile`: `{$DOMAIN}` reverse proxies to `app:3000` with gzip/zstd encoding
-- [ ] T081 [P] Create `scripts/deploy.sh` (`set -euo pipefail`, verify `.env` exists,
+- [X] T081 [P] Create `scripts/deploy.sh` (`set -euo pipefail`, verify `.env` exists,
   `docker compose up -d --build`, poll `https://$DOMAIN/healthz` for up to 60 s, and print the
   result) and make it executable
-- [ ] T082 [P] Create `scripts/load-test.ts` with autocannon:
+- [X] T082 [P] Create `scripts/load-test.ts` with autocannon:
   - 400 connections polling `GET /api/state` with ETags for 60 s
   - in parallel, 350 distinct passes each casting one vote
   - assert p95 under 300 ms, 0 non-2xx/304 errors except expected 409s, and exactly 350 counted
@@ -670,7 +670,7 @@ are no rehearsal rows or photo files, and live data is untouched.
     WCAG 2 AA rules and zero violations
   - asserts every button and link has a bounding box of at least 44×44
   - with `reducedMotion: 'reduce'`, the reveal has no running animations
-- [ ] T085 Measure the student payload with `next build` output and a Playwright network capture.
+- [X] T085 Measure the student payload with `next build` output and a Playwright network capture.
   Initial JS must be under 200 KB gzipped and `/api/state` under 1 KB. Fix any regressions in
   `src/app/contest/page.tsx` and `src/app/page.tsx`
 - [ ] T086 Write `README.md`:

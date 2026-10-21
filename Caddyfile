@@ -1,0 +1,8 @@
+{$DOMAIN} {
+	encode zstd gzip
+	reverse_proxy app:3000
+	# No access logs: they would hold phone IPs and pass cookies are already private.
+	log {
+		output discard
+	}
+}

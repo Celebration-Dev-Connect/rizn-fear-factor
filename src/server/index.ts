@@ -3,6 +3,7 @@ import { createApp } from "./app";
 import { config } from "./config";
 import { runMigrations } from "./db/migrate";
 import { purgeOldIdempotencyKeys } from "./middleware/idempotency";
+import { purgePhotosIfDue } from "./services/purge";
 
 const HOUR = 60 * 60 * 1000;
 
@@ -18,8 +19,12 @@ async function main(): Promise<void> {
   const app = createApp({ pageHandler: (req, res) => handle(req, res) });
 
   // Housekeeping only. Nothing here ever changes contest state (Constitution VI).
-  void purgeOldIdempotencyKeys();
-  setInterval(() => void purgeOldIdempotencyKeys().catch(console.error), HOUR).unref();
+  const housekeeping = () => {
+    purgeOldIdempotencyKeys().catch(console.error);
+    purgePhotosIfDue().catch(console.error); // FR-040: photos deleted after PHOTO_DELETE_AT
+  };
+  housekeeping();
+  setInterval(housekeeping, HOUR).unref();
 
   app.listen(c.PORT, () => console.log(`RIZN Fear Factor listening on :${c.PORT}`));
 }

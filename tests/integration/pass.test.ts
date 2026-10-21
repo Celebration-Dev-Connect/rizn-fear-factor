@@ -68,6 +68,14 @@ describe("Night Pass (US1)", () => {
     await screen.get(entry.photo.thumb).expect(200);
   });
 
+  it("issues 30 simultaneous passes with unique nicknames and numbers", async () => {
+    const results = await Promise.all(Array.from({ length: 30 }, () => request(testApp()).post("/api/pass")));
+    expect(results.every((r) => r.status === 200)).toBe(true);
+    const numbers = results.map((r) => r.body.pass.number).sort((a, b) => a - b);
+    expect(numbers).toEqual(Array.from({ length: 30 }, (_, i) => i + 1));
+    expect(new Set(results.map((r) => r.body.pass.nickname)).size).toBe(30);
+  });
+
   it("stores only a token hash, never the raw token", async () => {
     const res = await request(testApp()).post("/api/pass").expect(200);
     const token = /np_live=([^;]+)/.exec(res.headers["set-cookie"]![0]!)![1]!;

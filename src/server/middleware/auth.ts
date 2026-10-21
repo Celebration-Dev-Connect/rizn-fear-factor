@@ -32,6 +32,16 @@ export function hashToken(token: string): Buffer {
   return createHash("sha256").update(token).digest();
 }
 
+/** Realm only, from the in-memory settings cache — for the hot /api/state poll (no DB hit). */
+export const resolveRealm: RequestHandler = async (req, _res, next) => {
+  try {
+    req.realm = await activeRealm();
+    next();
+  } catch (err) {
+    next(err);
+  }
+};
+
 /** Resolves the active realm and, if present, the pass and crew/screen cookies. Never rejects. */
 export const loadIdentity: RequestHandler = async (req, _res, next) => {
   try {

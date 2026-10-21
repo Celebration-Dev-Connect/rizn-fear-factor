@@ -6,6 +6,7 @@ import request from "supertest";
 import { beforeEach, describe, expect, it } from "vitest";
 import { config, resetConfigForTests } from "@/server/config";
 import { db } from "@/server/db/client";
+import { purgeAll, purgePhotosIfDue } from "@/server/services/purge";
 import { createEntry, goToStage, idem, newCrewAgent, newPassAgent, newScreenAgent, passIdByNumber, resetDb, testApp, testJpeg } from "./helpers";
 
 const photoFiles = async () => (await fs.readdir(config().PHOTO_DIR)).filter((f) => f.endsWith(".webp"));
@@ -128,5 +129,18 @@ describe("photo handling (US3, Constitution VII)", () => {
     expect(retry.body.entry.id).toBe(first.body.entry.id);
     const r = await db().execute(sql`select count(*)::int as n from entries`);
     expect(r.rows[0]).toEqual({ n: 1 });
+  });
+
+  it("purges photo files once PHOTO_DELETE_AT passes, and purge --all clears every row", async () => {
+    const crew = await newCrewAgent();
+    const { pass } = await newPassAgent();
+    await createEntry(crew, [await passIdByNumber(crew, pass.number)]);
+    await purgePhotosIfDue(new Date("2099-12-31T00:00:00Z"));
+    expect(await photoFiles()).toHaveLength(2); // not due yet
+    await purgePhotosIfDue(new Date("2100-01-02T00:00:00Z"));
+    expect(await photoFiles()).toHaveLength(0);
+    await purgeAll();
+    const r = await db().execute(sql`select (select count(*)::int from passes) + (select count(*)::int from entries) + (select count(*)::int from votes) as n`);
+    expect(r.rows[0]).toEqual({ n: 0 });
   });
 });

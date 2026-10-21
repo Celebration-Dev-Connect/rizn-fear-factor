@@ -1,6 +1,5 @@
 import { and, eq, ilike, max, or, sql } from "drizzle-orm";
-import { isUniqueViolation } from "../db/errors";
-import { db, type DbOrTx } from "../db/client";
+import { db, withTx, type DbOrTx } from "../db/client";
 import { entryPasses, passes } from "../db/schema";
 import { AppError } from "../middleware/errors";
 import { newPassToken } from "../middleware/auth";
@@ -19,42 +18,40 @@ export async function issuePass(
   origin: "self" | "crew",
   crewSessionId?: string,
 ): Promise<{ pass: PassRow; token: string | null }> {
-  for (let attempt = 0; attempt < 8; attempt++) {
-    const usedRows = await db().select({ n: passes.nickname }).from(passes).where(eq(passes.realm, realm));
+  // A crowd scanning the poster at once must not race on nickname or number, so issuance is
+  // serialized per realm with a transaction-scoped advisory lock. Each issue takes ~1 ms.
+  return withTx(async (tx) => {
+    await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${`passes:${realm}`}))`);
+    const usedRows = await tx.select({ n: passes.nickname }).from(passes).where(eq(passes.realm, realm));
     const nickname = pickNickname(new Set(usedRows.map((r) => r.n)));
     if (!nickname) {
       throw new AppError("nickname_exhausted", 503, "All Night Pass nicknames are in use. Find a crew member.");
     }
-    const [{ m } = { m: 0 }] = await db()
+    const [{ m } = { m: 0 }] = await tx
       .select({ m: max(passes.number) })
       .from(passes)
       .where(eq(passes.realm, realm));
     const { token, hash } = newPassToken();
-    try {
-      const [row] = await db()
-        .insert(passes)
-        .values({
-          realm,
-          nickname,
-          number: (m ?? 0) + 1,
-          origin,
-          tokenHash: origin === "self" ? hash : null,
-          createdByCrewSessionId: crewSessionId ?? null,
-        })
-        .returning();
-      await record(db(), {
+    const [row] = await tx
+      .insert(passes)
+      .values({
         realm,
-        actorType: origin === "self" ? "pass" : "crew",
-        actorId: origin === "self" ? row!.id : crewSessionId,
-        action: "pass.issue",
-        details: { passId: row!.id, number: row!.number, origin },
-      });
-      return { pass: row!, token: origin === "self" ? token : null };
-    } catch (err) {
-      if (!isUniqueViolation(err)) throw err; // nickname or number race: try again
-    }
-  }
-  throw new Error("could not issue a pass after retries");
+        nickname,
+        number: (m ?? 0) + 1,
+        origin,
+        tokenHash: origin === "self" ? hash : null,
+        createdByCrewSessionId: crewSessionId ?? null,
+      })
+      .returning();
+    await record(tx, {
+      realm,
+      actorType: origin === "self" ? "pass" : "crew",
+      actorId: origin === "self" ? row!.id : crewSessionId,
+      action: "pass.issue",
+      details: { passId: row!.id, number: row!.number, origin },
+    });
+    return { pass: row!, token: origin === "self" ? token : null };
+  });
 }
 
 export async function getPass(tx: DbOrTx, realm: Realm, id: string): Promise<PassRow | undefined> {

@@ -3,16 +3,19 @@ import express, { type Express, type RequestHandler } from "express";
 import { sql } from "drizzle-orm";
 import { config } from "./config";
 import { db } from "./db/client";
-import { loadIdentity } from "./middleware/auth";
+import { loadIdentity, resolveRealm } from "./middleware/auth";
 import { errorHandler, noStore, notFound } from "./middleware/errors";
+import { securityHeaders } from "./middleware/security";
 import { apiRouter } from "./routes";
 import { screenLinkRouter } from "./routes/screen";
+import { stateRouter } from "./routes/state";
 
 /** Builds the Express app. `pageHandler` (Next.js) serves every non-API route when given. */
 export function createApp(opts: { pageHandler?: RequestHandler } = {}): Express {
   const app = express();
   app.disable("x-powered-by");
   app.set("trust proxy", 1);
+  app.use(securityHeaders);
   app.use(cookieParser(config().SESSION_SECRET));
 
   app.get("/healthz", async (_req, res) => {
@@ -24,6 +27,8 @@ export function createApp(opts: { pageHandler?: RequestHandler } = {}): Express 
     }
   });
 
+  // Hot path polled by every phone: realm only, served from memory (research §2).
+  app.use("/api", noStore, resolveRealm, stateRouter);
   app.use("/api", noStore, express.json({ limit: "16kb" }), loadIdentity, apiRouter(), notFound);
   app.use("/api", errorHandler);
 

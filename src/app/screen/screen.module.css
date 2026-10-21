@@ -1,5 +1,6 @@
 .screen {
-  min-height: 100dvh;
+  height: 100dvh;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   padding: 2vw 3vw;
@@ -47,7 +48,8 @@
 }
 .photo {
   max-width: 100%;
-  max-height: 68vh;
+  max-height: 56vh;
+  min-height: 0;
   border-radius: 24px;
   border: 6px solid var(--accent);
   object-fit: contain;
@@ -55,7 +57,8 @@
 }
 .caption {
   font-family: var(--font-display);
-  font-size: clamp(40px, 5vw, 110px);
+  font-size: clamp(36px, min(5vw, 8vh), 100px);
+  line-height: 1.1;
   color: var(--text);
   text-align: center;
 }

@@ -45,3 +45,6 @@ dist/
 next-env.d.ts
 .test-photos/
 test-results/
+
+# local Claude Code worktrees
+.claude/worktrees/

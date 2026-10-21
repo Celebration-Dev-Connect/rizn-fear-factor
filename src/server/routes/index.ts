@@ -13,13 +13,11 @@ import { photosRouter } from "./photos";
 import { qrRouter } from "./qr";
 import { resultsRouter } from "./results";
 import { screenApiRouter } from "./screen";
-import { stateRouter } from "./state";
 import { votesRouter } from "./votes";
 
 export function apiRouter(): Router {
   const r = Router();
   for (const sub of [
-    stateRouter,
     passRouter,
     qrRouter,
     entriesRouter,
