@@ -9,8 +9,30 @@ Church, Edmonton, grades 7–12) on **Friday, October 30, 2026**. The first rele
 contest only: students get an anonymous Night Pass and vote once; crew add costume photos, run
 the contest stages, and reveal winners on a big screen.
 
-No application code or tech stack exists yet. When the stack is chosen in
-`/speckit-plan`, add its build, lint, test, and single-test commands here.
+## Stack (planned; no application code yet)
+
+TypeScript on Node 24, as a single process: Express 5 serves `/api` and mounts Next.js 16 for
+the pages. Data lives in PostgreSQL 17 through Drizzle, and photos are WebP files on a private
+volume. Deployment is Docker Compose (`app`, `db`, `caddy`) on one server. Redis is deliberately
+not used. Rationale is in `specs/001-costume-contest/research.md`, and the layout is in `plan.md`.
+
+Planned commands, per `specs/001-costume-contest/quickstart.md`. Confirm them against
+`package.json` once it exists:
+
+- `npm run dev`: local server (needs `docker compose -f compose.dev.yml up -d db`)
+- `npm run typecheck`, `npm run lint`
+- `npm test`: unit tests; `npm run test:integration`: real PostgreSQL via `compose.test.yml`
+- Single test: `npx vitest run tests/integration/votes.test.ts -t "self-vote"`
+- `npm run test:e2e` (Playwright), `npm run test:load` (autocannon)
+- `./scripts/deploy.sh`: production deploy
+
+Rules the code has to keep:
+
+- One-vote enforcement lives in a PostgreSQL partial unique index plus transactions, not only
+  in app code.
+- Every table carries a `realm` column (`live` or `rehearsal`), and requests act on the active
+  realm.
+- Every mutation must carry an `Idempotency-Key` header.
 
 ## Where things live
 
