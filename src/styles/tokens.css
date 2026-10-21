@@ -1,0 +1,28 @@
+/* Design tokens. Contrast ratios are against --bg (#1a0b2e) and checked for WCAG AA. */
+:root {
+  --bg: #1a0b2e;
+  --surface: #2a1548;
+  --surface-2: #3a1f60;
+  --border: #6b4c96; /* 3.1:1 for non-text UI boundaries */
+  --text: #f7f0ff; /* 16.9:1 */
+  --text-muted: #c9b8e0; /* 9.9:1 */
+  --accent: #ff7a1a; /* pumpkin, 7.1:1 as text */
+  --accent-strong: #ff9447;
+  --on-accent: #1a0b2e; /* text on pumpkin buttons, 7.1:1 */
+  --danger: #ff6b81; /* 6.7:1 */
+  --success: #6ee7a8; /* 11.6:1 */
+  --rehearsal: #ffe066;
+
+  --font-display: var(--font-creepster), "Chiller", fantasy;
+  --font-body: var(--font-nunito), system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --tap: 44px;
+  --radius: 14px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --focus: 0 0 0 3px var(--bg), 0 0 0 6px var(--accent-strong);
+}

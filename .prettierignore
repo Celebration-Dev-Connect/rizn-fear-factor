@@ -1,0 +1,10 @@
+node_modules/
+.next/
+dist/
+build/
+coverage/
+drizzle/
+package-lock.json
+.specify/
+.claude/
+specs/

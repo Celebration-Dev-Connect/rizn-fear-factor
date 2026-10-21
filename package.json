@@ -1,0 +1,63 @@
+{
+  "name": "rizn-fear-factor",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "dev": "NODE_ENV=development tsx watch --env-file-if-exists=.env --ignore './src/app/**' --ignore './src/components/**' src/server/index.ts",
+    "build": "next build",
+    "start": "NODE_ENV=production tsx src/server/index.ts",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run --project unit",
+    "test:integration": "docker compose -f compose.test.yml up -d --wait && vitest run --project integration",
+    "test:e2e": "playwright test",
+    "test:load": "tsx --env-file-if-exists=.env scripts/load-test.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx --env-file-if-exists=.env src/server/db/migrate.ts",
+    "purge": "tsx --env-file-if-exists=.env scripts/purge.ts",
+    "seed:dev": "tsx --env-file-if-exists=.env scripts/seed-dev.ts",
+    "check:nicknames": "tsx scripts/check-nicknames.ts"
+  },
+  "dependencies": {
+    "cookie-parser": "^1.4.7",
+    "cookie-signature": "^1.2.2",
+    "drizzle-orm": "^0.45.4",
+    "express": "^5.3.0",
+    "multer": "^2.4.0",
+    "next": "^16.4.2",
+    "pg": "^8.23.1",
+    "qrcode": "^1.5.4",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "sharp": "^0.35.5",
+    "tsx": "^4.23.15",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
+    "@playwright/test": "^1.64.1",
+    "@types/autocannon": "^7.12.7",
+    "@types/cookie-parser": "^1.4.10",
+    "@types/cookie-signature": "^1.1.2",
+    "@types/express": "^5.0.6",
+    "@types/multer": "^2.3.0",
+    "@types/node": "^24.19.2",
+    "@types/pg": "^8.23.1",
+    "@types/qrcode": "^1.5.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@types/supertest": "^7.2.1",
+    "autocannon": "^8.0.0",
+    "drizzle-kit": "^0.31.11",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^16.4.2",
+    "prettier": "^3.9.10",
+    "supertest": "^7.3.1",
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.5"
+  }
+}

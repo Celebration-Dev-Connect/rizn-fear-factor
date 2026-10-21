@@ -36,30 +36,30 @@ Other areas are verified with the manual rehearsal in quickstart.md.
 **Purpose**: A runnable, empty TypeScript project with Express mounting Next.js, plus a database
 and tooling.
 
-- [ ] T001 Create `package.json` (Node 24 `engines`, `"type": "module"`) and install dependencies:
+- [X] T001 Create `package.json` (Node 24 `engines`, `"type": "module"`) and install dependencies:
   - runtime: next@16, react@19, react-dom@19, express@5, drizzle-orm, pg, zod, multer, sharp,
     qrcode, cookie-parser, cookie-signature
   - dev: typescript, tsx, drizzle-kit, vitest, supertest, @playwright/test, @axe-core/playwright,
     autocannon, eslint, eslint-config-next, prettier, and @types/* for express, multer, pg,
     qrcode, cookie-parser, supertest
-- [ ] T002 Add `tsconfig.json` (strict, path alias `@/*` → `src/*`) and `next.config.ts`
+- [X] T002 Add `tsconfig.json` (strict, path alias `@/*` → `src/*`) and `next.config.ts`
   (`poweredByHeader: false`, no image remote patterns, no telemetry). Create `.npmrc` with
   `engine-strict=true`
-- [ ] T003 [P] Configure ESLint and Prettier in `eslint.config.mjs` and `.prettierrc`. Add
+- [X] T003 [P] Configure ESLint and Prettier in `eslint.config.mjs` and `.prettierrc`. Add
   scripts to `package.json`: `dev`, `build`, `start`, `typecheck`, `lint`, `test`,
   `test:integration`, `test:e2e`, `test:load`, `db:generate`, `db:migrate`, `purge`, `seed:dev`
-- [ ] T004 [P] Create `.env.example` listing, without values:
+- [X] T004 [P] Create `.env.example` listing, without values:
   - `DATABASE_URL`, `CREW_PASSCODE`, `SESSION_SECRET`, `SCREEN_TOKEN`, `PUBLIC_URL`
   - `EVENT_START`, `EVENT_END`, `PHOTO_DELETE_AT`, `PHOTO_DIR`, `DOMAIN`
   Add `.env`, `.next/`, `node_modules/`, `photos/`, `test-results/`, and `playwright-report/`
   to `.gitignore`
-- [ ] T005 [P] Create `compose.dev.yml` (postgres:17-alpine on 5432 with a named volume) and
+- [X] T005 [P] Create `compose.dev.yml` (postgres:17-alpine on 5432 with a named volume) and
   `compose.test.yml` (postgres:17-alpine on 55432, tmpfs storage)
-- [ ] T006 [P] Create `vitest.config.ts` with two projects: `unit` (`tests/unit/**`) and
+- [X] T006 [P] Create `vitest.config.ts` with two projects: `unit` (`tests/unit/**`) and
   `integration` (`tests/integration/**`, single thread, global setup that migrates
   `compose.test.yml`'s database). Create `playwright.config.ts` with `iPhone 15` (webkit) and
   `Pixel 7` (chromium) projects against `http://localhost:3000`
-- [ ] T007 Create `src/server/index.ts`:
+- [X] T007 Create `src/server/index.ts`:
   - boot Express
   - `app.disable('x-powered-by')`, `trust proxy` set to 1
   - JSON body limit 16 KB
@@ -77,14 +77,14 @@ depends on these.
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T008 Implement `src/server/config.ts`:
+- [X] T008 Implement `src/server/config.ts`:
   - parse env with zod
   - `SESSION_SECRET` at least 32 chars
   - `EVENT_START`/`EVENT_END`/`PHOTO_DELETE_AT` are ISO-8601 with offset, and `EVENT_END` is
     after `EVENT_START`
   - `PUBLIC_URL` is a URL
   - fail fast with a clear message listing missing variables
-- [ ] T009 Define the Drizzle schema in `src/server/db/schema.ts` exactly per data-model.md:
+- [X] T009 Define the Drizzle schema in `src/server/db/schema.ts` exactly per data-model.md:
   - enums `realm` (`live`|`rehearsal`), `stage`
     (`setup`|`voting_open`|`voting_closed`|`results_revealed`), `pass_origin` (`self`|`crew`),
     `vote_status` (`counted`|`voided`|`released`), and `actor_type` (`pass`|`crew`|`system`)
@@ -96,20 +96,20 @@ depends on these.
     - `entries.consent_confirmed_at` not null
     - votes partial unique index `(pass_id) WHERE status IN ('counted','voided')`
     - `contest.reveal_step` check 0–3
-- [ ] T010 Create `src/server/db/client.ts` (pg Pool with max 10, Drizzle instance, and a
+- [X] T010 Create `src/server/db/client.ts` (pg Pool with max 10, Drizzle instance, and a
   `withTx` helper). Generate the first migration into `drizzle/` with `npm run db:generate`.
   Add `src/server/db/migrate.ts`, which runs migrations, upserts `settings` id 1 from env, and
   inserts `contest` rows for `live` and `rehearsal` at `setup`, step 0, version 0
-- [ ] T011 [P] Implement `src/server/services/realm.ts`: `getSettings()`, `activeRealm()`
+- [X] T011 [P] Implement `src/server/services/realm.ts`: `getSettings()`, `activeRealm()`
   (`rehearsal` when `settings.rehearsal_mode`), and `eventStatus(now, settings)` →
   `before`|`open`|`ended`. Rehearsal always returns `open` (FR-006, FR-036)
-- [ ] T012 [P] Implement `src/server/services/audit.ts`:
+- [X] T012 [P] Implement `src/server/services/audit.ts`:
   `record(tx, { realm, actorType, actorId, action, details })`, append-only. `details` carries
   ids and before/after values only
-- [ ] T013 [P] Implement `src/server/middleware/errors.ts`: an `AppError(code, status, message,
+- [X] T013 [P] Implement `src/server/middleware/errors.ts`: an `AppError(code, status, message,
   state?)` class and an Express error handler that emits `{ error, message, state? }` with the
   codes in contracts/api.md, plus `Cache-Control: no-store` on all `/api` responses
-- [ ] T014 Implement `src/server/middleware/auth.ts`:
+- [X] T014 Implement `src/server/middleware/auth.ts`:
   - `loadPass` reads `np_live` or `np_rehearsal` for the active realm, hashes it with SHA-256,
     and attaches the pass
   - `requirePass`; `requireCrew` (signed `crew` cookie, 12 h, maps to a `crew_sessions` row and
@@ -123,36 +123,36 @@ depends on these.
     are unaffected
   - cookie options `HttpOnly; Secure; SameSite=Lax; Path=/`, with `Secure` off only when
     `NODE_ENV=development`
-- [ ] T015 Implement `src/server/middleware/idempotency.ts`:
+- [X] T015 Implement `src/server/middleware/idempotency.ts`:
   - require an `Idempotency-Key` uuid on POST/PATCH/DELETE (else `400`)
   - look up `(key, scope)`, where scope is the pass id or crew session id
   - replay the stored status and body with `Idempotent-Replay: true`
   - store the response on first completion
   - delete rows older than 24 h on startup and hourly
-- [ ] T016 Implement `src/server/services/contest-state.ts`:
+- [X] T016 Implement `src/server/services/contest-state.ts`:
   - `getPublicState(realm)` builds `PublicState` (contracts/api.md, Shared types) from
     `contest` + `settings` + `entriesVersion`
   - in-memory cache keyed by realm, with `invalidate(realm)` called after every write
   - an `etag(state)` helper
   - no timers modify state
-- [ ] T017 Implement `GET /api/state` in `src/server/routes/state.ts`: ETag/`If-None-Match` →
+- [X] T017 Implement `GET /api/state` in `src/server/routes/state.ts`: ETag/`If-None-Match` →
   `304`, and mount it in `src/server/routes/index.ts`. Implement `GET /healthz`
   (`SELECT 1` → `200 ok`)
-- [ ] T018 [P] Create shared types and zod schemas in `src/shared/types.ts` and
+- [X] T018 [P] Create shared types and zod schemas in `src/shared/types.ts` and
   `src/shared/schemas.ts`: `Stage`, `EventStatus`, `PublicState`, `Pass`, `EntryCard`,
   `RevealedPlace`, and error codes, matching contracts/api.md
-- [ ] T019 [P] Create `src/lib/api.ts`, a fetch wrapper that:
+- [X] T019 [P] Create `src/lib/api.ts`, a fetch wrapper that:
   - adds `Idempotency-Key: crypto.randomUUID()` per action and reuses it on retry
   - retries network errors up to 3 times with backoff
   - parses `{ error }` bodies into typed errors
-- [ ] T020 [P] Create `src/lib/usePoll.ts`, a React hook that:
+- [X] T020 [P] Create `src/lib/usePoll.ts`, a React hook that:
   - polls a URL at an interval with jitter
   - sends `If-None-Match`
   - backs off to at most 20 s on errors and resets on success
   - pauses while `document.hidden`
   - defaults: students 3 s ± 0.5 s, crew and screen 2 s ± 0.25 s (research §3). Worst case
     between polls must stay under 3.5 s for students so SC-004 holds
-- [ ] T021 [P] Create design tokens and globals in `src/styles/tokens.css` and
+- [X] T021 [P] Create design tokens and globals in `src/styles/tokens.css` and
   `src/styles/globals.css`:
   - `--bg #1a0b2e`, `--accent #ff7a1a`, and text colors at WCAG AA contrast or better against
     `--bg`
@@ -164,17 +164,17 @@ depends on these.
   organizers supply the logo file, fall back to a text wordmark ("RIZN" in Nunito Black over
   "FEAR FACTOR" in Creepster). `PassBadge` (T030), the crew header (T048), and the screen page
   (T059) use `BrandMark` (FR-042)
-- [ ] T022 [P] Create `src/app/layout.tsx`:
+- [X] T022 [P] Create `src/app/layout.tsx`:
   - `next/font/google` Creepster (headings) and Nunito (body), self-hosted at build
   - `lang="en"`
   - viewport meta
   - imports globals
   - a `<RehearsalBanner>` slot
   - no third-party scripts
-- [ ] T023 [P] Create `src/components/RehearsalBanner.tsx`: when `state.rehearsal` is true it
+- [X] T023 [P] Create `src/components/RehearsalBanner.tsx`: when `state.rehearsal` is true it
   shows a fixed, high-contrast "REHEARSAL" banner with text and an icon (not color alone), on
   every page (FR-037)
-- [ ] T024 [P] Create `src/server/nicknames.ts` with curated `ADJECTIVES` and `NOUNS` arrays of
+- [X] T024 [P] Create `src/server/nicknames.ts` with curated `ADJECTIVES` and `NOUNS` arrays of
   at least 40 each, kid-safe and spooky, giving at least 1,600 combinations. Add
   `scripts/check-nicknames.ts`, which prints every combination for staff review
 - [ ] T025 Create `scripts/seed-dev.ts` for the rehearsal realm, so stories can be tested
@@ -196,7 +196,7 @@ screen appears instead.
 
 ### Tests for User Story 1
 
-- [ ] T026 [P] [US1] Unit tests in `tests/unit/nicknames.test.ts`:
+- [X] T026 [P] [US1] Unit tests in `tests/unit/nicknames.test.ts`:
   - generated nicknames are unique per realm
   - exhaustion returns a `nickname_exhausted` error instead of reusing a nickname
   - rehearsal and live spaces are independent
@@ -213,27 +213,27 @@ screen appears instead.
 
 ### Implementation for User Story 1
 
-- [ ] T028 [US1] Implement `src/server/services/passes.ts`:
+- [X] T028 [US1] Implement `src/server/services/passes.ts`:
   - `issuePass(realm, origin, crewSessionId?)` picks a random unused adjective-noun pair,
     retries on unique violation, and refuses with `nickname_exhausted` after the space is full.
     `number` is next in the per-realm sequence
   - `findByToken`
   - `searchPasses(realm, q)`
   - the cookie token is `crypto.randomBytes(32)` base64url, stored as a SHA-256 `token_hash`
-- [ ] T029 [US1] Implement `POST /api/pass` and `GET /api/me` in `src/server/routes/pass.ts`:
+- [X] T029 [US1] Implement `POST /api/pass` and `GET /api/me` in `src/server/routes/pass.ts`:
   - `POST /api/pass` returns the existing pass or issues one and sets `np_<realm>`
   - live realm outside the window → `403 outside_window`
   - `GET /api/me` returns `{ pass, ownEntryId, vote }`
-- [ ] T030 [P] [US1] Create `src/components/PassBadge.tsx`: a conference-badge layout with
+- [X] T030 [P] [US1] Create `src/components/PassBadge.tsx`: a conference-badge layout with
   "NIGHT PASS", the RIZN Fear Factor heading in Creepster, the nickname large, and the number as
   `#0042`. It has no inputs
-- [ ] T031 [US1] Create the Night Pass page `src/app/page.tsx`:
+- [X] T031 [US1] Create the Night Pass page `src/app/page.tsx`:
   - on load it calls `POST /api/pass`, then renders `PassBadge` and a 44 px+ "Costume Contest"
     button to `/contest`
   - `event.status === 'before'` → "Doors open at 7:00 PM" style screen using `event.start`
     formatted in America/Edmonton
   - `ended` → "Fear Factor has ended. Thanks for coming!" with no photos
-- [ ] T032 [P] [US1] Create the QR endpoint `GET /api/qr.svg` in `src/server/routes/qr.ts`
+- [X] T032 [P] [US1] Create the QR endpoint `GET /api/qr.svg` in `src/server/routes/qr.ts`
   (`qrcode` SVG of `PUBLIC_URL`, `Cache-Control: public, max-age=3600`)
 
 **Checkpoint**: Students can get and keep a pass. Run T026–T027.

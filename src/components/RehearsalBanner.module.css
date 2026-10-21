@@ -1,0 +1,12 @@
+.banner {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--rehearsal);
+  color: #1a0b2e;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-align: center;
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 3px dashed #1a0b2e;
+}

@@ -1,0 +1,67 @@
+.badge {
+  position: relative;
+  margin: var(--space-6) auto var(--space-5);
+  max-width: 360px;
+  border-radius: 22px;
+  background: linear-gradient(160deg, var(--surface-2), var(--surface) 60%);
+  border: 2px solid var(--accent);
+  box-shadow: 0 20px 50px rgb(0 0 0 / 0.45), 0 0 40px rgb(255 122 26 / 0.15);
+  overflow: hidden;
+  text-align: center;
+  animation: swing 900ms ease-out;
+  transform-origin: top center;
+}
+.lanyard {
+  width: 64px;
+  height: 14px;
+  margin: 14px auto 0;
+  border-radius: 7px;
+  background: var(--bg);
+  border: 2px solid var(--border);
+}
+.header {
+  padding: var(--space-4) var(--space-4) var(--space-3);
+  border-bottom: 2px dashed var(--border);
+}
+.kicker {
+  margin: var(--space-2) 0 0;
+  font-weight: 900;
+  font-size: 13px;
+  letter-spacing: 0.2em;
+  color: var(--text-muted);
+}
+.body {
+  padding: var(--space-5) var(--space-4);
+}
+.label {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+.nickname {
+  margin: var(--space-2) 0;
+  font-family: var(--font-display);
+  font-size: clamp(34px, 10vw, 46px);
+  line-height: 1.1;
+  color: var(--accent);
+}
+.number {
+  margin: 0;
+  font-weight: 900;
+  font-size: 22px;
+  letter-spacing: 0.1em;
+}
+.footer {
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 800;
+  padding: var(--space-3);
+  font-size: 15px;
+}
+@keyframes swing {
+  0% { transform: rotate(-6deg) translateY(-12px); opacity: 0; }
+  60% { transform: rotate(2deg); opacity: 1; }
+  100% { transform: rotate(0); }
+}
