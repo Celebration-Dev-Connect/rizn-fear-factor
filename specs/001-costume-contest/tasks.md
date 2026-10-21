@@ -673,7 +673,7 @@ are no rehearsal rows or photo files, and live data is untouched.
 - [X] T085 Measure the student payload with `next build` output and a Playwright network capture.
   Initial JS must be under 200 KB gzipped and `/api/state` under 1 KB. Fix any regressions in
   `src/app/contest/page.tsx` and `src/app/page.tsx`
-- [ ] T086 Write `README.md`:
+- [X] T086 Write `README.md`:
   - project summary
   - local setup and commands
   - the env var table

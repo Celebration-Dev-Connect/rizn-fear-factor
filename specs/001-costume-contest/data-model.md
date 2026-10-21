@@ -94,6 +94,7 @@ One row per realm.
 | stage | enum | `setup` · `voting_open` · `voting_closed` · `results_revealed` |
 | reveal_step | smallint | 0–P, where P is the number of places that exist (1–3, from the ranking). It counts how many places have been revealed, lowest place first. Only non-zero in `results_revealed` |
 | version | integer | incremented on every change; used for ETags and the in-memory cache |
+| entries_version | integer | incremented whenever entries are added, edited, or removed; exposed as `PublicState.entriesVersion` so phones refetch the gallery only when it changes |
 | updated_at | timestamptz | |
 
 ### Stage transitions (FR-021–FR-023, FR-031)
@@ -143,7 +144,7 @@ Append-only (FR-027).
 
 | Field | Type | Notes |
 |---|---|---|
-| key | uuid PK | |
+| key | uuid | primary key together with `scope` |
 | scope | text | the session or pass id that sent it |
 | response_status / response_body | int / jsonb | replayed on retry |
 | created_at | timestamptz | rows are deleted after 24 h |

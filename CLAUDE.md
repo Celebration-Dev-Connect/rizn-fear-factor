@@ -9,21 +9,21 @@ Church, Edmonton, grades 7–12) on **Friday, October 30, 2026**. The first rele
 contest only: students get an anonymous Night Pass and vote once; crew add costume photos, run
 the contest stages, and reveal winners on a big screen.
 
-## Stack (planned; no application code yet)
+## Stack
 
 TypeScript on Node 24, as a single process: Express 5 serves `/api` and mounts Next.js 16 for
 the pages. Data lives in PostgreSQL 17 through Drizzle, and photos are WebP files on a private
 volume. Deployment is Docker Compose (`app`, `db`, `caddy`) on one server. Redis is deliberately
 not used. Rationale is in `specs/001-costume-contest/research.md`, and the layout is in `plan.md`.
 
-Planned commands, per `specs/001-costume-contest/quickstart.md`. Confirm them against
-`package.json` once it exists:
+Commands (full list in `README.md`):
 
-- `npm run dev`: local server (needs `docker compose -f compose.dev.yml up -d db`)
+- `npm run dev`: local server (needs `docker compose -f compose.dev.yml up -d --wait` and `npm run db:migrate`)
 - `npm run typecheck`, `npm run lint`
 - `npm test`: unit tests; `npm run test:integration`: real PostgreSQL via `compose.test.yml`
 - Single test: `npx vitest run tests/integration/votes.test.ts -t "self-vote"`
-- `npm run test:e2e` (Playwright), `npm run test:load` (autocannon)
+- `npm run test:e2e`: Playwright (runs against the dev server; uses and wipes the rehearsal contest)
+- `npm run test:load`: autocannon (`LOAD_BASE_URL`, `CREW_PASSCODE`)
 - `./scripts/deploy.sh`: production deploy
 
 Rules the code has to keep:
@@ -33,6 +33,11 @@ Rules the code has to keep:
 - Every table carries a `realm` column (`live` or `rehearsal`), and requests act on the active
   realm.
 - Every mutation must carry an `Idempotency-Key` header.
+- `/api/state` is the hot poll path and must not touch the database. It is mounted before
+  `loadIdentity` in `src/server/app.ts`.
+- Server code lives in `src/server` (Express) and pages in `src/app` (Next.js). Both use the
+  `@/` alias, and production runs the TypeScript server with `tsx`.
+- Drizzle wraps Postgres errors. Use `isUniqueViolation` from `src/server/db/errors.ts`.
 
 ## Where things live
 
