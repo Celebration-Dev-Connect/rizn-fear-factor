@@ -35,7 +35,8 @@ export default function CrewDashboard() {
       <h1>Dashboard</h1>
       <section className="card" style={{ marginBottom: 24 }} aria-label="Totals">
         <p style={{ fontSize: 28, fontWeight: 900, margin: 0 }}>
-          {totals.votesCounted} votes <span style={{ color: "var(--text-muted)", fontWeight: 700 }}>of {totals.passes} passes</span>
+          {totals.votesCounted} {totals.votesCounted === 1 ? "vote" : "votes"}{" "}
+          <span style={{ color: "var(--text-muted)", fontWeight: 700 }}>of {totals.passes} {totals.passes === 1 ? "pass" : "passes"}</span>
         </p>
         <p style={{ margin: 0, color: "var(--text-muted)" }}>Per-costume counts stay hidden until voting closes.</p>
       </section>

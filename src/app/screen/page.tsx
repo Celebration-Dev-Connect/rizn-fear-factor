@@ -51,7 +51,8 @@ export default function ScreenPage() {
         <h1 className={styles.title}>Costume Contest</h1>
         {totals.data && (
           <p className={styles.totals}>
-            <strong>{totals.data.votesCounted}</strong> votes cast of <strong>{totals.data.passes}</strong> passes
+            <strong>{totals.data.votesCounted}</strong> {totals.data.votesCounted === 1 ? "vote" : "votes"} cast of{" "}
+            <strong>{totals.data.passes}</strong> {totals.data.passes === 1 ? "pass" : "passes"}
           </p>
         )}
       </header>
