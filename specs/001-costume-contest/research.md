@@ -23,7 +23,7 @@ Redis only if needed.
 
 - **Decision**: No Redis. Read and write PostgreSQL directly, plus a small in-process cache of
   the public contest state.
-- **Rationale**: At peak, 350 phones each poll every 4 s, which is about 90 requests/s of a
+- **Rationale**: At peak, 350 phones each poll every 3 s, which is about 115 requests/s of a
   sub-1 KB JSON payload. The public state (stage, reveal step, entry list version, rehearsal flag)
   changes only on crew actions, so it is held in memory and invalidated when a crew action
   writes. Most polls never touch the database, and 304 responses keep them tiny. Votes peak at a
@@ -35,12 +35,14 @@ Redis only if needed.
 
 ## 3. Student updates: polling with ETags
 
-- **Decision**: Students poll `GET /api/state` every 4 s with ±1 s jitter and `If-None-Match`.
+- **Decision**: Students poll `GET /api/state` every 3 s with ±0.5 s jitter and `If-None-Match`.
   Crew and the big screen poll every 2 s. On errors, polling backs off up to 20 s and resets on
   success. Polling pauses while the tab is hidden.
 - **Rationale**: Constitution III prefers polling over long-lived connections on student phones.
-  A 4 s interval plus jitter meets SC-004 (crew action visible within 5 s on phones) on average;
-  the big screen at 2 s meets it reliably.
+  The worst case for a 3 s interval plus 0.5 s jitter is 3.5 s, which leaves about 1.5 s for
+  the network and rendering and so meets SC-004 (crew action visible within 5 s) on every
+  healthy poll. The big screen at 2 s has more margin. While a phone is backing off after
+  errors, it can't meet 5 s; it catches up on its first successful poll.
 - **Alternatives considered**: SSE or WebSockets, which the constitution rules out for student
   phones, and which handle wifi drops poorly.
 

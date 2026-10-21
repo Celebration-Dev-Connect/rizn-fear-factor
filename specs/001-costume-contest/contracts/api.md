@@ -13,11 +13,15 @@ JSON unless noted. All responses send `Cache-Control: no-store` except photos.
 - **Idempotency**: every `POST`, `PATCH`, and `DELETE` from a pass or crew session MUST send an
   `Idempotency-Key: <uuid>` header. A repeated key replays the first response with
   `Idempotent-Replay: true`. A missing key returns `400`.
+- **Event window**: in the live realm, every endpoint that accepts a pass cookie returns
+  `403 outside_window` unless the event window is open. This includes photos, entries, votes,
+  `/api/me`, and results. Crew and screen cookies are not affected, and rehearsal passes are
+  exempt (spec FR-006, FR-036).
 - **Errors**: the body is `{ "error": "<code>", "message": "<human text>", "state"?: PublicState }`.
 
 | Code | HTTP | When |
 |---|---|---|
-| `outside_window` | 403 | pass requested before the start or after the end (live realm) |
+| `outside_window` | 403 | live-realm pass issued or used before the start or after the end of the event window |
 | `no_pass` | 401 | pass cookie missing or unknown |
 | `not_crew` | 401 | crew cookie missing or expired |
 | `voting_not_open` | 409 | vote while the stage is not `voting_open` |
@@ -67,7 +71,7 @@ type RevealedPlace = { place: 1 | 2 | 3; tied: boolean; entries: EntryCard[] };
 | `GET /api/me` | pass | n/a | `200 { pass: Pass, ownEntryId: string \| null, vote: { entryId: string } \| null }` |
 | `GET /api/entries` | pass, crew, or screen | `If-None-Match` | `200 { entriesVersion, entries: EntryCard[] }` or `304` |
 | `POST /api/votes` | pass | `{ entryId }` | `201 { vote: { entryId } }`. Errors: `voting_not_open`, `already_voted`, `self_vote` |
-| `GET /api/results` | pass or screen | n/a | `200 { places: RevealedPlace[] }`. Only places revealed so far (place 3 first). Empty before `results_revealed`. Never counts |
+| `GET /api/results` | pass or screen | n/a | `200 { places: RevealedPlace[] }`. Only places revealed so far, lowest existing place first. Empty before `results_revealed`. Never counts |
 | `GET /api/photos/:photoId/:size` | pass, crew, or screen | `size ∈ {thumb, full}` | `200 image/webp` with `Cache-Control: private, max-age=86400, immutable`. `404` if unknown or in the other realm. `410 photos_deleted` |
 | `GET /api/qr.svg` | none | n/a | SVG QR code for `PUBLIC_URL` |
 

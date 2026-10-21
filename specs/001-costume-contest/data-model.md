@@ -92,7 +92,7 @@ One row per realm.
 |---|---|---|
 | realm | enum PK | |
 | stage | enum | `setup` · `voting_open` · `voting_closed` · `results_revealed` |
-| reveal_step | smallint | 0–3: how many places have been revealed (3rd, then 2nd, then 1st). Only non-zero in `results_revealed` |
+| reveal_step | smallint | 0–P, where P is the number of places that exist (1–3, from the ranking). It counts how many places have been revealed, lowest place first. Only non-zero in `results_revealed` |
 | version | integer | incremented on every change; used for ETags and the in-memory cache |
 | updated_at | timestamptz | |
 
@@ -100,13 +100,17 @@ One row per realm.
 
 ```text
 setup ──open──▶ voting_open ──close──▶ voting_closed ──reveal──▶ results_revealed
-  ▲                │   ▲                  │   ▲                     (reveal_step 1→2→3)
-  └──────undo──────┘   └──────undo────────┘   └────undo (step 3→2→1→0, then stage back)
+  ▲                │   ▲                  │   ▲                     (reveal_step 1→…→P)
+  └──────undo──────┘   └──────undo────────┘   └────undo (step P→…→1→0, then stage back)
 ```
 
 - Every transition is a crew request that includes `from` (the expected current stage and
   step). A mismatch returns 409. No timer or background job ever writes this table (Principle VI).
 - Entering `results_revealed` is refused if no entry has a counted vote.
+- Reveal steps only cover places that exist. With P places, `advance` at step P is refused.
+  The first reveal shows the lowest existing place (3rd if it exists, otherwise 2nd, otherwise
+  1st). P is computed from the ranking when `advance` is called, and ranking can't change in
+  `results_revealed` because voting is closed.
 - Undo keeps all entries and votes.
 - Undo inside `results_revealed` hides one place at a time. Undo at step 0 returns to
   `voting_closed`.

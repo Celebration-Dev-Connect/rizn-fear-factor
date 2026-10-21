@@ -116,6 +116,11 @@ depends on these.
     updates `last_seen_at`)
   - `requireScreen` (signed `screen` cookie)
   - `requireAny(['pass','crew','screen'])`
+  - **event window on every pass request (FR-006)**: in the live realm, `requirePass` and the pass
+    branch of `requireAny` reject with `403 outside_window` unless `eventStatus()` is `open`. This
+    covers `/api/me`, `/api/entries`, `/api/photos/*`, `/api/votes`, and `/api/results`. Rehearsal
+    passes are exempt. Crew-created passes are never authenticated by cookie, so crew endpoints
+    are unaffected
   - cookie options `HttpOnly; Secure; SameSite=Lax; Path=/`, with `Secure` off only when
     `NODE_ENV=development`
 - [ ] T015 Implement `src/server/middleware/idempotency.ts`:
@@ -141,11 +146,12 @@ depends on these.
   - retries network errors up to 3 times with backoff
   - parses `{ error }` bodies into typed errors
 - [ ] T020 [P] Create `src/lib/usePoll.ts`, a React hook that:
-  - polls a URL at an interval with ±1 s jitter
+  - polls a URL at an interval with jitter
   - sends `If-None-Match`
   - backs off to at most 20 s on errors and resets on success
   - pauses while `document.hidden`
-  - defaults: students 4 s, crew and screen 2 s (research §3)
+  - defaults: students 3 s ± 0.5 s, crew and screen 2 s ± 0.25 s (research §3). Worst case
+    between polls must stay under 3.5 s for students so SC-004 holds
 - [ ] T021 [P] Create design tokens and globals in `src/styles/tokens.css` and
   `src/styles/globals.css`:
   - `--bg #1a0b2e`, `--accent #ff7a1a`, and text colors at WCAG AA contrast or better against
@@ -153,6 +159,11 @@ depends on these.
   - `--tap 44px` minimum on buttons and links
   - focus rings
   - a `@media (prefers-reduced-motion: reduce)` block that disables animations
+  Also add brand assets in `public/brand/` and a `src/components/BrandMark.tsx` component that
+  renders the official RIZN / Fear Factor logo SVG with `alt="RIZN Fear Factor"`. Until the
+  organizers supply the logo file, fall back to a text wordmark ("RIZN" in Nunito Black over
+  "FEAR FACTOR" in Creepster). `PassBadge` (T030), the crew header (T048), and the screen page
+  (T059) use `BrandMark` (FR-042)
 - [ ] T022 [P] Create `src/app/layout.tsx`:
   - `next/font/google` Creepster (headings) and Nunito (body), self-hosted at build
   - `lang="en"`
@@ -194,6 +205,10 @@ screen appears instead.
   - a repeat with the cookie returns the same pass and creates no row
   - live realm before `event_start` and after `event_end` returns `403 outside_window`
   - rehearsal mode issues passes outside the window
+  - with a live pass issued inside the window, then the clock moved past `event_end`:
+    `GET /api/me`, `GET /api/entries`, `GET /api/photos/:id/thumb`, `POST /api/votes`, and
+    `GET /api/results` all return `403 outside_window`, while the same photo is still served to
+    crew and screen cookies
   - the DB stores only `token_hash`, never the raw token
 
 ### Implementation for User Story 1
@@ -392,8 +407,10 @@ within 5 s, nothing changes without a press, and two devices acting at once reso
   `nextState(current, action)`:
   - `advance` from each stage
   - `undo` from each stage
-  - reveal steps 0→1→2→3 inside `results_revealed` and undo 3→2→1→0→`voting_closed`
-  - `advance` at step 3 is refused
+  - with `placesCount` 3: reveal steps 0→1→2→3 inside `results_revealed`, and undo
+    3→2→1→0→`voting_closed`; `advance` at step 3 is refused
+  - with `placesCount` 1 and 2: `advance` is refused at step 1 and step 2 respectively, so no
+    press reveals nothing
   - `undo` at `setup` is refused
   - entering `results_revealed` is refused when there are no counted votes
 - [ ] T051 [P] [US4] Integration tests in `tests/integration/stage.test.ts`:
@@ -409,12 +426,16 @@ within 5 s, nothing changes without a press, and two devices acting at once reso
 ### Implementation for User Story 4
 
 - [ ] T052 [US4] Implement `src/server/services/contest-machine.ts`: the pure
-  `nextState({stage, revealStep}, 'advance'|'undo', { hasCountedVotes })` following the
-  transition diagram in data-model.md, returning the new state or an error code
+  `nextState({stage, revealStep}, 'advance'|'undo', { hasCountedVotes, placesCount })`
+  following the transition diagram in data-model.md, returning the new state or an error code.
+  Reveal steps stop at `placesCount` (1–3)
 - [ ] T053 [US4] Implement `transition(realm, crewSessionId, action, from)` in
   `src/server/services/contest-state.ts`:
   - in one transaction, `SELECT … FOR UPDATE` on `contest`
   - compare with `from`, else `stage_conflict`
+  - compute `hasCountedVotes` and `placesCount` = min(3, number of distinct non-zero
+    counted-vote totals across non-removed entries) with one query, exported as
+    `countPlaces(tx, realm)`
   - apply `nextState`, increment `version`, write audit, then `invalidate`
 - [ ] T054 [US4] Implement `POST /api/crew/stage` and `GET /api/crew/dashboard` in
   `src/server/routes/crew/stage.ts` and `src/server/routes/crew/dashboard.ts`. The dashboard
@@ -487,8 +508,10 @@ the big screen and phones.
 - [ ] T061 [US6] Implement `src/server/services/ranking.ts`:
   - `rank()` as tested
   - `crewRanking(realm)` (counts included)
-  - `publicResults(realm)`: in `results_revealed`, return only places `> 3 - revealStep`, in
-    order 3, 2, 1, without counts; otherwise `[]` (FR-031, FR-032)
+  - `publicResults(realm)`: in `results_revealed`, with P existing places, return only places
+    `> P - revealStep`, lowest place first, without counts; otherwise `[]` (FR-031, FR-032).
+    P comes from `countPlaces` in `contest-state.ts` (T053), so the reveal and the state
+    machine always agree
 - [ ] T062 [US6] Implement `GET /api/crew/ranking` (only in `voting_closed`/`results_revealed`,
   else `409`) and `GET /api/results` (pass|screen) in `src/server/routes/crew/ranking.ts` and
   `src/server/routes/results.ts`
@@ -505,7 +528,8 @@ the big screen and phones.
   - a note when fewer than three places exist
 - [ ] T065 [US6] Wire `Reveal` into `src/app/screen/page.tsx` and `src/app/contest/page.tsx`:
   when the stage is `results_revealed`, fetch `/api/results` whenever `state.version` changes and
-  show the revealed places in place of the gallery and voting UI
+  show the revealed places. On the screen, `Reveal` replaces the gallery. On `/contest`, it is
+  shown above the gallery, which stays visible (FR-007)
 
 ---
 
@@ -661,7 +685,9 @@ are no rehearsal rows or photo files, and live data is untouched.
   Update `CLAUDE.md` with the final verified commands
 - [ ] T087 Run the full quickstart.md validation on the production server: all automated checks
   pass, then the manual rehearsal steps 1–11, then wipe. Record the results in
-  `specs/001-costume-contest/checklists/rehearsal.md`
+  `specs/001-costume-contest/checklists/rehearsal.md`, including the timed measurements from
+  quickstart step 5 (SC-003, under 30 s per entry) and step 6 (SC-001, under 60 s from scan to
+  vote)
 
 ---
 

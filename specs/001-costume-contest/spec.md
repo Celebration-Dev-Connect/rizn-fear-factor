@@ -317,7 +317,8 @@ passes, entries, votes, or photos remain and the contest is back at setup.
 **Gallery and voting**
 
 - **FR-007**: Pass holders MUST be able to view a gallery of all current entries with photo and
-  nickname, in every stage.
+  nickname in every stage while the event window is open (FR-006). Once results are revealed,
+  the revealed winners are shown above the gallery.
 - **FR-008**: System MUST accept votes only while the contest is in the voting-open stage.
 - **FR-009**: System MUST enforce one counted vote per pass on the server; repeated or duplicate
   submissions MUST NOT create additional votes.

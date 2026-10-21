@@ -46,10 +46,10 @@ Safari and Android Chrome (latest two versions), plus a projector browser.
 **Project Type**: Web application (single full-stack Node service)
 
 **Performance Goals**:
-- 400 phones polling every 4 s, which is about 100 req/s.
+- 400 phones polling every 3 s (±0.5 s jitter), which is about 135 req/s.
 - A burst of 350 votes in 60 s.
 - p95 API latency under 300 ms.
-- Crew actions visible on the big screen within 5 s (SC-004).
+- Crew actions visible on the big screen and student phones within 5 s, worst case (SC-004).
 
 **Constraints**:
 - No third-party requests at runtime.

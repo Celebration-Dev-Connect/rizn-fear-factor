@@ -54,8 +54,12 @@ touches voting, stages, or photos.
 4. Scan the QR code with three phones. Each gets a different nickname and number, even though
    it is outside the event window.
 5. On `/crew/entries`, add two entries from those passes and a third from a crew-created pass.
+   **Time each entry**, from searching the pass to the success toast. Each must be under 30 s
+   (SC-003).
    Saving without ticking consent must be blocked. Each entry appears on the screen within 5 s.
 6. Advance to **Voting open**.
+   - Phone 4 (fresh) scans the QR code and votes. **Time it** from scan to thank-you screen;
+     it must be under 60 s (SC-001).
    - Phone 1 votes and sees the thank-you screen. Reload and press back: it cannot vote again.
    - Phone 2 cannot select its own costume.
    - Use `/crew/assist` to cast a vote for the crew-created pass.
