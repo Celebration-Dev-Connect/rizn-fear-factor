@@ -1,4 +1,5 @@
 import { and, eq, ilike, max, or, sql } from "drizzle-orm";
+import { isUniqueViolation } from "../db/errors";
 import { db, type DbOrTx } from "../db/client";
 import { entryPasses, passes } from "../db/schema";
 import { AppError } from "../middleware/errors";
@@ -8,8 +9,6 @@ import { record } from "./audit";
 import type { Realm } from "@/shared/types";
 
 export type PassRow = typeof passes.$inferSelect;
-
-const isUniqueViolation = (err: unknown) => (err as { code?: string })?.code === "23505";
 
 /**
  * Issues a new pass with a unique nickname (FR-002) and the next per-realm number.

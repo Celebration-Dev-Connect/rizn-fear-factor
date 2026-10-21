@@ -6,6 +6,7 @@ import { db } from "./db/client";
 import { loadIdentity } from "./middleware/auth";
 import { errorHandler, noStore, notFound } from "./middleware/errors";
 import { apiRouter } from "./routes";
+import { screenLinkRouter } from "./routes/screen";
 
 /** Builds the Express app. `pageHandler` (Next.js) serves every non-API route when given. */
 export function createApp(opts: { pageHandler?: RequestHandler } = {}): Express {
@@ -26,6 +27,7 @@ export function createApp(opts: { pageHandler?: RequestHandler } = {}): Express 
   app.use("/api", noStore, express.json({ limit: "16kb" }), loadIdentity, apiRouter(), notFound);
   app.use("/api", errorHandler);
 
+  app.use(screenLinkRouter);
   if (opts.pageHandler) app.use(opts.pageHandler);
   return app;
 }

@@ -200,7 +200,7 @@ screen appears instead.
   - generated nicknames are unique per realm
   - exhaustion returns a `nickname_exhausted` error instead of reusing a nickname
   - rehearsal and live spaces are independent
-- [ ] T027 [P] [US1] Integration tests in `tests/integration/pass.test.ts`:
+- [X] T027 [P] [US1] Integration tests in `tests/integration/pass.test.ts`:
   - first `POST /api/pass` sets a cookie and returns a pass
   - a repeat with the cookie returns the same pass and creates no row
   - live realm before `event_start` and after `event_end` returns `403 outside_window`
@@ -250,7 +250,7 @@ then reload, go back, and resend. Exactly one vote is recorded and the thank-you
 
 ### Tests for User Story 2 (required by Constitution VII)
 
-- [ ] T033 [P] [US2] Integration tests in `tests/integration/votes.test.ts`:
+- [X] T033 [P] [US2] Integration tests in `tests/integration/votes.test.ts`:
   - one vote per pass, including 10 concurrent `POST /api/votes` with different idempotency
     keys → exactly 1 row with `status='counted'` and the rest `409 already_voted`
   - a replay with the same key returns the original `201` with `Idempotent-Replay: true`
@@ -263,23 +263,23 @@ then reload, go back, and resend. Exactly one vote is recorded and the thank-you
 
 ### Implementation for User Story 2
 
-- [ ] T034 [US2] Implement `src/server/services/voting.ts` `castVote(realm, passId, entryId,
+- [X] T034 [US2] Implement `src/server/services/voting.ts` `castVote(realm, passId, entryId,
   assistedBy?)`. In one transaction, with `SELECT … FOR UPDATE` on the `contest` row:
   - stage must be `voting_open`
   - the entry exists and `removed_at IS NULL`
   - the pass is not in `entry_passes` for that entry
   - insert with `status='counted'`; map the partial unique violation to `already_voted`
   - write audit `vote.cast`
-- [ ] T035 [US2] Implement `src/server/services/entries.ts` read side: `listEntries(realm)`
+- [X] T035 [US2] Implement `src/server/services/entries.ts` read side: `listEntries(realm)`
   returns `EntryCard[]`:
   - `displayName` is the linked nicknames joined with " & "
   - `alt` is "Costume photo of <displayName>"
   - photo URLs are `/api/photos/<photoId>/thumb|full`
   - also `entriesVersion`
-- [ ] T036 [US2] Implement `GET /api/entries` (ETag on `entriesVersion`, auth pass|crew|screen)
+- [X] T036 [US2] Implement `GET /api/entries` (ETag on `entriesVersion`, auth pass|crew|screen)
   and `POST /api/votes` (requirePass, idempotency) in `src/server/routes/entries.ts` and
   `src/server/routes/votes.ts`
-- [ ] T037 [US2] Implement photo serving `GET /api/photos/:photoId/:size` in
+- [X] T037 [US2] Implement photo serving `GET /api/photos/:photoId/:size` in
   `src/server/routes/photos.ts`:
   - auth pass|crew|screen
   - realm must match the active realm, else `404`
@@ -319,7 +319,7 @@ appears in `/contest` within 5 s. Removing it releases its votes.
 
 ### Tests for User Story 3 (photo handling required by Constitution VII)
 
-- [ ] T041 [P] [US3] Integration tests in `tests/integration/photos.test.ts`:
+- [X] T041 [P] [US3] Integration tests in `tests/integration/photos.test.ts`:
   - uploading a JPEG containing EXIF GPS → stored WebP files have no EXIF/XMP/GPS metadata
     (check with sharp `metadata()`)
   - over 3 MB → `413`
@@ -331,14 +331,14 @@ appears in `/contest` within 5 s. Removing it releases its votes.
   - after `PHOTO_DELETE_AT` → `410`
   - removing an entry deletes both files from `PHOTO_DIR` and sets its votes to `released`
   - an entry-save retry with the same idempotency key creates one entry
-- [ ] T042 [P] [US3] Integration tests in `tests/integration/crew-auth.test.ts`:
+- [X] T042 [P] [US3] Integration tests in `tests/integration/crew-auth.test.ts`:
   - correct passcode sets the `crew` cookie
   - a wrong passcode returns `401`, and after 5 failures `429` with `Retry-After`
   - crew endpoints without the cookie → `401 not_crew`
 
 ### Implementation for User Story 3
 
-- [ ] T043 [US3] Implement `POST /api/crew/session` and `DELETE /api/crew/session` in
+- [X] T043 [US3] Implement `POST /api/crew/session` and `DELETE /api/crew/session` in
   `src/server/routes/crew/session.ts`:
   - timing-safe compare with `CREW_PASSCODE`
   - `deviceLabel` must be one of the fixed list in `src/shared/deviceLabels.ts`
@@ -346,13 +346,13 @@ appears in `/contest` within 5 s. Removing it releases its votes.
   - creates a `crew_sessions` row
   - in-memory per-IP limiter in `src/server/middleware/rateLimit.ts`: after 5 failures, delay
     doubles from 2 s up to 60 s
-- [ ] T044 [US3] Implement `src/server/services/photos.ts`:
+- [X] T044 [US3] Implement `src/server/services/photos.ts`:
   - `processUpload(buffer)`: sharp `.rotate()` (apply EXIF orientation), then write two WebP
     files, 1200 px long edge at q≈75 and 480 px at q≈70, with no metadata (`withMetadata` not
     called), named by a new random uuid
   - `deletePhoto(photoId)`
   - `photoPath(photoId, size)`
-- [ ] T045 [US3] Implement entry writes in `src/server/services/entries.ts`:
+- [X] T045 [US3] Implement entry writes in `src/server/services/entries.ts`:
   - `createEntry(realm, crewSessionId, passIds[], photoBuffer, consent)`:
     - `consent` must be true, else `consent_required`
     - `passIds` must have length 1 or more, and each pass must be in the realm and not already
@@ -362,7 +362,7 @@ appears in `/contest` within 5 s. Removing it releases its votes.
   - `removeEntry`, in one transaction: set `removed_at`, delete `entry_passes`, update votes to
     `released`, delete the photo files, and return `releasedVotes`
   - all of them write audit events and call `invalidate(realm)`
-- [ ] T046 [US3] Implement the crew entry and pass routes in `src/server/routes/crew/entries.ts`
+- [X] T046 [US3] Implement the crew entry and pass routes in `src/server/routes/crew/entries.ts`
   and `src/server/routes/crew/passes.ts`:
   - `GET /api/crew/passes?q=`, max 20, matching a nickname prefix or substring
     (case-insensitive) or the exact number
@@ -403,7 +403,7 @@ within 5 s, nothing changes without a press, and two devices acting at once reso
 
 ### Tests for User Story 4 (state machine required by Constitution VII)
 
-- [ ] T050 [P] [US4] Unit tests in `tests/unit/contest-machine.test.ts` for the pure
+- [X] T050 [P] [US4] Unit tests in `tests/unit/contest-machine.test.ts` for the pure
   `nextState(current, action)`:
   - `advance` from each stage
   - `undo` from each stage
@@ -413,7 +413,7 @@ within 5 s, nothing changes without a press, and two devices acting at once reso
     press reveals nothing
   - `undo` at `setup` is refused
   - entering `results_revealed` is refused when there are no counted votes
-- [ ] T051 [P] [US4] Integration tests in `tests/integration/stage.test.ts`:
+- [X] T051 [P] [US4] Integration tests in `tests/integration/stage.test.ts`:
   - `POST /api/crew/stage` with a wrong `from` → `409 stage_conflict` including the current
     state
   - two concurrent advances with the same `from` → one succeeds and one conflicts
@@ -425,11 +425,11 @@ within 5 s, nothing changes without a press, and two devices acting at once reso
 
 ### Implementation for User Story 4
 
-- [ ] T052 [US4] Implement `src/server/services/contest-machine.ts`: the pure
+- [X] T052 [US4] Implement `src/server/services/contest-machine.ts`: the pure
   `nextState({stage, revealStep}, 'advance'|'undo', { hasCountedVotes, placesCount })`
   following the transition diagram in data-model.md, returning the new state or an error code.
   Reveal steps stop at `placesCount` (1–3)
-- [ ] T053 [US4] Implement `transition(realm, crewSessionId, action, from)` in
+- [X] T053 [US4] Implement `transition(realm, crewSessionId, action, from)` in
   `src/server/services/contest-state.ts`:
   - in one transaction, `SELECT … FOR UPDATE` on `contest`
   - compare with `from`, else `stage_conflict`
@@ -437,7 +437,7 @@ within 5 s, nothing changes without a press, and two devices acting at once reso
     counted-vote totals across non-removed entries) with one query, exported as
     `countPlaces(tx, realm)`
   - apply `nextState`, increment `version`, write audit, then `invalidate`
-- [ ] T054 [US4] Implement `POST /api/crew/stage` and `GET /api/crew/dashboard` in
+- [X] T054 [US4] Implement `POST /api/crew/stage` and `GET /api/crew/dashboard` in
   `src/server/routes/crew/stage.ts` and `src/server/routes/crew/dashboard.ts`. The dashboard
   returns `totals: { passes, votesCounted }` (counted votes only; never per-entry counts,
   FR-026) and `screenUrl` = `${PUBLIC_URL}/screen?t=${SCREEN_TOKEN}`
@@ -467,7 +467,7 @@ the results ranking read on the crew device.
 **Independent Test**: Open the screen link on a second device, then add an entry and cast a vote
 elsewhere. Both appear within 5 s, and nothing on the screen can change contest state.
 
-- [ ] T057 [US5] Implement the screen auth routes in `src/server/routes/screen.ts`:
+- [X] T057 [US5] Implement the screen auth routes in `src/server/routes/screen.ts`:
   - `GET /screen?t=` is handled by Express before Next: if `t` equals `SCREEN_TOKEN`
     (timing-safe), set the signed `screen` cookie (30 days) and redirect to `/screen`
   - `GET /api/screen/totals` (requireScreen) → `{ passes, votesCounted }`
@@ -495,7 +495,7 @@ the big screen and phones.
 
 ### Tests for User Story 6
 
-- [ ] T060 [P] [US6] Unit tests in `tests/unit/ranking.test.ts` for the pure
+- [X] T060 [P] [US6] Unit tests in `tests/unit/ranking.test.ts` for the pure
   `rank(entriesWithCounts)`:
   - dense ranking `[10,7,7,5,2]` → places 1, 2 (tied ×2), 3, and one unplaced
   - zero-vote entries are never placed
@@ -505,14 +505,14 @@ the big screen and phones.
 
 ### Implementation for User Story 6
 
-- [ ] T061 [US6] Implement `src/server/services/ranking.ts`:
+- [X] T061 [US6] Implement `src/server/services/ranking.ts`:
   - `rank()` as tested
   - `crewRanking(realm)` (counts included)
   - `publicResults(realm)`: in `results_revealed`, with P existing places, return only places
     `> P - revealStep`, lowest place first, without counts; otherwise `[]` (FR-031, FR-032).
     P comes from `countPlaces` in `contest-state.ts` (T053), so the reveal and the state
     machine always agree
-- [ ] T062 [US6] Implement `GET /api/crew/ranking` (only in `voting_closed`/`results_revealed`,
+- [X] T062 [US6] Implement `GET /api/crew/ranking` (only in `voting_closed`/`results_revealed`,
   else `409`) and `GET /api/results` (pass|screen) in `src/server/routes/crew/ranking.ts` and
   `src/server/routes/results.ts`
 - [ ] T063 [P] [US6] Create `src/components/Reveal.tsx`:
@@ -541,16 +541,16 @@ the big screen and phones.
 creation time and they sit together. Void one: totals drop and an audit entry exists. Restore it
 and they rise again.
 
-- [ ] T066 [P] [US7] Add to `tests/integration/votes.test.ts`:
+- [X] T066 [P] [US7] Add to `tests/integration/votes.test.ts`:
   - void sets `status='voided'` and drops `votesCounted`
   - restore returns it to `counted`
   - both write audit entries with the crew session id
   - a voided vote still blocks the pass from voting again
   - there is no endpoint that voids automatically
-- [ ] T067 [US7] Implement `listVotes(realm, sort, order, status)`, `voidVote`, and
+- [X] T067 [US7] Implement `listVotes(realm, sort, order, status)`, `voidVote`, and
   `restoreVote` in `src/server/services/voting.ts`. `restoreVote` is refused if the entry was
   removed (status `released`)
-- [ ] T068 [US7] Implement `GET /api/crew/votes`, `POST /api/crew/votes/:id/void`,
+- [X] T068 [US7] Implement `GET /api/crew/votes`, `POST /api/crew/votes/:id/void`,
   `POST /api/crew/votes/:id/restore`, and `GET /api/crew/audit` in
   `src/server/routes/crew/votes.ts` and `src/server/routes/crew/audit.ts`
 - [ ] T069 [US7] Create the vote log page `src/app/crew/votes/page.tsx`:
@@ -570,11 +570,11 @@ and they rise again.
 **Independent Test**: During `voting_open`, use `/crew/assist` to pick or create a crew pass and
 vote. The vote counts once and is marked assisted, and the student's own entry can't be chosen.
 
-- [ ] T070 [P] [US8] Add to `tests/integration/votes.test.ts`:
+- [X] T070 [P] [US8] Add to `tests/integration/votes.test.ts`:
   - an assisted vote follows the same one-vote, self-vote, and stage rules
   - `assisted_by_crew_session_id` is set
   - a second assisted vote for the same pass → `already_voted`
-- [ ] T071 [US8] Implement `POST /api/crew/assisted-votes` in
+- [X] T071 [US8] Implement `POST /api/crew/assisted-votes` in
   `src/server/routes/crew/assisted.ts`, calling `castVote(realm, passId, entryId,
   crewSessionId)`
 - [ ] T072 [US8] Create `src/app/crew/assist/page.tsx`:
@@ -594,7 +594,7 @@ are no rehearsal rows or photo files, and live data is untouched.
 
 ### Tests for User Story 9 (dry run required by Constitution VII)
 
-- [ ] T073 [P] [US9] Integration tests in `tests/integration/rehearsal.test.ts`:
+- [X] T073 [P] [US9] Integration tests in `tests/integration/rehearsal.test.ts`:
   - turning rehearsal on switches `activeRealm`, and new passes use `np_rehearsal`
   - turning it on after the live contest left `setup` → `409 rehearsal_locked`
   - the wipe deletes all rehearsal passes, entries, entry_passes, votes, and audit events, plus
@@ -604,14 +604,14 @@ are no rehearsal rows or photo files, and live data is untouched.
 
 ### Implementation for User Story 9
 
-- [ ] T074 [US9] Implement `src/server/services/rehearsal.ts`:
+- [X] T074 [US9] Implement `src/server/services/rehearsal.ts`:
   - `setRehearsal(on, crewSessionId)`: refuse `on` when the live `contest.stage !== 'setup'`;
     write audit `rehearsal.on/off`
   - `wipeRehearsal(crewSessionId)`: in one transaction, select rehearsal `photo_id`s and delete
     the rehearsal rows in FK order; reset the rehearsal contest row; after commit, delete the
     photo files; write a live-realm audit `rehearsal.wipe` with counts
   - invalidate both realms
-- [ ] T075 [US9] Implement `POST /api/crew/rehearsal` and `POST /api/crew/rehearsal/wipe`
+- [X] T075 [US9] Implement `POST /api/crew/rehearsal` and `POST /api/crew/rehearsal/wipe`
   (`{ confirm: 'WIPE' }` required) in `src/server/routes/crew/rehearsal.ts`, and
   `PUT /api/crew/settings/window` in `src/server/routes/crew/settings.ts` (`end` must be after
   `start`; audit `settings.window`)

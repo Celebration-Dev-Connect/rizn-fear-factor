@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import fs from "node:fs/promises";
+import http from "node:http";
 import { sql } from "drizzle-orm";
 import sharp from "sharp";
 import request from "supertest";
@@ -12,10 +13,11 @@ import { invalidateAll } from "@/server/services/contest-state";
 
 export type Agent = TestAgent;
 
-let app: ReturnType<typeof createApp> | undefined;
-export function testApp() {
-  app ??= createApp();
-  return app;
+let server: http.Server | undefined;
+/** One listening server for the whole run, shared by every supertest agent. */
+export function testApp(): http.Server {
+  server ??= http.createServer(createApp()).listen(0);
+  return server;
 }
 
 /** Clears all rows and photos and puts both contests back at setup. */
