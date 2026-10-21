@@ -10,16 +10,18 @@ import type { PublicState, Realm } from "@/shared/types";
 
 export type ContestRow = typeof contest.$inferSelect;
 
-// In-memory cache of the contest rows. Only crew writes change them, and every write calls
-// invalidate(). No timer ever modifies contest state (Constitution VI).
-const cache = new Map<Realm, ContestRow>();
+// In-memory cache of the contest rows. In-process writes call invalidate(); the 1 s expiry picks
+// up changes made by other processes (purge, seed scripts). At ~135 polls/s that is still about
+// one query per second. No timer ever modifies contest state (Constitution VI).
+const CACHE_MS = 1000;
+const cache = new Map<Realm, { row: ContestRow; at: number }>();
 
 export async function getContest(realm: Realm, tx?: DbOrTx): Promise<ContestRow> {
   const hit = cache.get(realm);
-  if (hit && !tx) return hit;
+  if (hit && !tx && Date.now() - hit.at < CACHE_MS) return hit.row;
   const [row] = await (tx ?? db()).select().from(contest).where(eq(contest.realm, realm));
   if (!row) throw new Error(`contest row for ${realm} missing; run migrations`);
-  if (!tx) cache.set(realm, row);
+  if (!tx) cache.set(realm, { row, at: Date.now() });
   return row;
 }
 

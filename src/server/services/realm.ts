@@ -5,13 +5,15 @@ import type { EventStatus, Realm } from "@/shared/types";
 
 export type Settings = typeof settings.$inferSelect;
 
-let cache: Settings | undefined;
+// Same 1 s expiry as the contest cache, so out-of-process changes are picked up quickly.
+const CACHE_MS = 1000;
+let cache: { row: Settings; at: number } | undefined;
 
 export async function getSettings(tx?: DbOrTx): Promise<Settings> {
-  if (cache && !tx) return cache;
+  if (cache && !tx && Date.now() - cache.at < CACHE_MS) return cache.row;
   const [row] = await (tx ?? db()).select().from(settings).where(eq(settings.id, 1));
   if (!row) throw new Error("settings row missing; run migrations");
-  if (!tx) cache = row;
+  if (!tx) cache = { row, at: Date.now() };
   return row;
 }
 
