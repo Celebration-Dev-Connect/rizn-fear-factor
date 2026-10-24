@@ -15,6 +15,11 @@ Terraform creates the server, and GitHub Actions builds and deploys it.
 environment and in `/opt/rizn/.env` on the server (mode 600). Terraform state holds no secrets: the SSH
 key it knows is the public half. `.gitignore` blocks `*.tfstate`, `*.tfvars`, `.env`, and key files.
 
+**Every taggable AWS resource carries the tag `app = rizn-fear-factor`** (set once, through the
+provider's `default_tags`). AWS doesn't allow tags on Lightsail static IPs, Lightsail firewall rules,
+Route 53 records, or S3 bucket settings, so those go untagged. To see the event's cost by tag, activate
+`app` once under Billing → Cost allocation tags.
+
 ## One-time setup
 
 You need the AWS CLI signed in as an admin, Terraform 1.10+, and `gh` signed in to GitHub.
@@ -102,7 +107,17 @@ and the production rehearsal in `specs/001-costume-contest/quickstart.md`.
    gh variable set PUBLIC_URL --env production --body https://pass.riznfearfactor.ca
    ```
 
-3. Run *Infrastructure* → `apply` (it only adds the DNS record), then *Deploy*. Caddy gets a certificate
+3. Tag the domain and its hosted zone, which Route 53 created outside Terraform:
+
+   ```bash
+   aws route53domains update-tags-for-domain --region us-east-1 --domain-name riznfearfactor.ca \
+     --tags-to-update Key=app,Value=rizn-fear-factor
+   ZONE_ID=$(aws route53 list-hosted-zones-by-name --dns-name riznfearfactor.ca --query 'HostedZones[0].Id' --output text)
+   aws route53 change-tags-for-resource --resource-type hostedzone --resource-id "${ZONE_ID##*/}" \
+     --add-tags Key=app,Value=rizn-fear-factor
+   ```
+
+4. Run *Infrastructure* → `apply` (it only adds the DNS record), then *Deploy*. Caddy gets a certificate
    for the new name. Passes issued on the sslip.io address don't carry over, so make the switch before
    printing QR codes and before the rehearsal.
 

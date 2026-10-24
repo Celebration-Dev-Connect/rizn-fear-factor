@@ -13,8 +13,12 @@ terraform {
   }
 }
 
+# Every taggable resource gets app = rizn-fear-factor (bucket settings and inline policies can't be tagged).
 provider "aws" {
   region = var.region
+  default_tags {
+    tags = { app = "rizn-fear-factor" }
+  }
 }
 
 data "aws_caller_identity" "current" {}

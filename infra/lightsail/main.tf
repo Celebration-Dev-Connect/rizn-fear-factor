@@ -17,10 +17,12 @@ terraform {
   }
 }
 
+# Every taggable resource gets app = rizn-fear-factor. AWS can't tag Lightsail static IPs,
+# firewall rules, or Route 53 records.
 provider "aws" {
   region = var.region
   default_tags {
-    tags = { project = var.name }
+    tags = { app = "rizn-fear-factor" }
   }
 }
 
