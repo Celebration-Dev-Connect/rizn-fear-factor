@@ -32,7 +32,8 @@ resource "aws_lightsail_key_pair" "deploy" {
 }
 
 # Automatic snapshots stay off: a snapshot would keep a copy of student photos (Constitution I).
-# Changing user_data or the blueprint replaces the instance and loses its photos and database.
+# Changing the blueprint or bundle replaces the instance and loses its photos and database.
+# user_data edits are ignored on an existing instance so they can't trigger that by accident.
 resource "aws_lightsail_instance" "app" {
   name              = var.name
   availability_zone = "${var.region}a"
@@ -40,6 +41,10 @@ resource "aws_lightsail_instance" "app" {
   bundle_id         = var.bundle_id
   key_pair_name     = aws_lightsail_key_pair.deploy.name
   user_data         = file("${path.module}/user-data.sh")
+
+  lifecycle {
+    ignore_changes = [user_data]
+  }
 }
 
 resource "aws_lightsail_static_ip" "app" {

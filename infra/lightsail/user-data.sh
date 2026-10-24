@@ -2,7 +2,7 @@
 # First-boot setup for the Lightsail instance (runs once, as root, via cloud-init).
 # Installs Docker from Docker's apt repository and prepares /opt/rizn for the deploy workflow.
 # Lightsail appends this to its own /bin/sh launch script, so it must be POSIX sh (no bashisms).
-# Editing this file replaces the instance on the next apply, losing its data.
+# Edits only affect newly created instances (main.tf ignores user_data changes on a running one).
 set -eux
 export DEBIAN_FRONTEND=noninteractive
 
@@ -30,6 +30,7 @@ usermod -aG docker ubuntu
 # Keys only, no root login.
 printf 'PasswordAuthentication no\nKbdInteractiveAuthentication no\nPermitRootLogin no\n' \
   > /etc/ssh/sshd_config.d/90-rizn.conf
-systemctl reload ssh
+# Ubuntu 24.04 starts sshd on demand; this is a no-op when it isn't running yet.
+systemctl try-reload-or-restart ssh
 
 install -d -o ubuntu -g ubuntu -m 750 /opt/rizn

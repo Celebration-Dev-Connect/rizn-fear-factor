@@ -138,7 +138,8 @@ and the production rehearsal in `specs/001-costume-contest/quickstart.md`.
 - **Resize** (for example to 4 GB before event night): set `LIGHTSAIL_BUNDLE`, then run *Infrastructure*
   → `plan` first. Changing the plan replaces the instance, which **deletes the database and photos**,
   so only do it before the event has real data.
-- **Don't edit `user-data.sh` after the server exists.** The change replaces the instance too.
+- **`user-data.sh` only runs on a new server.** Terraform ignores edits to it on the running one; apply
+  a change there by hand over SSH (the script is safe to re-run with `sudo sh`).
 
 ## After the event
 
