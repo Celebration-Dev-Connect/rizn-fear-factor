@@ -1,8 +1,9 @@
-#!/bin/bash
+#!/bin/sh
 # First-boot setup for the Lightsail instance (runs once, as root, via cloud-init).
 # Installs Docker from Docker's apt repository and prepares /opt/rizn for the deploy workflow.
+# Lightsail appends this to its own /bin/sh launch script, so it must be POSIX sh (no bashisms).
 # Editing this file replaces the instance on the next apply, losing its data.
-set -euxo pipefail
+set -eux
 export DEBIAN_FRONTEND=noninteractive
 
 # Swap gives headroom on the 2 GB plan (image builds happen in CI, not here).
