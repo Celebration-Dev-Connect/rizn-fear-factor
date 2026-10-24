@@ -10,11 +10,6 @@ variable "name" {
   default     = "rizn-fear-factor"
 }
 
-variable "zone_name" {
-  description = "Route 53 hosted zone created when the domain was registered, e.g. riznfearfactor.ca."
-  type        = string
-}
-
 variable "github_repo" {
   description = "owner/repo allowed to assume the deploy role."
   type        = string

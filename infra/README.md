@@ -6,7 +6,7 @@ Terraform creates the server, and GitHub Actions builds and deploys it.
 | Piece | What it is |
 |---|---|
 | `infra/bootstrap/` | Run once from a laptop. Creates the Terraform state bucket and an IAM role that GitHub Actions assumes through OIDC, so no AWS keys are stored anywhere. |
-| `infra/lightsail/` | The server: instance (2 GB plan by default), static IP, firewall (80, 443, key-only SSH), and the Route 53 `A` record. |
+| `infra/lightsail/` | The server: instance (2 GB plan by default), static IP, firewall (80, 443, key-only SSH), and, once a domain exists, the Route 53 `A` record. |
 | `.github/workflows/ci.yml` | Typecheck, lint, unit, and integration tests on every push and PR. |
 | `.github/workflows/infra.yml` | Manual: Terraform `plan`, `apply`, or `destroy`. |
 | `.github/workflows/deploy.yml` | Manual: test, build the image into GHCR, write `/opt/rizn/.env` from GitHub secrets, pull, restart, health check. |
@@ -19,8 +19,9 @@ key it knows is the public half. `.gitignore` blocks `*.tfstate`, `*.tfvars`, `.
 
 You need the AWS CLI signed in as an admin, Terraform 1.10+, and `gh` signed in to GitHub.
 
-1. **Buy the domain** in Route 53 (for example `riznfearfactor.ca`). This creates its hosted zone. The
-   app goes on a subdomain such as `pass.riznfearfactor.ca`, leaving the root for a future website.
+1. **The domain can wait.** Until it's bought, the app runs at `<ip-with-dashes>.sslip.io`, a free public
+   DNS name that resolves to the server's IP and is enough for an HTTPS certificate. See
+   [Adding the real domain](#adding-the-real-domain) for the switch.
 
 2. **Make a deploy SSH key** outside the repo:
 
@@ -33,7 +34,7 @@ You need the AWS CLI signed in as an admin, Terraform 1.10+, and `gh` signed in 
    ```bash
    cd infra/bootstrap
    terraform init
-   terraform apply -var zone_name=riznfearfactor.ca   # add -var create_oidc_provider=false if the account already has one
+   terraform apply   # add -var create_oidc_provider=false if the account already has one
    ```
 
 4. **Create the GitHub environment.** In the repo: Settings → Environments → New environment →
@@ -46,9 +47,6 @@ You need the AWS CLI signed in as an admin, Terraform 1.10+, and `gh` signed in 
    # Variables (not secret)
    gh variable set AWS_ROLE_ARN    $E --body "$(terraform output -raw aws_role_arn)"
    gh variable set TF_STATE_BUCKET $E --body "$(terraform output -raw tf_state_bucket)"
-   gh variable set ZONE_NAME       $E --body riznfearfactor.ca
-   gh variable set DOMAIN          $E --body pass.riznfearfactor.ca
-   gh variable set PUBLIC_URL      $E --body https://pass.riznfearfactor.ca
    gh variable set EVENT_START     $E --body 2026-10-30T18:30:00-06:00
    gh variable set EVENT_END       $E --body 2026-10-30T22:30:00-06:00
    gh variable set PHOTO_DELETE_AT $E --body 2026-11-02T00:00:00-07:00
@@ -68,10 +66,12 @@ You need the AWS CLI signed in as an admin, Terraform 1.10+, and `gh` signed in 
    because Compose would interpret `$`, quotes, or spaces in `.env`.
 
 5. **Create the server.** Actions → *Infrastructure* → Run workflow → `plan`, check it, then run again
-   with `apply`. The run summary shows the static IP:
+   with `apply`. The run summary shows the static IP and the sslip.io hostname:
 
    ```bash
-   gh variable set SERVER_IP --env production --body <static-ip>
+   gh variable set SERVER_IP  --env production --body <static-ip>
+   gh variable set DOMAIN     --env production --body <ip-with-dashes>.sslip.io
+   gh variable set PUBLIC_URL --env production --body https://<ip-with-dashes>.sslip.io
    ```
 
 6. **Pin the server's SSH host key** so deploys refuse an impostor. Give the first boot two minutes, then
@@ -90,6 +90,22 @@ You need the AWS CLI signed in as an admin, Terraform 1.10+, and `gh` signed in 
 Then run the load test against the real server (`LOAD_BASE_URL=https://pass.riznfearfactor.ca npm run test:load`)
 and the production rehearsal in `specs/001-costume-contest/quickstart.md`.
 
+## Adding the real domain
+
+1. Buy the domain in Route 53 (for example `riznfearfactor.ca`); this creates its hosted zone. The app
+   goes on a subdomain, leaving the root free for a year-round website.
+2. Point the variables at it:
+
+   ```bash
+   gh variable set ZONE_NAME  --env production --body riznfearfactor.ca
+   gh variable set DOMAIN     --env production --body pass.riznfearfactor.ca
+   gh variable set PUBLIC_URL --env production --body https://pass.riznfearfactor.ca
+   ```
+
+3. Run *Infrastructure* → `apply` (it only adds the DNS record), then *Deploy*. Caddy gets a certificate
+   for the new name. Passes issued on the sslip.io address don't carry over, so make the switch before
+   printing QR codes and before the rehearsal.
+
 ## Day to day
 
 - **Ship a change:** run *Deploy* again. It restarts the app for a few seconds, so don't deploy during
@@ -106,7 +122,7 @@ and the production rehearsal in `specs/001-costume-contest/quickstart.md`.
 
 1. Export anything you're keeping (photos, results) from the server.
 2. Purge, as in the main README's data-deletion section, from `/opt/rizn` on the server.
-3. Actions → *Infrastructure* → `destroy`, typing the domain in *confirm*. This deletes the instance,
+3. Actions → *Infrastructure* → `destroy`, typing `destroy` in *confirm*. This deletes the instance,
    its disks, the static IP, and the DNS record. Automatic snapshots were never on, so no copy remains.
 4. Optional: delete the `rizn-fear-factor` package in GitHub → Packages. The images hold code only, no
    event data.

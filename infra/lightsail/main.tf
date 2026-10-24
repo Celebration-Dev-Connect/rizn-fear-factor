@@ -78,12 +78,15 @@ resource "aws_lightsail_instance_public_ports" "app" {
   }
 }
 
+# DNS is optional: with no zone_name, use the sslip.io hostname from the default_domain output.
 data "aws_route53_zone" "main" {
-  name = var.zone_name
+  count = var.zone_name == "" ? 0 : 1
+  name  = var.zone_name
 }
 
 resource "aws_route53_record" "app" {
-  zone_id = data.aws_route53_zone.main.zone_id
+  count   = var.zone_name == "" ? 0 : 1
+  zone_id = data.aws_route53_zone.main[0].zone_id
   name    = var.domain
   type    = "A"
   ttl     = 300

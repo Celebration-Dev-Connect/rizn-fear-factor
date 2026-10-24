@@ -19,10 +19,6 @@ provider "aws" {
 
 data "aws_caller_identity" "current" {}
 
-data "aws_route53_zone" "main" {
-  name = var.zone_name
-}
-
 locals {
   state_bucket = "${var.name}-tfstate-${data.aws_caller_identity.current.account_id}"
   oidc_url     = "https://token.actions.githubusercontent.com"
@@ -109,15 +105,16 @@ data "aws_iam_policy_document" "permissions" {
     actions   = ["lightsail:*"]
     resources = ["*"]
   }
+  # Record changes in any hosted zone, so the domain can be bought after bootstrap without re-running it.
   statement {
-    sid = "Route53Zone"
+    sid = "Route53Records"
     actions = [
       "route53:GetHostedZone",
       "route53:ListResourceRecordSets",
       "route53:ChangeResourceRecordSets",
       "route53:ListTagsForResource",
     ]
-    resources = [data.aws_route53_zone.main.arn]
+    resources = ["arn:aws:route53:::hostedzone/*"]
   }
   statement {
     sid       = "Route53Read"

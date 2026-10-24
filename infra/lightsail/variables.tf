@@ -17,13 +17,20 @@ variable "bundle_id" {
 }
 
 variable "zone_name" {
-  description = "Route 53 hosted zone, e.g. riznfearfactor.ca."
+  description = "Route 53 hosted zone, e.g. riznfearfactor.ca. Leave empty to skip DNS and use default_domain."
   type        = string
+  default     = ""
 }
 
 variable "domain" {
-  description = "Hostname for the app, e.g. pass.riznfearfactor.ca. Must match DOMAIN in the deploy workflow."
+  description = "Hostname for the app, e.g. pass.riznfearfactor.ca. Required when zone_name is set."
   type        = string
+  default     = ""
+
+  validation {
+    condition     = var.zone_name == "" || var.domain != ""
+    error_message = "Set domain when zone_name is set."
+  }
 }
 
 variable "ssh_public_key" {

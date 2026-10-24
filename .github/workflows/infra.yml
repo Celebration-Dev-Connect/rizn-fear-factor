@@ -11,7 +11,7 @@ on:
         options: [plan, apply, destroy]
         default: plan
       confirm:
-        description: For destroy only, type the app domain (e.g. pass.riznfearfactor.ca)
+        description: For destroy only, type the word destroy
         type: string
         required: false
 
@@ -40,9 +40,9 @@ jobs:
       TF_VAR_bundle_id: ${{ vars.LIGHTSAIL_BUNDLE || 'small_3_0' }}
     steps:
       - name: Guard destroy
-        if: inputs.action == 'destroy' && inputs.confirm != vars.DOMAIN
+        if: inputs.action == 'destroy' && inputs.confirm != 'destroy'
         run: |
-          echo "::error::Destroy deletes the server, every photo, and the database. Type the domain in 'confirm' to proceed."
+          echo "::error::Destroy deletes the server, every photo, and the database. Type destroy in 'confirm' to proceed."
           exit 1
 
       - uses: actions/checkout@v4
@@ -77,5 +77,6 @@ jobs:
           {
             echo "### Lightsail server"
             echo "- URL: $(terraform output -raw url)"
-            echo "- SERVER_IP: \`$(terraform output -raw server_ip)\` (set this as a GitHub variable)"
+            echo "- SERVER_IP: \`$(terraform output -raw server_ip)\` (GitHub variable)"
+            echo "- Hostname without a domain: \`$(terraform output -raw default_domain)\`"
           } >> "$GITHUB_STEP_SUMMARY"
