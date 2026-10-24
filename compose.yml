@@ -1,6 +1,9 @@
-# Production stack: one app image plus PostgreSQL and Caddy (HTTPS). Deploy: ./scripts/deploy.sh
+# Production stack: one app image plus PostgreSQL and Caddy (HTTPS).
+# Deploy with .github/workflows/deploy.yml (pulls APP_IMAGE from GHCR) or ./scripts/deploy.sh (builds here).
+name: rizn-fear-factor
 services:
   app:
+    image: ${APP_IMAGE:-rizn-fear-factor-app}
     build: .
     restart: unless-stopped
     env_file: .env

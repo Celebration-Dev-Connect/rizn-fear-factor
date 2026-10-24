@@ -1,0 +1,141 @@
+name: Deploy
+
+# Tests, builds the image into GHCR, and starts it on the Lightsail server. Run by hand from the
+# Actions tab; a deploy restarts the app for a few seconds, so avoid it during the event.
+# Secrets come from the "production" environment and are written only to /opt/rizn/.env on the
+# server. Nothing secret is baked into the image or the repo.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  test:
+    uses: ./.github/workflows/ci.yml
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image: ${{ steps.name.outputs.image }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: name
+        run: echo "image=ghcr.io/${GITHUB_REPOSITORY,,}:sha-${GITHUB_SHA::12}" >> "$GITHUB_OUTPUT"
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.name.outputs.image }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: production
+      url: https://${{ vars.DOMAIN }}
+    permissions:
+      contents: read
+      packages: read
+    env:
+      SERVER_IP: ${{ vars.SERVER_IP }}
+      APP_IMAGE: ${{ needs.build.outputs.image }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            compose.yml
+            Caddyfile
+          sparse-checkout-cone-mode: false
+
+      - name: Configure SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ vars.SSH_KNOWN_HOSTS }}
+        run: |
+          for v in SERVER_IP SSH_PRIVATE_KEY SSH_KNOWN_HOSTS; do
+            [ -n "${!v}" ] || { echo "::error::$v is not set in the production environment"; exit 1; }
+          done
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          cat > ~/.ssh/config <<EOF
+          Host server
+            HostName $SERVER_IP
+            User ubuntu
+            IdentityFile ~/.ssh/id_deploy
+            IdentitiesOnly yes
+            StrictHostKeyChecking yes
+            ServerAliveInterval 15
+          EOF
+
+      - name: Wait for first-boot setup
+        run: ssh server 'cloud-init status --wait >/dev/null; docker version --format "Docker {{.Server.Version}}"'
+
+      - name: Write .env on the server
+        env:
+          DOMAIN: ${{ vars.DOMAIN }}
+          PUBLIC_URL: ${{ vars.PUBLIC_URL }}
+          EVENT_START: ${{ vars.EVENT_START }}
+          EVENT_END: ${{ vars.EVENT_END }}
+          PHOTO_DELETE_AT: ${{ vars.PHOTO_DELETE_AT }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          CREW_PASSCODE: ${{ secrets.CREW_PASSCODE }}
+          SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+          SCREEN_TOKEN: ${{ secrets.SCREEN_TOKEN }}
+        run: |
+          keys="APP_IMAGE DOMAIN PUBLIC_URL EVENT_START EVENT_END PHOTO_DELETE_AT POSTGRES_PASSWORD CREW_PASSCODE SESSION_SECRET SCREEN_TOKEN"
+          # Values are written unquoted, so reject anything Compose would interpret ($, quotes, spaces).
+          for k in $keys; do
+            [ -n "${!k}" ] || { echo "::error::$k is not set in the production environment"; exit 1; }
+            [[ "${!k}" =~ ^[A-Za-z0-9._:+/=@-]+$ ]] || { echo "::error::$k has characters other than letters, digits, and ._:+/=@-"; exit 1; }
+          done
+          { for k in $keys; do printf '%s=%s\n' "$k" "${!k}"; done; echo NEXT_TELEMETRY_DISABLED=1; } \
+            | ssh server 'umask 077 && cat > /opt/rizn/.env'
+
+      - name: Copy compose files
+        run: scp compose.yml Caddyfile server:/opt/rizn/
+
+      - name: Pull and start
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          printf '%s' "$GH_TOKEN" | ssh server "docker login ghcr.io -u '${{ github.actor }}' --password-stdin >/dev/null"
+          ssh server 'cd /opt/rizn && docker compose pull && docker logout ghcr.io >/dev/null && docker compose up -d --no-build --remove-orphans'
+
+      - name: Health check
+        run: |
+          for _ in $(seq 1 90); do
+            if curl -fsS "https://${{ vars.DOMAIN }}/healthz" >/dev/null 2>&1; then
+              echo "Deployed $APP_IMAGE to https://${{ vars.DOMAIN }}"
+              ssh server 'docker image prune -f >/dev/null'
+              exit 0
+            fi
+            sleep 2
+          done
+          ssh server 'cd /opt/rizn && docker compose ps && docker compose logs --tail 50 app caddy'
+          echo "::error::https://${{ vars.DOMAIN }}/healthz did not respond"
+          exit 1
+
+      - name: Remove SSH key
+        if: always()
+        run: rm -f ~/.ssh/id_deploy

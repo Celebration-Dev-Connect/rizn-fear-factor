@@ -46,5 +46,18 @@ next-env.d.ts
 .test-photos/
 test-results/
 
+# terraform (the provider lock files are committed)
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+tfplan
+crash.log
+
+# ssh keys
+id_ed25519*
+*.key
+
 # local Claude Code worktrees
 .claude/worktrees/

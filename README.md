@@ -66,7 +66,11 @@ Everything is set through `.env`. Nothing secret is committed.
 
 ## Deploy
 
-On a Linux server with Docker and DNS for `DOMAIN` pointing at it:
+**AWS Lightsail (the event setup):** Terraform and GitHub Actions do everything. See
+[infra/README.md](infra/README.md). The app lives in `/opt/rizn` on the server, and secrets come from the
+GitHub `production` environment.
+
+**Any other Linux server** with Docker and DNS for `DOMAIN` pointing at it:
 
 ```bash
 git clone git@github.com:Celebration-Dev-Connect/rizn-fear-factor.git && cd rizn-fear-factor

@@ -16,3 +16,6 @@ Dockerfile*
 .specify/
 .claude/
 specs/
+infra/
+.github/
+prototype/

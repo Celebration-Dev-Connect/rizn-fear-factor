@@ -1,0 +1,30 @@
+name: CI
+
+# Uses no secrets, so it is safe on pull requests from forks.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      # Real PostgreSQL via compose.test.yml (Constitution VII: votes, stages, photos, rehearsal).
+      - run: npm run test:integration
+      - if: always()
+        run: docker compose -f compose.test.yml down -v

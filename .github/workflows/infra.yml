@@ -1,0 +1,81 @@
+name: Infrastructure
+
+# Plans, applies, or destroys infra/lightsail. Run by hand from the Actions tab.
+# AWS access is through OIDC (no stored AWS keys); see infra/README.md.
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: What to do
+        type: choice
+        options: [plan, apply, destroy]
+        default: plan
+      confirm:
+        description: For destroy only, type the app domain (e.g. pass.riznfearfactor.ca)
+        type: string
+        required: false
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: infra
+  cancel-in-progress: false
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: production
+    defaults:
+      run:
+        working-directory: infra/lightsail
+    env:
+      TF_IN_AUTOMATION: "1"
+      TF_VAR_region: ${{ vars.AWS_REGION || 'ca-central-1' }}
+      TF_VAR_zone_name: ${{ vars.ZONE_NAME }}
+      TF_VAR_domain: ${{ vars.DOMAIN }}
+      TF_VAR_ssh_public_key: ${{ vars.SSH_PUBLIC_KEY }}
+      TF_VAR_bundle_id: ${{ vars.LIGHTSAIL_BUNDLE || 'small_3_0' }}
+    steps:
+      - name: Guard destroy
+        if: inputs.action == 'destroy' && inputs.confirm != vars.DOMAIN
+        run: |
+          echo "::error::Destroy deletes the server, every photo, and the database. Type the domain in 'confirm' to proceed."
+          exit 1
+
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION || 'ca-central-1' }}
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - run: terraform fmt -check
+      - run: >
+          terraform init -input=false
+          -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}"
+          -backend-config="key=lightsail.tfstate"
+          -backend-config="region=${{ vars.AWS_REGION || 'ca-central-1' }}"
+      - run: terraform validate
+
+      - name: Plan
+        run: terraform plan -input=false -out=tfplan ${{ inputs.action == 'destroy' && '-destroy' || '' }}
+
+      - name: Apply
+        if: inputs.action != 'plan'
+        run: terraform apply -input=false tfplan
+
+      - name: Summary
+        if: inputs.action == 'apply'
+        run: |
+          {
+            echo "### Lightsail server"
+            echo "- URL: $(terraform output -raw url)"
+            echo "- SERVER_IP: \`$(terraform output -raw server_ip)\` (set this as a GitHub variable)"
+          } >> "$GITHUB_STEP_SUMMARY"
