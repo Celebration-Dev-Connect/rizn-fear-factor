@@ -42,26 +42,33 @@ You need the AWS CLI signed in as an admin, Terraform 1.10+, and `gh` signed in 
    terraform apply   # add -var create_oidc_provider=false if the account already has one
    ```
 
+   Two settings may be needed, and both can go in `infra/bootstrap/terraform.tfvars` (gitignored):
+   `create_oidc_provider = false` if the account already has a GitHub OIDC provider, and
+   `github_sub_prefix` if the repo uses GitHub's immutable OIDC subject (check with
+   `gh api repos/OWNER/REPO/actions/oidc/customization/sub`; when `use_immutable_subject` is true, copy
+   its `sub_claim_prefix`). Without the right prefix, workflows fail with "Not authorized to perform
+   sts:AssumeRoleWithWebIdentity".
+
 4. **Create the GitHub environment.** In the repo: Settings → Environments → New environment →
    `production`. Under *Deployment branches*, allow only `main`. Adding yourself as a required reviewer
    is optional but stops an accidental deploy. Then set its values (`gh` keeps secrets out of shell
    history when piped):
 
    ```bash
-   E="--env production"
+   export GH_REPO=Celebration-Dev-Connect/rizn-fear-factor
    # Variables (not secret)
-   gh variable set AWS_ROLE_ARN    $E --body "$(terraform output -raw aws_role_arn)"
-   gh variable set TF_STATE_BUCKET $E --body "$(terraform output -raw tf_state_bucket)"
-   gh variable set EVENT_START     $E --body 2026-10-30T18:30:00-06:00
-   gh variable set EVENT_END       $E --body 2026-10-30T22:30:00-06:00
-   gh variable set PHOTO_DELETE_AT $E --body 2026-11-02T00:00:00-07:00
-   gh variable set SSH_PUBLIC_KEY  $E < ~/.ssh/rizn-deploy.pub
+   gh variable set AWS_ROLE_ARN    --env production --body "$(terraform output -raw aws_role_arn)"
+   gh variable set TF_STATE_BUCKET --env production --body "$(terraform output -raw tf_state_bucket)"
+   gh variable set EVENT_START     --env production --body 2026-10-30T18:30:00-06:00
+   gh variable set EVENT_END       --env production --body 2026-10-30T22:30:00-06:00
+   gh variable set PHOTO_DELETE_AT --env production --body 2026-11-02T00:00:00-07:00
+   gh variable set SSH_PUBLIC_KEY  --env production --body "$(cat ~/.ssh/rizn-deploy.pub)"
    # Secrets
-   gh secret set SSH_PRIVATE_KEY   $E < ~/.ssh/rizn-deploy
-   openssl rand -hex 24 | gh secret set POSTGRES_PASSWORD $E
-   openssl rand -hex 32 | gh secret set SESSION_SECRET $E
-   openssl rand -hex 16 | gh secret set SCREEN_TOKEN $E
-   gh secret set CREW_PASSCODE $E    # prompts; letters, digits, and dashes only
+   gh secret set SSH_PRIVATE_KEY   --env production < ~/.ssh/rizn-deploy
+   openssl rand -hex 24 | gh secret set POSTGRES_PASSWORD --env production
+   openssl rand -hex 32 | gh secret set SESSION_SECRET --env production
+   openssl rand -hex 16 | gh secret set SCREEN_TOKEN --env production
+   gh secret set CREW_PASSCODE --env production    # prompts; letters, digits, and dashes only
    ```
 
    Optional variables: `AWS_REGION` (default `ca-central-1`), `LIGHTSAIL_BUNDLE` (default `small_3_0`,

@@ -91,7 +91,10 @@ data "aws_iam_policy_document" "trust" {
     condition {
       test     = "StringEquals"
       variable = "token.actions.githubusercontent.com:sub"
-      values   = ["repo:${var.github_repo}:environment:production"]
+      values = compact([
+        "repo:${var.github_repo}:environment:production",
+        var.github_sub_prefix == "" ? "" : "${var.github_sub_prefix}:environment:production",
+      ])
     }
   }
 }

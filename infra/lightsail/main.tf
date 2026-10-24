@@ -70,13 +70,14 @@ resource "aws_lightsail_instance_public_ports" "app" {
 
   # Key-only SSH (passwords are disabled in user-data.sh). GitHub-hosted runners have no fixed
   # IPs, so the default is open; narrow ssh_cidrs if deploys run from somewhere fixed.
-  # "lightsail-connect" keeps the browser SSH button in the Lightsail console working.
+  # "lightsail-connect" keeps the browser SSH button in the Lightsail console working when SSH is
+  # narrowed; Lightsail rejects it next to 0.0.0.0/0, which already includes it.
   port_info {
     protocol          = "tcp"
     from_port         = 22
     to_port           = 22
     cidrs             = var.ssh_cidrs
-    cidr_list_aliases = ["lightsail-connect"]
+    cidr_list_aliases = contains(var.ssh_cidrs, "0.0.0.0/0") ? [] : ["lightsail-connect"]
   }
 }
 
