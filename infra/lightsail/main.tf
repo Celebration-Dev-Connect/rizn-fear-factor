@@ -46,13 +46,23 @@ resource "aws_lightsail_static_ip" "app" {
   name = "${var.name}-ip"
 }
 
+# Replacing the instance silently detaches the IP and resets the firewall, while the instance name
+# stays the same, so tie both to the instance's ARN, which changes on replacement.
 resource "aws_lightsail_static_ip_attachment" "app" {
   static_ip_name = aws_lightsail_static_ip.app.name
   instance_name  = aws_lightsail_instance.app.name
+
+  lifecycle {
+    replace_triggered_by = [aws_lightsail_instance.app.arn]
+  }
 }
 
 resource "aws_lightsail_instance_public_ports" "app" {
   instance_name = aws_lightsail_instance.app.name
+
+  lifecycle {
+    replace_triggered_by = [aws_lightsail_instance.app.arn]
+  }
 
   port_info {
     protocol  = "tcp"
