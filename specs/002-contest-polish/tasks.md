@@ -31,8 +31,8 @@ Actions → *Deploy*). The production rehearsal (001 T087) runs after the last p
 
 **Purpose**: dependencies and the brand-asset pipeline that later phases use.
 
-- [ ] T001 Add `jsqr@1.4.0` (Apache-2.0) to `dependencies` in package.json with `npm install jsqr@1.4.0`, and commit package-lock.json.
-- [ ] T002 [P] Create scripts/brand-assets.ts. It reads `media-bundle/` (gitignored) and writes optimized WebP files to public/brand/ with sharp, per research §9:
+- [X] T001 Add `jsqr@1.4.0` (Apache-2.0) to `dependencies` in package.json with `npm install jsqr@1.4.0`, and commit package-lock.json.
+- [X] T002 [P] Create scripts/brand-assets.ts. It reads `media-bundle/` (gitignored) and writes optimized WebP files to public/brand/ with sharp, per research §9:
   - `fear-factor-logo.webp` at 360 px wide and `fear-factor-logo@2x.webp` at 720 px, cropped to the artwork from `Workfiles/RiznFearFactor_1080x1920_Logo.png`, each ≤ 60 KB
   - `fear-factor-banner.webp` at 1080 px from `fearfactorlogos/Rizn Fear Factor WebsiteBanner_2026.png`, ≤ 90 KB
   - `rizn-youth-black.webp` and `rizn-youth-white.webp` (recoloured) at 480 px from `fearfactorlogos/IMG_4716.PNG`, ≤ 15 KB each
@@ -41,7 +41,7 @@ Actions → *Deploy*). The production rehearsal (001 T087) runs after the last p
   - stickers at 160–240 px, ≤ 20 KB each, keeping transparency
 
   It exits non-zero with a clear message if `media-bundle/` is missing, and prints each output's size.
-- [ ] T003 Add `"brand:assets": "tsx scripts/brand-assets.ts"` to the scripts in package.json. Run it, inspect the outputs visually, delete public/brand/.gitkeep, and commit the public/brand/*.webp files.
+- [X] T003 Add `"brand:assets": "tsx scripts/brand-assets.ts"` to the scripts in package.json. Run it, inspect the outputs visually, delete public/brand/.gitkeep, and commit the public/brand/*.webp files.
 
 ---
 

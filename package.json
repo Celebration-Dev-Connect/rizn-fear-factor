@@ -20,13 +20,15 @@
     "db:migrate": "tsx --env-file-if-exists=.env src/server/db/migrate.ts",
     "purge": "tsx --env-file-if-exists=.env scripts/purge.ts",
     "seed:dev": "tsx --env-file-if-exists=.env scripts/seed-dev.ts",
-    "check:nicknames": "tsx scripts/check-nicknames.ts"
+    "check:nicknames": "tsx scripts/check-nicknames.ts",
+    "brand:assets": "tsx scripts/brand-assets.ts"
   },
   "dependencies": {
     "cookie-parser": "^1.4.7",
     "cookie-signature": "^1.2.2",
     "drizzle-orm": "^0.45.4",
     "express": "^5.3.0",
+    "jsqr": "^1.4.0",
     "multer": "^2.4.0",
     "next": "^16.4.2",
     "pg": "^8.23.1",
