@@ -87,3 +87,67 @@ describe("Night Pass (US1)", () => {
     expect(dump).not.toContain(decodeURIComponent(token));
   });
 });
+
+describe("pass QR code and crew scan (spec 002 US6, FR-123–FR-128)", () => {
+  beforeEach(resetDb);
+
+  async function codeFor(realm: "live" | "rehearsal", number: number, id: string) {
+    const { encodeScanCode } = await import("@/server/services/scanCode");
+    const { config } = await import("@/server/config");
+    return encodeScanCode({ realm, number, id }, config().SESSION_SECRET);
+  }
+
+  it("serves the pass's QR code only to that pass, never cached", async () => {
+    const { agent } = await newPassAgent();
+    const res = await agent.get("/api/pass/code.svg").expect(200);
+    expect(res.headers["content-type"]).toMatch(/^image\/svg\+xml/);
+    expect(res.headers["cache-control"]).toBe("private, no-store");
+    expect(String(res.body ?? res.text)).toContain("<svg");
+    await request(testApp()).get("/api/pass/code.svg").expect(401);
+  });
+
+  it("lets crew resolve a scanned code to the pass, including its entry", async () => {
+    const crew = await newCrewAgent();
+    const { pass } = await newPassAgent();
+    const id = await passIdByNumber(crew, pass.number);
+    const entry = await createEntry(crew, [id]);
+    const res = await crew.get(`/api/crew/passes/scan?code=${encodeURIComponent(await codeFor("live", pass.number, id))}`).expect(200);
+    expect(res.body.pass).toEqual({ id, number: pass.number, nickname: pass.nickname, origin: "self", entryId: entry.id });
+  });
+
+  it("rejects forged, malformed, unknown, and wrong-mode codes", async () => {
+    const crew = await newCrewAgent();
+    const { pass } = await newPassAgent();
+    const id = await passIdByNumber(crew, pass.number);
+    const good = await codeFor("live", pass.number, id);
+    const scan = (code: string) => crew.get(`/api/crew/passes/scan?code=${encodeURIComponent(code)}`);
+
+    const forged = good.slice(0, -1) + (good.endsWith("A") ? "B" : "A");
+    expect((await scan(forged).expect(400)).body.error).toBe("bad_scan_code");
+    // Another pass's number with this pass's MAC: a forged code for someone else.
+    const other = good.replace(`.${pass.number}.`, `.${pass.number + 1}.`);
+    expect((await scan(other).expect(400)).body.error).toBe("bad_scan_code");
+    expect((await scan("https://example.com").expect(400)).body.error).toBe("bad_scan_code");
+    expect((await scan(await codeFor("rehearsal", pass.number, id)).expect(409)).body.error).toBe("wrong_realm");
+  });
+
+  it("is crew-only", async () => {
+    const { agent, pass } = await newPassAgent();
+    const res = await agent.get(`/api/crew/passes/scan?code=NP1.L.${pass.number}.ABCDEFGHIJKL`);
+    expect(res.status).toBe(401);
+    expect(res.body.error).toBe("not_crew");
+  });
+
+  it("binds the pass to the device: an altered cookie is no pass, and the phone gets a new one (FR-128)", async () => {
+    const first = await request(testApp()).post("/api/pass").expect(200);
+    const cookie = String(first.headers["set-cookie"]?.[0]);
+    expect(cookie).toMatch(/HttpOnly/);
+    expect(cookie).toMatch(/SameSite=Lax/);
+    const token = /^np_live=([^;]+)/.exec(cookie)![1]!;
+    const altered = token.slice(0, -1) + (token.endsWith("A") ? "B" : "A");
+    const me = await request(testApp()).get("/api/me").set("Cookie", `np_live=${altered}`).expect(401);
+    expect(me.body.error).toBe("no_pass");
+    const again = await request(testApp()).post("/api/pass").set("Cookie", `np_live=${altered}`).expect(200);
+    expect(again.body.pass.number).not.toBe(first.body.pass.number);
+  });
+});

@@ -283,12 +283,12 @@ edited cookie yields `no_pass`.
 
 ### Tests for User Story 6 ⚠️
 
-- [ ] T046 [P] [US6] Create tests/unit/scanCode.test.ts for src/server/services/scanCode.ts:
+- [X] T046 [P] [US6] Create tests/unit/scanCode.test.ts for src/server/services/scanCode.ts:
   - `encodeScanCode({ realm, number, id }, secret)` matches `^NP1\.[LR]\.\d{1,6}\.[A-Z2-7]{12}$`;
   - `parseScanCode` round-trips;
   - `verifyScanCode` fails for a changed number, a changed MAC, a different pass id, or a different secret;
   - the comparison uses `timingSafeEqual`.
-- [ ] T047 [US6] Extend tests/integration/pass.test.ts. It covers:
+- [X] T047 [US6] Extend tests/integration/pass.test.ts. It covers:
   - `GET /api/pass/code.svg` with a pass cookie returns `200 image/svg+xml` and `Cache-Control: private, no-store`, and without a cookie returns `401`;
   - `GET /api/crew/passes/scan?code=` with crew returns the pass with `entryId`;
   - a tampered MAC returns `400 bad_scan_code`;
@@ -301,31 +301,31 @@ edited cookie yields `no_pass`.
 
 ### Implementation for User Story 6
 
-- [ ] T048 [US6] Create src/server/services/scanCode.ts, per research §4:
+- [X] T048 [US6] Create src/server/services/scanCode.ts, per research §4:
   - `encodeScanCode(pass, secret)` returns `NP1.{L|R}.{number}.{mac}`, where mac is the first 12 characters of the base32 (RFC 4648, no padding) of `HMAC-SHA256(secret, "pass-scan:" + pass.id)`;
   - `parseScanCode(code)`;
   - `verifyScanCode(pass, mac, secret)` compares with `crypto.timingSafeEqual`.
 
   It uses `config().SESSION_SECRET`.
-- [ ] T049 [US6] Add `GET /api/pass/code.svg` (`requirePass`) to src/server/routes/pass.ts. It renders the scan code with `QRCode.toString(code, { type: "svg", margin: 4, errorCorrectionLevel: "M", color: { dark: "#0A0E1A", light: "#FFFFFF" } })` and sets `Cache-Control: private, no-store`.
-- [ ] T050 [US6] Add `GET /api/crew/passes/scan` (`requireCrew`, `scanQuery`) to src/server/routes/crew/passes.ts:
+- [X] T049 [US6] Add `GET /api/pass/code.svg` (`requirePass`) to src/server/routes/pass.ts. It renders the scan code with `QRCode.toString(code, { type: "svg", margin: 4, errorCorrectionLevel: "M", color: { dark: "#0A0E1A", light: "#FFFFFF" } })` and sets `Cache-Control: private, no-store`.
+- [X] T050 [US6] Add `GET /api/crew/passes/scan` (`requireCrew`, `scanQuery`) to src/server/routes/crew/passes.ts:
   - parse the code;
   - a realm letter that doesn't match `req.realm` returns `409 wrong_realm` ("That code is from rehearsal mode" or "That code is from the live event");
   - look up the pass by `(realm, number)`, left-joined to `entry_passes` like `searchPasses` in src/server/services/passes.ts;
   - a missing pass or failed MAC check returns `400 bad_scan_code` ("Not a Night Pass code");
   - return `{ pass: { id, number, nickname, origin, entryId } }`.
-- [ ] T051 [P] [US6] Create src/lib/scanner.ts with `startScan(video: HTMLVideoElement, onCode: (text) => void): () => void`:
+- [X] T051 [P] [US6] Create src/lib/scanner.ts with `startScan(video: HTMLVideoElement, onCode: (text) => void): () => void`:
   - `getUserMedia({ video: { facingMode: "environment" }, audio: false })`;
   - use `BarcodeDetector` with `formats: ["qr_code"]` when it exists; otherwise `await import("jsqr")` and decode frames from an offscreen canvas capped at 640 px wide, at about 6 fps;
   - stop all tracks on success or cleanup;
   - never upload or store frames;
   - throw a typed error for `NotAllowedError` and `NotFoundError`.
-- [ ] T052 [US6] Create src/components/ScanPassButton.tsx. A "Scan pass" button (≥ 44 px) opens an accessible dialog (reuse the ConfirmDialog patterns) with a live `<video playsInline muted>` and a Cancel button.
+- [X] T052 [US6] Create src/components/ScanPassButton.tsx. A "Scan pass" button (≥ 44 px) opens an accessible dialog (reuse the ConfirmDialog patterns) with a live `<video playsInline muted>` and a Cancel button.
   - On a decode it calls `GET /api/crew/passes/scan`, then calls `onPick(hit)` and closes.
   - On `bad_scan_code` or `wrong_realm` it shows the message and keeps scanning.
   - When the camera is denied or unavailable, it shows "Allow camera access in Settings → Safari → Camera (iPhone) or the site settings in Chrome (Android), or search by nickname instead".
-- [ ] T053 [US6] Add `ScanPassButton` above the search input in src/app/crew/PassPicker.tsx. It applies the same `allowEntered` rule as search hits: an already-entered pass shows the "already entered" message and isn't picked. It's used by src/app/crew/entries/page.tsx (repeatable for group costumes) and src/app/crew/assist/page.tsx.
-- [ ] T054 [US6] Turn src/components/PassBadge.tsx (+ PassBadge.module.css) into a flip card:
+- [X] T053 [US6] Add `ScanPassButton` above the search input in src/app/crew/PassPicker.tsx. It applies the same `allowEntered` rule as search hits: an already-entered pass shows the "already entered" message and isn't picked. It's used by src/app/crew/entries/page.tsx (repeatable for group costumes) and src/app/crew/assist/page.tsx.
+- [X] T054 [US6] Turn src/components/PassBadge.tsx (+ PassBadge.module.css) into a flip card:
   - The root is a `<button type="button" aria-pressed={flipped}>` labelled "Show my pass code" or "Show my pass", covering the whole pass.
   - The inner wrapper has `transform-style: preserve-3d` and a `rotateY(180deg)` transition over 450 ms.
   - The front is the current badge, with the pass number still shown.
@@ -333,7 +333,7 @@ edited cookie yields `no_pass`.
   - The `<img>` is rendered on mount (the back is hidden by `backface-visibility`), so it's loaded before the first flip and works offline.
   - Under `prefers-reduced-motion: reduce`, `transition: none`.
   - The focus ring is visible.
-- [ ] T055 [US6] Extend tests/e2e/student.spec.ts:
+- [X] T055 [US6] Extend tests/e2e/student.spec.ts:
   - tap the pass, and the QR image is visible and `naturalWidth > 0`;
   - go offline (`context.setOffline(true)`) and tap twice, and it still flips with the image present;
   - set `localStorage`/`sessionStorage` keys and reload, and the same nickname and number are shown (FR-128);

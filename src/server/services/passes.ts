@@ -86,3 +86,19 @@ export async function searchPasses(realm: Realm, q: string) {
 export function publicPass(p: Pick<PassRow, "number" | "nickname" | "origin">) {
   return { number: p.number, nickname: p.nickname, origin: p.origin };
 }
+
+/** One pass by number, shaped like a search hit (spec 002 FR-126). */
+export async function passByNumber(realm: Realm, number: number) {
+  const [row] = await db()
+    .select({
+      id: passes.id,
+      number: passes.number,
+      nickname: passes.nickname,
+      origin: passes.origin,
+      entryId: entryPasses.entryId,
+    })
+    .from(passes)
+    .leftJoin(entryPasses, eq(entryPasses.passId, passes.id))
+    .where(and(eq(passes.realm, realm), eq(passes.number, number)));
+  return row;
+}

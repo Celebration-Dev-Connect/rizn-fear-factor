@@ -72,3 +72,70 @@ test("a student can change their vote while voting is open, and not after it clo
     await crew.cleanup();
   }
 });
+
+test("the pass flips to a QR code that crew can scan, even offline, and stays bound to the device (spec 002 US6)", async ({ page, context }) => {
+  const crew = await crewApi();
+  try {
+    await page.goto("/");
+    await expect(page.getByText("Your nickname tonight")).toBeVisible();
+    const region = page.getByRole("region", { name: /Night Pass/ });
+    const label = await region.getAttribute("aria-label");
+    const number = Number(/#(\d+)/.exec(label ?? "")![1]);
+
+    // Before the flip the back face is aria-hidden, so find the image by its alt text directly.
+    const qr = page.locator('img[alt="QR code for crew to scan"]');
+    await expect.poll(() => qr.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
+
+    await page.getByRole("button", { name: "Show my pass code" }).click();
+    await expect(page.getByRole("button", { name: "Show my pass" })).toHaveAttribute("aria-pressed", "true");
+    await page.waitForTimeout(600); // let the flip finish before the screenshot
+
+    // Decode the code from the screen, as a crew phone camera would, and resolve it as crew.
+    const { default: jsQR } = await import("jsqr");
+    const sharp = (await import("sharp")).default;
+    const shot = await qr.screenshot();
+    const { data, info } = await sharp(shot).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    const decoded = jsQR(new Uint8ClampedArray(data), info.width, info.height);
+    expect(decoded?.data).toMatch(/^NP1\.R\.\d+\.[A-Z2-7]{12}$/);
+    const scan = await crew.get(`/api/crew/passes/scan?code=${encodeURIComponent(decoded!.data)}`);
+    expect(scan.status()).toBe(200);
+    expect((await scan.json()).pass.number).toBe(number);
+
+    // Offline: the flip still works and the code is still there.
+    await context.setOffline(true);
+    await page.getByRole("button", { name: "Show my pass" }).click();
+    await page.getByRole("button", { name: "Show my pass code" }).click();
+    await expect(qr).toBeVisible();
+    expect(await qr.evaluate((img: HTMLImageElement) => img.naturalWidth > 0)).toBe(true);
+    await context.setOffline(false);
+
+    // Page storage can't change which pass is shown (FR-128).
+    await page.evaluate(() => {
+      localStorage.setItem("pass", JSON.stringify({ number: 9999, nickname: "Hacked" }));
+      sessionStorage.setItem("pass", "9999");
+    });
+    await page.reload();
+    await expect(page.getByRole("region", { name: /Night Pass/ })).toHaveAttribute("aria-label", label!);
+  } finally {
+    await crew.cleanup();
+  }
+});
+
+test("the pass flip is a plain swap under reduced motion (FR-123)", async ({ browser }) => {
+  const crew = await crewApi();
+  const ctx = await browser.newContext({ reducedMotion: "reduce" });
+  const page = await ctx.newPage();
+  try {
+    await page.goto("/");
+    await expect(page.getByText("Your nickname tonight")).toBeVisible();
+    await page.getByRole("button", { name: "Show my pass code" }).click();
+    const running = await page.evaluate(() =>
+      document.getAnimations().filter((a) => a.playState === "running" && (a.effect?.getTiming().duration as number) > 1).length,
+    );
+    expect(running).toBe(0);
+    await expect(page.getByRole("img", { name: "QR code for crew to scan" })).toBeVisible();
+  } finally {
+    await ctx.close();
+    await crew.cleanup();
+  }
+});

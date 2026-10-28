@@ -3,15 +3,55 @@
   z-index: 1;
   margin: var(--space-5) auto var(--space-5);
   max-width: 360px;
-  border-radius: 22px;
-  background: var(--surface);
-  border: 3px solid var(--accent);
-  box-shadow: 0 20px 50px rgb(0 0 0 / 0.5), 0 0 40px rgb(0 105 251 / 0.25);
-  overflow: hidden;
+  perspective: 1200px;
   text-align: center;
   animation: swing 900ms ease-out;
   transform-origin: top center;
 }
+/* Both faces share one grid cell; the card turns over on tap (FR-123). */
+.card {
+  display: grid;
+  transform-style: preserve-3d;
+  transition: transform 450ms cubic-bezier(0.3, 0.7, 0.2, 1);
+}
+.flipped {
+  transform: rotateY(180deg);
+}
+.face {
+  grid-area: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  border-radius: 22px;
+  border: 3px solid var(--accent);
+  background: var(--surface);
+  box-shadow: 0 20px 50px rgb(0 0 0 / 0.5), 0 0 40px rgb(0 105 251 / 0.25);
+  overflow: hidden;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.back {
+  transform: rotateY(180deg);
+  border-color: var(--accent-2);
+  justify-content: center;
+}
+/* The whole pass is the button; it sits on top and draws the focus ring. */
+.flip {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border-radius: 22px;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+.flip:hover,
+.flip:active {
+  background: transparent;
+}
+
 .lanyard {
   width: 64px;
   height: 14px;
@@ -37,6 +77,7 @@
   letter-spacing: 0.2em;
 }
 .body {
+  flex: 1;
   padding: var(--space-5) var(--space-4) var(--space-4);
 }
 .label {
@@ -67,11 +108,52 @@
   padding: var(--space-2) var(--space-4);
 }
 .footer {
+  margin: 0;
   background: var(--surface-2);
   color: var(--text);
   font-weight: 800;
   padding: var(--space-3);
   font-size: 15px;
+}
+
+.back .lanyard {
+  margin-top: 14px;
+  border-color: var(--border);
+}
+.qrPanel {
+  margin: var(--space-3) auto 0;
+  padding: var(--space-2);
+  background: #fff;
+  border-radius: 16px;
+}
+.qr {
+  display: block;
+  width: min(240px, 62vw);
+  height: auto;
+  aspect-ratio: 1;
+}
+.backName {
+  margin: var(--space-3) var(--space-4) 0;
+  font-family: var(--font-display);
+  font-size: 30px;
+  line-height: 1.1;
+}
+.backNumber {
+  margin: 0 0 var(--space-3);
+  font-family: var(--font-condensed);
+  font-weight: 800;
+  font-size: 26px;
+  letter-spacing: 0.12em;
+  color: var(--accent-2-text);
+}
+.back .footer {
+  margin-top: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    transition: none;
+  }
 }
 @keyframes swing {
   0% { transform: rotate(-6deg) translateY(-12px); opacity: 0; }

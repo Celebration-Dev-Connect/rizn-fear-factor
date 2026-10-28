@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { ScanPassButton } from "@/components/ScanPassButton";
 import { api } from "@/lib/api";
 import { formatPassNumber } from "@/shared/types";
 
@@ -36,8 +37,9 @@ export function PassPicker({ onPick, allowEntered = false }: { onPick: (p: PassH
 
   return (
     <div style={{ display: "grid", gap: 12 }}>
+      <ScanPassButton onPick={onPick} check={(p) => (p.entryId && !allowEntered ? "already entered in a costume" : null)} />
       <label style={{ display: "grid", gap: 6 }}>
-        Student&apos;s nickname or pass number
+        Or search by nickname or pass number
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="e.g. Midnight Gremlin or 42" inputMode="search" autoComplete="off" />
       </label>
       {q.trim() !== "" && (

@@ -1,4 +1,6 @@
 import { Router } from "express";
+import QRCode from "qrcode";
+import { config } from "../config";
 import { and, eq, inArray } from "drizzle-orm";
 import { db } from "../db/client";
 import { entryPasses, votes } from "../db/schema";
@@ -7,6 +9,7 @@ import { AppError } from "../middleware/errors";
 import { getContest } from "../services/contest-state";
 import { eventStatus, getSettings } from "../services/realm";
 import { issuePass, publicPass } from "../services/passes";
+import { encodeScanCode } from "../services/scanCode";
 import type { Me } from "@/shared/types";
 
 export const passRouter = Router();
@@ -49,6 +52,27 @@ passRouter.get("/me", requirePass, async (req, res, next) => {
       voteChangeable: vote?.status === "counted" && (await getContest(req.realm)).stage === "voting_open",
     };
     res.json(me);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Spec 002 FR-123–FR-125: the back of the Night Pass. The code names the pass for crew only; it
+// holds no cookie, so it can't be used to take the pass over. Dark on white with a 4-module quiet
+// zone so it scans from a dim phone screen.
+passRouter.get("/pass/code.svg", requirePass, async (req, res, next) => {
+  try {
+    const p = req.pass!;
+    const code = encodeScanCode({ realm: p.realm, number: p.number, id: p.id }, config().SESSION_SECRET);
+    const svg = await QRCode.toString(code, {
+      type: "svg",
+      width: 480, // gives the SVG intrinsic dimensions so the browser decodes it up front
+      margin: 4,
+      errorCorrectionLevel: "M",
+      color: { dark: "#0a0e1a", light: "#ffffff" },
+    });
+    res.setHeader("Cache-Control", "private, no-store");
+    res.type("image/svg+xml").send(svg);
   } catch (err) {
     next(err);
   }
