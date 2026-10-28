@@ -38,7 +38,7 @@ export async function wipeRehearsal(crewSessionId: string) {
     const passesN = await count(sql`delete from passes where realm = 'rehearsal'`);
     await tx.execute(sql`delete from audit_events where realm = 'rehearsal'`);
     await tx.execute(
-      sql`update contest set stage = 'setup', reveal_step = 0, version = version + 1, entries_version = entries_version + 1 where realm = 'rehearsal'`,
+      sql`update contest set stage = 'setup', reveal_step = 0, voting_closes_at = null, version = version + 1, entries_version = entries_version + 1 where realm = 'rehearsal'`,
     );
     const ids = (photos.rows as { photo_id: string }[]).map((r) => r.photo_id);
     const deleted = { passes: passesN, entries: entriesN, votes: votesN, photos: ids.length };

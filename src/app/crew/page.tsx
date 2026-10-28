@@ -3,24 +3,8 @@ import { useState } from "react";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { StageControls } from "@/components/StageControls";
 import { api } from "@/lib/api";
+import { edmontonTimeOnEventDate, formatEdmontonTime, fromEdmontonLocal, toEdmontonLocal } from "@/lib/time";
 import { useCrew } from "./CrewContext";
-
-/** datetime-local value in Edmonton time for an ISO instant. */
-function toEdmontonLocal(iso: string): string {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "America/Edmonton",
-    year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23",
-  }).formatToParts(new Date(iso));
-  const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "00";
-  return `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}`;
-}
-
-/** Interprets a datetime-local value as Edmonton wall time and returns ISO with offset. */
-function fromEdmontonLocal(local: string): string {
-  const guess = new Date(`${local}:00Z`);
-  const shown = new Date(toEdmontonLocal(guess.toISOString()) + ":00Z");
-  return new Date(guess.getTime() + (guess.getTime() - shown.getTime())).toISOString();
-}
 
 export default function CrewDashboard() {
   const { dashboard, refresh } = useCrew();
@@ -29,6 +13,19 @@ export default function CrewDashboard() {
   const [note, setNote] = useState<string>();
   const [start, setStart] = useState(() => toEdmontonLocal(state.event.start));
   const [end, setEnd] = useState(() => toEdmontonLocal(state.event.end));
+  const [closeAt, setCloseAt] = useState(() => (state.votingClosesAt ? toEdmontonLocal(state.votingClosesAt).slice(11) : ""));
+
+  async function saveClose(at: string | null) {
+    setNote(undefined);
+    try {
+      await api("/api/crew/voting-close", { method: "PUT", json: { at } });
+      setNote(at ? `Countdown set: voting closes at ${formatEdmontonTime(at)}` : "Countdown cleared");
+      if (!at) setCloseAt("");
+      refresh();
+    } catch (err) {
+      setNote(err instanceof Error ? err.message : "Failed");
+    }
+  }
 
   return (
     <>
@@ -42,6 +39,37 @@ export default function CrewDashboard() {
       </section>
 
       <StageControls state={state} onChanged={refresh} />
+
+      <section className="card" style={{ marginTop: 24 }}>
+        <h2>Voting countdown</h2>
+        <p>
+          While voting is open, the big screen counts down to this time. It&apos;s only a display: voting stays open until
+          you press <strong>Close voting</strong>.
+        </p>
+        <p>
+          {state.votingClosesAt ? (
+            <>Currently: <strong>{formatEdmontonTime(state.votingClosesAt)}</strong></>
+          ) : (
+            "No countdown set."
+          )}
+        </p>
+        <form
+          style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "end" }}
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (closeAt) void saveClose(edmontonTimeOnEventDate(closeAt, state.event.start));
+          }}
+        >
+          <label style={{ display: "grid", gap: 6 }}>
+            Voting closes at (Edmonton time)
+            <input type="time" value={closeAt} onChange={(e) => setCloseAt(e.target.value)} required />
+          </label>
+          <button type="submit" className="secondary">Save</button>
+          {state.votingClosesAt && (
+            <button type="button" className="secondary" onClick={() => void saveClose(null)}>Clear</button>
+          )}
+        </form>
+      </section>
 
       <section className="card" style={{ marginTop: 24 }}>
         <h2>Big screen</h2>

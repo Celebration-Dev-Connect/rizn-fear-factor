@@ -124,3 +124,27 @@ export async function transition(
   invalidate(realm);
   return getPublicState(realm);
 }
+
+/**
+ * Sets or clears the big-screen countdown target (spec 002 FR-111). Display only: nothing reads
+ * this to change the stage (Constitution VI). Bumps the version so pollers pick it up.
+ */
+export async function setVotingClose(realm: Realm, crewSessionId: string, at: Date | null): Promise<PublicState> {
+  await withTx(async (tx) => {
+    const [row] = await tx.select().from(contest).where(eq(contest.realm, realm)).for("update");
+    if (!row) throw new Error("contest row missing");
+    await tx
+      .update(contest)
+      .set({ votingClosesAt: at, version: row.version + 1, updatedAt: new Date() })
+      .where(eq(contest.realm, realm));
+    await record(tx, {
+      realm,
+      actorType: "crew",
+      actorId: crewSessionId,
+      action: "voting_close.set",
+      details: { from: row.votingClosesAt?.toISOString() ?? null, to: at?.toISOString() ?? null },
+    });
+  });
+  invalidate(realm);
+  return getPublicState(realm);
+}

@@ -179,7 +179,7 @@ then `59:59`-style ticking, then "Voting closes any moment" at zero, and the sta
 
 ### Tests for User Story 3 ⚠️
 
-- [ ] T027 [P] [US3] Create tests/unit/countdown.test.ts for `formatCountdown(remainingMs)` in src/lib/countdown.ts:
+- [X] T027 [P] [US3] Create tests/unit/countdown.test.ts for `formatCountdown(remainingMs)` in src/lib/countdown.ts:
   - 3 601 000 ms gives `{ kind: "hm", text: "1h 01m" }`;
   - 3 600 000 gives "1h 00m";
   - 3 599 000 gives `{ kind: "ms", text: "59:59" }`;
@@ -189,7 +189,7 @@ then `59:59`-style ticking, then "Voting closes any moment" at zero, and the sta
   - 7 265 000 gives "2h 02m".
 
   Also test `estimateOffset(samples)`, which takes the median of `serverDate + rtt/2 − clientNow`, using a clock skewed by +300 s.
-- [ ] T028 [P] [US3] Create tests/integration/voting-close.test.ts. It covers:
+- [X] T028 [P] [US3] Create tests/integration/voting-close.test.ts. It covers:
   - `PUT /api/crew/voting-close { at }` returns `PublicState` with `votingClosesAt`;
   - `{ at: null }` clears it;
   - a `voting_close.set` audit event with `{ from, to }`;
@@ -202,19 +202,19 @@ then `59:59`-style ticking, then "Voting closes any moment" at zero, and the sta
 
 ### Implementation for User Story 3
 
-- [ ] T029 [US3] Add `setVotingClose(realm, crewSessionId, at: Date | null)` to src/server/services/contest-state.ts. It updates `contest.voting_closes_at`, bumps `version`, records `voting_close.set` with `{ from, to }`, calls `invalidate(realm)`, and returns `getPublicState(realm)`. Add a `PUT /api/crew/voting-close` route (`requireCrew`, `idempotency`, `votingCloseBody`) in src/server/routes/crew/dashboard.ts.
-- [ ] T030 [US3] In src/server/services/rehearsal.ts, add `voting_closes_at = null` to the wipe's `update contest … where realm = 'rehearsal'` statement.
-- [ ] T031 [P] [US3] Create src/lib/countdown.ts with the pure functions `formatCountdown` and `estimateOffset` tested in T027. Minutes are rounded up when ≥ 1 h. The format is `m:ss` under 1 h.
-- [ ] T032 [US3] Create src/lib/useServerClock.ts. Have src/components/StateProvider.tsx (or `usePoll` in src/lib/usePoll.ts) record `Date.parse(res.headers.get("Date"))`, `performance.now()` before and after each `/api/state` fetch, and the client time, keep the last 5 samples, and expose `serverNow()` = `Date.now() + estimateOffset(samples)`.
-- [ ] T033 [US3] Create src/components/Countdown.tsx (+ Countdown.module.css). It takes `closesAt: string`, ticks every 250 ms using `serverNow()`, and renders:
+- [X] T029 [US3] Add `setVotingClose(realm, crewSessionId, at: Date | null)` to src/server/services/contest-state.ts. It updates `contest.voting_closes_at`, bumps `version`, records `voting_close.set` with `{ from, to }`, calls `invalidate(realm)`, and returns `getPublicState(realm)`. Add a `PUT /api/crew/voting-close` route (`requireCrew`, `idempotency`, `votingCloseBody`) in src/server/routes/crew/dashboard.ts.
+- [X] T030 [US3] In src/server/services/rehearsal.ts, add `voting_closes_at = null` to the wipe's `update contest … where realm = 'rehearsal'` statement.
+- [X] T031 [P] [US3] Create src/lib/countdown.ts with the pure functions `formatCountdown` and `estimateOffset` tested in T027. Minutes are rounded up when ≥ 1 h. The format is `m:ss` under 1 h.
+- [X] T032 [US3] Create src/lib/useServerClock.ts. Have src/components/StateProvider.tsx (or `usePoll` in src/lib/usePoll.ts) record `Date.parse(res.headers.get("Date"))`, `performance.now()` before and after each `/api/state` fetch, and the client time, keep the last 5 samples, and expose `serverNow()` = `Date.now() + estimateOffset(samples)`.
+- [X] T033 [US3] Create src/components/Countdown.tsx (+ Countdown.module.css). It takes `closesAt: string`, ticks every 250 ms using `serverNow()`, and renders:
   - the large number using the condensed font slot `--font-condensed` and `font-variant-numeric: tabular-nums`;
   - "Voting closes at {formatEdmontonTime(closesAt)}" in smaller type below it;
   - "Voting closes any moment" at ≤ 0.
 
   The live region uses `aria-live="off"`, so it doesn't spam screen readers. It has no animation beyond the digit change.
-- [ ] T034 [US3] Render `<Countdown>` in src/app/screen/page.tsx only when `state.stage === "voting_open" && state.votingClosesAt`. Place it prominently in the join aside above the instructions (src/app/screen/screen.module.css), sized for the back of the room (≥ 12vh digits).
-- [ ] T035 [US3] Add a "Voting closes at" control to the crew dashboard in src/app/crew/page.tsx: `<input type="time">`, with Save and Clear buttons and a confirm. The date is the event-start date in America/Edmonton, built with a helper `edmontonTimeOnEventDate(hhmm, eventStartIso)` added to src/lib/time.ts. Show the current value with `formatEdmontonTime`, and send `PUT /api/crew/voting-close` with an Idempotency-Key.
-- [ ] T036 [US3] Run the unit and integration tests, manually check quickstart scenario 3 on the dev server, and commit `feat: big-screen countdown to crew-set voting close time (FR-111–FR-115)`.
+- [X] T034 [US3] Render `<Countdown>` in src/app/screen/page.tsx only when `state.stage === "voting_open" && state.votingClosesAt`. Place it prominently in the join aside above the instructions (src/app/screen/screen.module.css), sized for the back of the room (≥ 12vh digits).
+- [X] T035 [US3] Add a "Voting closes at" control to the crew dashboard in src/app/crew/page.tsx: `<input type="time">`, with Save and Clear buttons and a confirm. The date is the event-start date in America/Edmonton, built with a helper `edmontonTimeOnEventDate(hhmm, eventStartIso)` added to src/lib/time.ts. Show the current value with `formatEdmontonTime`, and send `PUT /api/crew/voting-close` with an Idempotency-Key.
+- [X] T036 [US3] Run the unit and integration tests, manually check quickstart scenario 3 on the dev server, and commit `feat: big-screen countdown to crew-set voting close time (FR-111–FR-115)`.
 
 **Checkpoint**: US3 works alone. **Deploy.**
 

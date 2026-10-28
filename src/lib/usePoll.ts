@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { recordServerDate } from "./useServerClock";
 
 export const STUDENT_POLL = { intervalMs: 3000, jitterMs: 500 };
 export const CREW_POLL = { intervalMs: 2000, jitterMs: 250 };
@@ -48,7 +49,9 @@ export function usePoll<T>(
       try {
         const headers: Record<string, string> = {};
         if (etagRef.current) headers["If-None-Match"] = etagRef.current;
+        const sentAt = Date.now();
         const res = await fetch(url, { headers, credentials: "same-origin", cache: "no-store" });
+        recordServerDate(res.headers.get("Date"), sentAt, Date.now());
         if (res.status === 304) {
           failures.current = 0;
         } else if (res.ok) {

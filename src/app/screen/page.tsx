@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { BrandMark } from "@/components/BrandMark";
+import { Countdown } from "@/components/Countdown";
 import { Reveal } from "@/components/Reveal";
 import { ScreenGallery } from "@/components/ScreenGallery";
 import { usePublicState } from "@/components/StateProvider";
@@ -64,8 +65,13 @@ export default function ScreenPage() {
         <div className={styles.body}>
           <ScreenGallery entries={entries.data?.entries ?? []} />
           <aside className={styles.join}>
+            {state.stage === "voting_open" && state.votingClosesAt && <Countdown closesAt={state.votingClosesAt} />}
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/api/qr.svg" alt="QR code to get your Night Pass" className={styles.qr} />
+            <img
+              src="/api/qr.svg"
+              alt="QR code to get your Night Pass"
+              className={`${styles.qr} ${state.stage === "voting_open" && state.votingClosesAt ? styles.qrSmall : ""}`}
+            />
             <p className={styles.scan}>Scan to get your Night Pass</p>
             <p className={styles.instructions}>{INSTRUCTIONS[state.stage]}</p>
           </aside>
