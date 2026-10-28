@@ -5,18 +5,37 @@
 ### I. Protect Minors First (NON-NEGOTIABLE)
 The audience is students in grades 7–12. Their safety outranks every feature and convenience.
 
-- The system MUST NOT collect names, emails, phone numbers, or any other personal identifier
-  from students.
-- Students MUST be identified only by a generated spooky nickname.
+- The system MUST NOT collect last names, emails, phone numbers, or any other personal
+  identifier from students, with one exception: a contestant's **first name**, as below.
+- Students MUST be identified by a generated spooky nickname. Crew MAY optionally record a
+  costume contestant's first name, and only with the student's and a parent's consent given when
+  the photo is taken. A first name MUST be a single given name (no last names, initials with
+  context, or other identifying detail), MUST be entered by crew only, and MAY be shown wherever
+  that contestant's entry appears. It MUST be deleted with the rest of the event data.
 - Students MUST NOT be able to upload photos or enter free text anywhere in the app.
 - Costume photos MUST be taken by adult crew members only.
 - Photos MUST be stored privately with no public URLs, and MUST be served only to requests
-  holding a valid pass.
-- Photos MUST be deleted automatically after the event.
+  holding a valid pass, crew session, or big-screen link.
+- Photos and first names MUST be deleted automatically after the event.
 - Third-party analytics, ad trackers, and social embeds MUST NOT be included.
 
 Rationale: a single privacy failure involving minors at a church event is unacceptable, and the
-simplest way to be safe is to never hold the data.
+simplest way to be safe is to hold as little as possible. A first name next to a costume photo is
+the one exception, accepted by the project owner after the child-safety review below.
+
+**Child-safety review (2026-10-28, v2.0.0).** Leaders asked to show "Ben as Superman" instead of a
+nickname. Considered:
+- *Exposure*: the first name sits next to the costume photo on student phones, the big screen,
+  and results. These are already limited to pass holders, crew, and the big-screen link, during the
+  event window only, with no public URLs. Anyone in the room can still screenshot them, the same
+  risk the photos already carry.
+- *Identifiability*: first name + photo + "grades 7–12 at Celebration Church" can identify a
+  student to someone outside the room. That is why last names and other details stay forbidden,
+  and why the name is optional and needs parental consent.
+- *Mitigations*: optional, crew-entered only, first name only (enforced by input rules), consent
+  wording covers the name, never shown to search engines, deleted on 2026-11-02 with the photos,
+  and leaders can leave it blank for any student.
+- *Decision*: accepted by the project owner for this event.
 
 ### II. Mobile-First and Zero-Install
 - Every student feature MUST work in the phone's default browser (iOS Safari and Android Chrome,
@@ -103,11 +122,12 @@ tribal knowledge.
 
 - **Event**: a single youth event at Celebration Church, Edmonton, on October 30, 2026.
 - **Audience**: students in grades 7–12, plus adult crew.
-- **First release**: costume contest only. Anything else is out of scope until the contest is
-  complete and a later feature is specified through the normal workflow.
+- **First release**: costume contest only, plus a static "More about RIZN Youth" page (spec 003)
+  that holds no student data. Anything else is out of scope until it is specified through the
+  normal workflow.
 - **Browsers**: iOS Safari and Android Chrome, latest two versions each.
-- **Retention**: all student-related data and photos MUST be deleted after the event, following
-  the documented deletion procedure, with deletion verified and recorded.
+- **Retention**: all student-related data, first names, and photos MUST be deleted after the
+  event, following the documented deletion procedure, with deletion verified and recorded.
 
 ## Development Workflow and Quality Gates
 
@@ -136,4 +156,4 @@ This constitution supersedes other practices and conventions for this project.
   compliance. Any exception MUST be recorded in the plan's complexity or justification section
   with the reason and a simpler alternative that was rejected.
 
-**Version**: 1.0.0 | **Ratified**: 2026-10-17 | **Last Amended**: 2026-10-17
+**Version**: 2.0.0 | **Ratified**: 2026-10-17 | **Last Amended**: 2026-10-28
