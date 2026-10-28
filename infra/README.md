@@ -99,27 +99,41 @@ You need the AWS CLI signed in as an admin, Terraform 1.10+, and `gh` signed in 
    `ghcr.io/<owner>/rizn-fear-factor:sha-<commit>`, and finishes when `https://$DOMAIN/healthz` answers.
    The first run waits a little longer while Caddy gets the HTTPS certificate.
 
-Then run the load test against the real server (`LOAD_BASE_URL=https://pass.riznfearfactor.ca npm run test:load`)
+Then run the load test against the real server (`LOAD_BASE_URL=https://fearfactor.riznyouth.com npm run test:load`)
 and the production rehearsal in `specs/001-costume-contest/quickstart.md`.
 
 ## Adding the real domain
 
-1. Buy the domain in Route 53 (for example `riznfearfactor.ca`); this creates its hosted zone. The app
+The live event runs at **https://fearfactor.riznyouth.com**. Its `A` record (to the static IP) is
+managed by hand outside Terraform, so `ZONE_NAME` stays unset; setting it would make Terraform try to
+create the same record. With DNS managed elsewhere, switching domains is just:
+
+```bash
+gh variable set DOMAIN     --env production --body fearfactor.riznyouth.com
+gh variable set PUBLIC_URL --env production --body https://fearfactor.riznyouth.com
+```
+
+then *Deploy*. Caddy gets the Let's Encrypt certificate on first request and renews it itself.
+Passes issued on the old hostname don't carry over, and the old hostname stops serving HTTPS.
+
+To let Terraform own the record instead, use a Route 53 hosted zone:
+
+1. Buy the domain in Route 53 (for example `riznyouth.com`); this creates its hosted zone. The app
    goes on a subdomain, leaving the root free for a year-round website.
 2. Point the variables at it:
 
    ```bash
-   gh variable set ZONE_NAME  --env production --body riznfearfactor.ca
-   gh variable set DOMAIN     --env production --body pass.riznfearfactor.ca
-   gh variable set PUBLIC_URL --env production --body https://pass.riznfearfactor.ca
+   gh variable set ZONE_NAME  --env production --body riznyouth.com
+   gh variable set DOMAIN     --env production --body fearfactor.riznyouth.com
+   gh variable set PUBLIC_URL --env production --body https://fearfactor.riznyouth.com
    ```
 
 3. Tag the domain and its hosted zone, which Route 53 created outside Terraform:
 
    ```bash
-   aws route53domains update-tags-for-domain --region us-east-1 --domain-name riznfearfactor.ca \
+   aws route53domains update-tags-for-domain --region us-east-1 --domain-name riznyouth.com \
      --tags-to-update Key=app,Value=rizn-fear-factor
-   ZONE_ID=$(aws route53 list-hosted-zones-by-name --dns-name riznfearfactor.ca --query 'HostedZones[0].Id' --output text)
+   ZONE_ID=$(aws route53 list-hosted-zones-by-name --dns-name riznyouth.com --query 'HostedZones[0].Id' --output text)
    aws route53 change-tags-for-resource --resource-type hostedzone --resource-id "${ZONE_ID##*/}" \
      --add-tags Key=app,Value=rizn-fear-factor
    ```
