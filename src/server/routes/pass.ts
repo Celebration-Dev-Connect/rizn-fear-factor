@@ -38,7 +38,14 @@ passRouter.get("/me", requirePass, async (req, res, next) => {
       .select({ entryId: votes.entryId })
       .from(votes)
       .where(and(eq(votes.passId, p.id), inArray(votes.status, ["counted", "voided"])));
-    const me: Me = { pass: publicPass(p), ownEntryId: own?.entryId ?? null, vote: vote ? { entryId: vote.entryId } : null };
+    const me: Me = {
+      pass: publicPass(p),
+      ownEntryId: own?.entryId ?? null,
+      ownEntry: null,
+      ownPlace: null,
+      vote: vote ? { entryId: vote.entryId } : null,
+      voteChangeable: false,
+    };
     res.json(me);
   } catch (err) {
     next(err);

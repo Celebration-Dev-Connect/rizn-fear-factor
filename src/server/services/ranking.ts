@@ -38,7 +38,7 @@ async function cards(realm: Realm, ids: string[]): Promise<Map<string, EntryCard
   const names = await displayNames(db(), ids);
   const rows = ids.length
     ? await db()
-        .select({ id: entries.id, photoId: entries.photoId })
+        .select({ id: entries.id, photoId: entries.photoId, costumeTitle: entries.costumeTitle })
         .from(entries)
         .where(and(eq(entries.realm, realm), inArray(entries.id, ids)))
     : [];

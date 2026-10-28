@@ -25,13 +25,19 @@ export async function displayNames(tx: DbOrTx, entryIds: string[]): Promise<Map<
   return out;
 }
 
-export function toCard(e: { id: string; photoId: string }, displayName: string): EntryCard {
-  return { id: e.id, displayName, photo: photoUrls(e.photoId), alt: `Costume photo of ${displayName}` };
+export function toCard(
+  e: { id: string; photoId: string; costumeTitle: string | null },
+  displayName: string,
+): EntryCard {
+  const alt = e.costumeTitle
+    ? `Costume photo: ${displayName} as ${e.costumeTitle}`
+    : `Costume photo of ${displayName}`;
+  return { id: e.id, displayName, costumeTitle: e.costumeTitle, photo: photoUrls(e.photoId), alt };
 }
 
 export async function listEntries(realm: Realm): Promise<{ entriesVersion: number; entries: EntryCard[] }> {
   const rows = await db()
-    .select({ id: entries.id, photoId: entries.photoId })
+    .select({ id: entries.id, photoId: entries.photoId, costumeTitle: entries.costumeTitle })
     .from(entries)
     .where(and(eq(entries.realm, realm), isNull(entries.removedAt)))
     .orderBy(asc(entries.createdAt));
@@ -42,7 +48,7 @@ export async function listEntries(realm: Realm): Promise<{ entriesVersion: numbe
 
 export async function getEntryCard(tx: DbOrTx, realm: Realm, id: string): Promise<EntryCard> {
   const [e] = await tx
-    .select({ id: entries.id, photoId: entries.photoId })
+    .select({ id: entries.id, photoId: entries.photoId, costumeTitle: entries.costumeTitle })
     .from(entries)
     .where(and(eq(entries.id, id), eq(entries.realm, realm), isNull(entries.removedAt)));
   if (!e) throw new AppError("not_found", 404, "Entry not found");

@@ -48,6 +48,7 @@ export async function getPublicState(realm: Realm, now = new Date()): Promise<Pu
       end: s.eventEnd.toISOString(),
     },
     entriesVersion: row.entriesVersion,
+    votingClosesAt: row.votingClosesAt?.toISOString() ?? null,
   };
 }
 

@@ -1,5 +1,6 @@
 // Tables and constraints per specs/001-costume-contest/data-model.md.
-// No table holds a student name, contact detail, or free text typed by anyone.
+// No table holds a student name or contact detail, or any text typed by a student. The only free
+// text is the crew-typed costume title (spec 002).
 import { sql } from "drizzle-orm";
 import {
   bigserial,
@@ -30,7 +31,8 @@ export const stageEnum = pgEnum("stage", [
   "results_revealed",
 ]);
 export const passOriginEnum = pgEnum("pass_origin", ["self", "crew"]);
-export const voteStatusEnum = pgEnum("vote_status", ["counted", "voided", "released"]);
+// `replaced` marks a vote the student changed away from (spec 002 FR-104); it never counts.
+export const voteStatusEnum = pgEnum("vote_status", ["counted", "voided", "released", "replaced"]);
 export const actorTypeEnum = pgEnum("actor_type", ["pass", "crew", "system"]);
 
 export const settings = pgTable(
@@ -82,12 +84,20 @@ export const entries = pgTable(
     id: uuid("id").primaryKey().defaultRandom(),
     realm: realmEnum("realm").notNull(),
     photoId: uuid("photo_id").notNull(),
+    // Crew-typed costume description, e.g. "Superman" (spec 002 FR-107). Never a person's name.
+    costumeTitle: text("costume_title"),
     consentConfirmedAt: ts("consent_confirmed_at").notNull(),
     createdAt: ts("created_at").notNull().defaultNow(),
     updatedAt: ts("updated_at").notNull().defaultNow(),
     removedAt: ts("removed_at"),
   },
-  (t) => [index("entries_realm").on(t.realm)],
+  (t) => [
+    index("entries_realm").on(t.realm),
+    check(
+      "entries_costume_title_len",
+      sql`${t.costumeTitle} is null or char_length(${t.costumeTitle}) between 1 and 40`,
+    ),
+  ],
 );
 
 export const entryPasses = pgTable(
@@ -127,7 +137,8 @@ export const votes = pgTable(
     ),
   },
   (t) => [
-    // One vote per pass (FR-009). A voided vote still uses up the pass; only `released` frees it.
+    // One vote per pass (FR-009). A voided vote still uses up the pass; `released` and `replaced`
+    // rows fall outside the index, so a change can insert the new counted row (spec 002 FR-102).
     uniqueIndex("votes_one_per_pass")
       .on(t.passId)
       .where(sql`${t.status} in ('counted', 'voided')`),
@@ -143,6 +154,8 @@ export const contest = pgTable(
     revealStep: smallint("reveal_step").notNull().default(0),
     version: integer("version").notNull().default(0),
     entriesVersion: integer("entries_version").notNull().default(0),
+    // Shown as a countdown on the big screen. Display only: nothing reads it to change the stage.
+    votingClosesAt: ts("voting_closes_at"),
     updatedAt: ts("updated_at").notNull().defaultNow(),
   },
   (t) => [check("contest_reveal_step", sql`${t.revealStep} between 0 and 3`)],

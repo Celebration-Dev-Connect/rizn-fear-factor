@@ -7,6 +7,26 @@ export const stageSchema = z.enum(["setup", "voting_open", "voting_closed", "res
 
 export const castVoteBody = z.object({ entryId: z.uuid() });
 
+export const changeVoteBody = z.object({ entryId: z.uuid() });
+
+/**
+ * Crew-typed costume title (spec 002 FR-107): trimmed, inner whitespace collapsed, one line, no
+ * control characters, at most 40 characters. "" means "clear", returned as null.
+ */
+export const costumeTitleField = z
+  .string()
+  .max(200)
+  .refine((v) => !/[\u0000-\u001F\u007F]/.test(v), { message: "Use plain text on one line" })
+  .transform((v) => v.trim().replace(/\s+/g, " "))
+  .refine((v) => v.length <= 40, { message: "Keep the costume to 40 characters or fewer" })
+  .transform((v) => (v === "" ? null : v));
+
+export const votingCloseBody = z.object({ at: z.iso.datetime({ offset: true }).nullable() });
+
+export const SCAN_CODE_PATTERN = /^NP1\.[LR]\.\d{1,6}\.[A-Z2-7]{12}$/;
+
+export const scanQuery = z.object({ code: z.string().regex(SCAN_CODE_PATTERN) });
+
 export const assistedVoteBody = z.object({ passId: z.uuid(), entryId: z.uuid() });
 
 export const crewSessionBody = z.object({
@@ -30,5 +50,5 @@ export const wipeBody = z.object({ confirm: z.literal("WIPE") });
 export const voteListQuery = z.object({
   sort: z.enum(["cast_at", "pass_created_at"]).default("cast_at"),
   order: z.enum(["asc", "desc"]).default("desc"),
-  status: z.enum(["counted", "voided", "released"]).optional(),
+  status: z.enum(["counted", "voided", "released", "replaced"]).optional(),
 });

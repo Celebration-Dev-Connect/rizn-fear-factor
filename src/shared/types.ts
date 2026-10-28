@@ -11,6 +11,8 @@ export type PublicState = {
   rehearsal: boolean;
   event: { status: EventStatus; start: string; end: string };
   entriesVersion: number;
+  /** Crew-set close time for the big-screen countdown. Display only (spec 002 FR-114). */
+  votingClosesAt: string | null;
 };
 
 export type Pass = { number: number; nickname: string; origin: "self" | "crew" };
@@ -18,6 +20,8 @@ export type Pass = { number: number; nickname: string; origin: "self" | "crew" }
 export type EntryCard = {
   id: string;
   displayName: string;
+  /** Crew-typed costume, shown as "{displayName} as {costumeTitle}" (spec 002 FR-108). */
+  costumeTitle: string | null;
   photo: { thumb: string; full: string };
   alt: string;
 };
@@ -27,7 +31,14 @@ export type RevealedPlace = { place: 1 | 2 | 3; tied: boolean; entries: EntryCar
 export type Me = {
   pass: Pass;
   ownEntryId: string | null;
+  /** The contestant's own entry, for the "Your costume" card (spec 002 FR-121). */
+  ownEntry: EntryCard | null;
+  /** Set only once the reveal has reached that entry's place (FR-122). Never a count. */
+  ownPlace: { place: 1 | 2 | 3; tied: boolean } | null;
+  /** The counted or voided vote; never a replaced one. */
   vote: { entryId: string } | null;
+  /** True only while voting is open and the vote is counted (FR-105). */
+  voteChangeable: boolean;
 };
 
 export const ERROR_CODES = [
@@ -52,6 +63,9 @@ export const ERROR_CODES = [
   "unsupported_media",
   "payload_too_large",
   "not_available",
+  "vote_voided",
+  "bad_scan_code",
+  "wrong_realm",
 ] as const;
 export type ErrorCode = (typeof ERROR_CODES)[number];
 
@@ -69,3 +83,8 @@ export const STAGE_LABELS: Record<Stage, string> = {
 };
 
 export const PLACE_LABELS: Record<1 | 2 | 3, string> = { 1: "1st", 2: "2nd", 3: "3rd" };
+
+/** Plain-text entry label for aria labels and announcements: "Midnight Gremlin as Superman". */
+export function entryLabelText(e: Pick<EntryCard, "displayName" | "costumeTitle">): string {
+  return e.costumeTitle ? `${e.displayName} as ${e.costumeTitle}` : e.displayName;
+}

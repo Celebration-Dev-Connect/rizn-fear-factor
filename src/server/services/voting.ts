@@ -68,7 +68,7 @@ export async function listVotes(
   realm: Realm,
   sort: "cast_at" | "pass_created_at",
   order: "asc" | "desc",
-  status?: "counted" | "voided" | "released",
+  status?: "counted" | "voided" | "released" | "replaced",
 ) {
   const dir = order === "asc" ? asc : desc;
   const sortCol = sort === "cast_at" ? votes.castAt : passes.createdAt;

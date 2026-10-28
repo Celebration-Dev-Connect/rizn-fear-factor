@@ -51,31 +51,31 @@ Actions → *Deploy*). The production rehearsal (001 T087) runs after the last p
 
 **⚠️ CRITICAL**: no story work can start until this phase is done.
 
-- [ ] T004 Update src/server/db/schema.ts per data-model.md:
+- [X] T004 Update src/server/db/schema.ts per data-model.md:
   - add `"replaced"` to `voteStatusEnum` (`["counted", "voided", "released", "replaced"]`);
   - add `costumeTitle: text("costume_title")` (nullable) to `entries`, with check `entries_costume_title_len`: `costume_title IS NULL OR char_length(costume_title) BETWEEN 1 AND 40`;
   - add `votingClosesAt: ts("voting_closes_at")` (nullable) to `contest`;
   - leave the `votes_one_per_pass` partial index (`status in ('counted','voided')`) **unchanged**.
-- [ ] T005 Run `npm run db:generate` and rename the output to drizzle/0001_contest_polish.sql, updating drizzle/meta/_journal.json to match. Check that the SQL contains `ALTER TYPE "public"."vote_status" ADD VALUE 'replaced'`, the two `ADD COLUMN` statements, and the check constraint. Then check that `npm run db:migrate` applies it cleanly to a dev database that already has data.
-- [ ] T006 [P] Update src/shared/types.ts per contracts/api.md:
+- [X] T005 Run `npm run db:generate` and rename the output to drizzle/0001_contest_polish.sql, updating drizzle/meta/_journal.json to match. Check that the SQL contains `ALTER TYPE "public"."vote_status" ADD VALUE 'replaced'`, the two `ADD COLUMN` statements, and the check constraint. Then check that `npm run db:migrate` applies it cleanly to a dev database that already has data.
+- [X] T006 [P] Update src/shared/types.ts per contracts/api.md:
   - add `"vote_voided"`, `"bad_scan_code"`, and `"wrong_realm"` to `ERROR_CODES`;
   - add `votingClosesAt: string | null` to `PublicState`;
   - add `costumeTitle: string | null` to `EntryCard`;
   - add `ownEntry: EntryCard | null`, `ownPlace: { place: 1 | 2 | 3; tied: boolean } | null`, and `voteChangeable: boolean` to `Me`.
-- [ ] T007 [P] Update src/shared/schemas.ts:
+- [X] T007 [P] Update src/shared/schemas.ts:
   - `changeVoteBody = z.object({ entryId: z.uuid() })`;
   - `costumeTitleField`: a string, trimmed, inner whitespace collapsed to single spaces, rejecting control characters (`/[\u0000-\u001F\u007F]/`), max 40 characters after normalizing, with `""` meaning clear (stored as `NULL`);
   - `votingCloseBody = z.object({ at: z.iso.datetime({ offset: true }).nullable() })`;
   - `scanQuery = z.object({ code: z.string().regex(/^NP1\.[LR]\.\d{1,6}\.[A-Z2-7]{12}$/) })`;
   - add `"replaced"` to the `status` enum in `voteListQuery`.
-- [ ] T008 Make the server compile against the new types:
+- [X] T008 Make the server compile against the new types:
   - in src/server/services/contest-state.ts, return `votingClosesAt: row.votingClosesAt?.toISOString() ?? null` from `getPublicState`;
   - in src/server/services/entries.ts, select `entries.costumeTitle` in `listEntries`/`getEntryCard`, and have `toCard` return `costumeTitle` and the alt text "Costume photo: {displayName} as {title}" (or "Costume photo of {displayName}" when the title is null);
   - in src/server/routes/pass.ts, fill the new `Me` fields with `null`/`false` placeholders.
 
   Run `npm run typecheck` and fix the fallout in src/app and src/components.
-- [ ] T009 [P] Create src/components/EntryLabel.tsx (+ EntryLabel.module.css). It renders `{displayName}` in small type, then "as", then `{costumeTitle}` in large uppercase display type, or `displayName` alone when `costumeTitle` is null. It has a `size` prop (`sm | md | xl`), and wraps long titles instead of truncating them (spec edge case: very small phones).
-- [ ] T010 Run `npm run typecheck && npm test && npm run test:integration` to confirm 001 behaviour is intact after the migration. Commit as `chore: migration 0001 and shared types for 002`.
+- [X] T009 [P] Create src/components/EntryLabel.tsx (+ EntryLabel.module.css). It renders `{displayName}` in small type, then "as", then `{costumeTitle}` in large uppercase display type, or `displayName` alone when `costumeTitle` is null. It has a `size` prop (`sm | md | xl`), and wraps long titles instead of truncating them (spec edge case: very small phones).
+- [X] T010 Run `npm run typecheck && npm test && npm run test:integration` to confirm 001 behaviour is intact after the migration. Commit as `chore: migration 0001 and shared types for 002`.
 
 **Checkpoint**: the schema is migrated and the app behaves exactly as before.
 
