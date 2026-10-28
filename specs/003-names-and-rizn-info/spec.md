@@ -83,8 +83,8 @@ big screen shows a "Next Friday: VANAGEDDON" panel with a QR code that opens the
    screen shows next week's headline and links to the page.
 4. **Given** the reveal has reached 1st place, **When** the big screen is shown, **Then** it shows
    a "Next Friday: VANAGEDDON" panel with a QR code to `/rizn`.
-5. **Given** no van photo has been supplied yet, **When** the page loads, **Then** the section uses
-   the brand collage instead, with no broken image.
+5. **Given** no van photo has been supplied yet, **When** the page loads, **Then** the section shows
+   text only, with no broken image.
 
 ### Edge Cases
 
@@ -130,8 +130,8 @@ big screen shows a "Next Friday: VANAGEDDON" panel with a QR code that opens the
   VANAGEDDON" section.
 - **FR-210**: The page content MUST live in one editable content file, so organizers can change the
   wording without touching layout code.
-- **FR-211**: The VANAGEDDON section MUST show the van photo when it has been supplied, and a brand
-  collage otherwise.
+- **FR-211**: The VANAGEDDON section MUST show the van photo when it has been supplied, and text
+  only otherwise. The page has no decorative stickers.
 - **FR-212**: The Night Pass page and the "event has ended" screen MUST link to `/rizn`.
 - **FR-213**: Once the reveal has reached 1st place, the big screen MUST show a "Next Friday:
   VANAGEDDON" panel with a QR code to `/rizn`.

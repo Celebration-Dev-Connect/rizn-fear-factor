@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { BrandMark, RiznYouthMark } from "@/components/BrandMark";
-import { Stickers } from "@/components/Stickers";
 import { RIZN_INFO } from "@/content/rizn";
 import van from "@/content/van.json";
 import styles from "./page.module.css";
@@ -18,7 +17,6 @@ export default function RiznInfoPage() {
   const { thanks, weekly, nextWeek, signOff } = RIZN_INFO;
   return (
     <main className="page">
-      <Stickers layout="contest" />
       <p><Link href="/">← My Night Pass</Link></p>
       <BrandMark size="md" />
 
@@ -30,15 +28,9 @@ export default function RiznInfoPage() {
       <section className={styles.next} aria-labelledby="next-week">
         <p className={`kicker ${styles.nextKicker}`}>{nextWeek.kicker}</p>
         <h2 id="next-week" className={styles.vanageddon}>{nextWeek.heading}</h2>
-        {van.photo ? (
+        {van.photo && (
           // eslint-disable-next-line @next/next/no-img-element
           <img src="/brand/van.webp" alt={nextWeek.photoAlt} className={styles.vanPhoto} loading="lazy" decoding="async" />
-        ) : (
-          <div className={styles.collage} aria-hidden="true">
-            <span className={styles.spray} />
-            <span className={styles.phone} />
-            <span className={styles.stars} />
-          </div>
         )}
         {nextWeek.body.map((p) => <p key={p}>{p}</p>)}
       </section>
