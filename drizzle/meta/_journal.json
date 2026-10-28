@@ -15,6 +15,13 @@
       "when": 1793152733843,
       "tag": "0001_contest_polish",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793213860904,
+      "tag": "0002_first_names",
+      "breakpoints": true
     }
   ]
 }

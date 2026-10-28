@@ -18,7 +18,7 @@ crewPassesRouter.get("/crew/passes", requireCrew, async (req, res, next) => {
       return;
     }
     const rows = await searchPasses(req.realm, q);
-    res.json({ passes: rows.map((r) => ({ id: r.id, ...publicPass(r), entryId: r.entryId })) });
+    res.json({ passes: rows.map((r) => ({ id: r.id, ...publicPass(r), firstName: r.firstName, entryId: r.entryId })) });
   } catch (err) {
     next(err);
   }
@@ -53,7 +53,7 @@ crewPassesRouter.get("/crew/passes/scan", requireCrew, async (req, res, next) =>
     if (!hit || !verifyScanCode(hit.id, parsed.mac, config().SESSION_SECRET)) {
       throw new AppError("bad_scan_code", 400, "Not a Night Pass code");
     }
-    res.json({ pass: { id: hit.id, ...publicPass(hit), entryId: hit.entryId } });
+    res.json({ pass: { id: hit.id, ...publicPass(hit), firstName: hit.firstName, entryId: hit.entryId } });
   } catch (err) {
     next(err);
   }

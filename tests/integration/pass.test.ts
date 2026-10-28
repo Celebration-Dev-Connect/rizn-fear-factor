@@ -112,7 +112,7 @@ describe("pass QR code and crew scan (spec 002 US6, FR-123–FR-128)", () => {
     const id = await passIdByNumber(crew, pass.number);
     const entry = await createEntry(crew, [id]);
     const res = await crew.get(`/api/crew/passes/scan?code=${encodeURIComponent(await codeFor("live", pass.number, id))}`).expect(200);
-    expect(res.body.pass).toEqual({ id, number: pass.number, nickname: pass.nickname, origin: "self", entryId: entry.id });
+    expect(res.body.pass).toEqual({ id, number: pass.number, nickname: pass.nickname, firstName: null, origin: "self", entryId: entry.id });
   });
 
   it("rejects forged, malformed, unknown, and wrong-mode codes", async () => {

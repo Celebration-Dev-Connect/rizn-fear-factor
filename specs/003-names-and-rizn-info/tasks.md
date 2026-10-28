@@ -11,14 +11,14 @@ description: "Task list for First Names and RIZN Youth Info"
 
 ## Phase 1: Foundational
 
-- [ ] T001 Add `firstName: text("first_name")` (nullable) to `passes` in src/server/db/schema.ts, with check `passes_first_name_len`: `first_name IS NULL OR char_length(first_name) BETWEEN 1 AND 20`. Generate drizzle/0002_first_names.sql (renaming the file and its journal tag) and run `npm run db:migrate`.
-- [ ] T002 [P] Add to src/shared/schemas.ts:
+- [X] T001 Add `firstName: text("first_name")` (nullable) to `passes` in src/server/db/schema.ts, with check `passes_first_name_len`: `first_name IS NULL OR char_length(first_name) BETWEEN 1 AND 20`. Generate drizzle/0002_first_names.sql (renaming the file and its journal tag) and run `npm run db:migrate`.
+- [X] T002 [P] Add to src/shared/schemas.ts:
   - `firstNameField`: trimmed; `""` becomes null; otherwise must match `/^\p{L}(?:\p{L}|['’-](?=\p{L})){0,19}$/u`, else the message "First name only".
   - `firstNamesField`: a JSON string parsed to `Record<uuid, firstNameField>`.
 
 ## Phase 2: User Story 1 - Crew add a contestant's first name (P1)
 
-- [ ] T003 [US1] Add a `describe("first names")` block to tests/integration/entries.test.ts. It covers:
+- [X] T003 [US1] Add a `describe("first names")` block to tests/integration/entries.test.ts. It covers:
   - creating with `firstNames` shows "Ben" in the card's `displayName` and alt text, and group entries mix names and nicknames;
   - "Ben Smith", "B3n", "B.", and 21 letters are refused with `400`;
   - a name for a pass not in the entry is refused with `400`;
@@ -28,19 +28,19 @@ description: "Task list for First Names and RIZN Youth Info"
   - audit details contain pass ids only, with the name string nowhere in `audit_events`;
   - the rehearsal wipe leaves no first names;
   - a student's `/api/me` `ownEntry.displayName` uses the name.
-- [ ] T004 [US1] In src/server/services/entries.ts:
+- [X] T004 [US1] In src/server/services/entries.ts:
   - `displayNames` uses `coalesce(first_name, nickname)`;
   - `createEntry` and `updateEntry` take `firstNames?: Record<string, string | null>`, check the keys belong to the entry's passes, and update `passes.first_name` in the same transaction;
   - audit records `firstNamesSet` and `firstNamesCleared` pass ids;
   - `removeEntry` clears `first_name` for the entry's passes.
-- [ ] T005 [US1] Parse the optional `firstNames` multipart field with `firstNamesField` in src/server/routes/crew/entries.ts and pass it to the service.
-- [ ] T006 [P] [US1] In src/server/services/passes.ts and src/server/routes/crew/passes.ts, `searchPasses` also matches `ilike first_name`, and search and scan hits return `firstName`.
-- [ ] T007 [US1] In src/app/crew/entries/page.tsx and src/app/crew/PassPicker.tsx:
+- [X] T005 [US1] Parse the optional `firstNames` multipart field with `firstNamesField` in src/server/routes/crew/entries.ts and pass it to the service.
+- [X] T006 [P] [US1] In src/server/services/passes.ts and src/server/routes/crew/passes.ts, `searchPasses` also matches `ilike first_name`, and search and scan hits return `firstName`.
+- [X] T007 [US1] In src/app/crew/entries/page.tsx and src/app/crew/PassPicker.tsx:
   - each selected pass gets a "First name (optional)" input (`maxLength` 20, `autoComplete="off"`, hint "First name only — leave blank if they'd rather not"), prefilled from `firstName` when editing;
   - send `firstNames` JSON on save;
   - the consent label becomes "Student and parent agree this photo (and first name, if entered) can be shown tonight";
   - picker hits show the first name when set.
-- [ ] T008 [US1] Run the tests and commit `feat: optional crew-entered first names for contestants (FR-201–FR-208)`.
+- [X] T008 [US1] Run the tests and commit `feat: optional crew-entered first names for contestants (FR-201–FR-208)`.
 
 ## Phase 3: User Story 2 - "More about RIZN Youth" page (P1)
 

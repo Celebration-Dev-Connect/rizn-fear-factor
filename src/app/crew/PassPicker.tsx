@@ -4,7 +4,14 @@ import { ScanPassButton } from "@/components/ScanPassButton";
 import { api } from "@/lib/api";
 import { formatPassNumber } from "@/shared/types";
 
-export type PassHit = { id: string; number: number; nickname: string; origin: "self" | "crew"; entryId: string | null };
+export type PassHit = {
+  id: string;
+  number: number;
+  nickname: string;
+  firstName?: string | null;
+  origin: "self" | "crew";
+  entryId: string | null;
+};
 
 /** Find a pass by nickname or number, or create a crew pass for a student without a phone. */
 export function PassPicker({ onPick, allowEntered = false }: { onPick: (p: PassHit) => void; allowEntered?: boolean }) {
@@ -39,7 +46,7 @@ export function PassPicker({ onPick, allowEntered = false }: { onPick: (p: PassH
     <div style={{ display: "grid", gap: 12 }}>
       <ScanPassButton onPick={onPick} check={(p) => (p.entryId && !allowEntered ? "already entered in a costume" : null)} />
       <label style={{ display: "grid", gap: 6 }}>
-        Or search by nickname or pass number
+        Or search by nickname, first name, or pass number
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="e.g. Midnight Gremlin or 42" inputMode="search" autoComplete="off" />
       </label>
       {q.trim() !== "" && (
@@ -50,7 +57,7 @@ export function PassPicker({ onPick, allowEntered = false }: { onPick: (p: PassH
             return (
               <li key={h.id}>
                 <button type="button" className="secondary" style={{ width: "100%", justifyContent: "space-between" }} disabled={entered} onClick={() => onPick(h)}>
-                  <span>{h.nickname}</span>
+                  <span>{h.nickname}{h.firstName ? ` (${h.firstName})` : ""}</span>
                   <span>{formatPassNumber(h.number)}{entered ? " · already entered" : h.origin === "crew" ? " · crew pass" : ""}</span>
                 </button>
               </li>

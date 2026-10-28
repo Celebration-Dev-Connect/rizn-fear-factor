@@ -3,8 +3,8 @@ import multer from "multer";
 import { requireCrew } from "../../middleware/auth";
 import { AppError } from "../../middleware/errors";
 import { idempotency } from "../../middleware/idempotency";
-import { createEntry, listEntries, removeEntry, updateEntry } from "../../services/entries";
-import { costumeTitleField, uuidSchema } from "@/shared/schemas";
+import { createEntry, entryPassList, listEntries, removeEntry, updateEntry } from "../../services/entries";
+import { costumeTitleField, firstNamesField, uuidSchema } from "@/shared/schemas";
 
 export const crewEntriesRouter = Router();
 
@@ -35,9 +35,19 @@ function costumeTitleFrom(req: Request): string | null | undefined {
   return costumeTitleField.parse(String(raw));
 }
 
+/** Spec 003 FR-201: optional `firstNames` JSON, { passId: "Ben" | "" }. */
+function firstNamesFrom(req: Request): Record<string, string | null> | undefined {
+  const raw = req.body?.firstNames;
+  if (raw === undefined || raw === "") return undefined;
+  return firstNamesField.parse(String(raw));
+}
+
 crewEntriesRouter.get("/crew/entries", requireCrew, async (req, res, next) => {
   try {
-    res.json(await listEntries(req.realm));
+    // Crew also get each entry's passes (with first names) so the edit form can show them.
+    const list = await listEntries(req.realm);
+    const linked = await entryPassList(list.entries.map((e) => e.id));
+    res.json({ ...list, entries: list.entries.map((e) => ({ ...e, passes: linked.get(e.id) ?? [] })) });
   } catch (err) {
     next(err);
   }
@@ -53,6 +63,7 @@ crewEntriesRouter.post("/crew/entries", requireCrew, idempotency, upload.single(
       req.file.buffer,
       req.body?.consent === "true",
       costumeTitleFrom(req) ?? null,
+      firstNamesFrom(req),
     );
     res.status(201).json({ entry, ...(addedDuringVoting ? { warning: "added_during_voting" } : {}) });
   } catch (err) {
@@ -67,6 +78,7 @@ crewEntriesRouter.patch("/crew/entries/:id", requireCrew, idempotency, upload.si
       photo: req.file?.buffer,
       passIds: passIdsFrom(req),
       costumeTitle: costumeTitleFrom(req),
+      firstNames: firstNamesFrom(req),
     });
     res.json({ entry });
   } catch (err) {

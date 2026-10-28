@@ -1,6 +1,6 @@
 // Tables and constraints per specs/001-costume-contest/data-model.md.
-// No table holds a student name or contact detail, or any text typed by a student. The only free
-// text is the crew-typed costume title (spec 002).
+// No table holds a student contact detail, last name, or any text typed by a student. Crew may type
+// a costume title (spec 002) and an optional contestant first name (spec 003, constitution v2.0.0).
 import { sql } from "drizzle-orm";
 import {
   bigserial,
@@ -64,6 +64,9 @@ export const passes = pgTable(
     realm: realmEnum("realm").notNull(),
     tokenHash: bytea("token_hash"),
     nickname: text("nickname").notNull(),
+    // Optional crew-entered first name, shown instead of the nickname on the contestant's entry
+    // (spec 003, constitution v2.0.0 Principle I). Single given name; deleted with the pass.
+    firstName: text("first_name"),
     number: integer("number").notNull(),
     origin: passOriginEnum("origin").notNull(),
     createdAt: ts("created_at").notNull().defaultNow(),
@@ -75,6 +78,7 @@ export const passes = pgTable(
     uniqueIndex("passes_realm_nickname").on(t.realm, t.nickname),
     uniqueIndex("passes_realm_number").on(t.realm, t.number),
     uniqueIndex("passes_token_hash").on(t.tokenHash),
+    check("passes_first_name_len", sql`${t.firstName} is null or char_length(${t.firstName}) between 1 and 20`),
   ],
 );
 

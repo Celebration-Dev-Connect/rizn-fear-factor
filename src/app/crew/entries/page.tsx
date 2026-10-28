@@ -8,18 +8,22 @@ import { EntryLabel } from "@/components/EntryLabel";
 import { entryLabelText, formatPassNumber, type EntryCard } from "@/shared/types";
 import { PassPicker, type PassHit } from "../PassPicker";
 
+type CrewEntry = EntryCard & { passes: { id: string; number: number; nickname: string; firstName: string | null }[] };
+
 export default function CrewEntriesPage() {
   const [passes, setPasses] = useState<PassHit[]>([]);
   const [photo, setPhoto] = useState<Blob>();
   const [consent, setConsent] = useState(false);
   /** Spec 002 FR-107: crew-typed costume, never a person's name. */
   const [title, setTitle] = useState("");
+  /** Spec 003: optional first name per pass, keyed by pass id. Crew-only, never typed by students. */
+  const [names, setNames] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ kind: "ok" | "error"; text: string }>();
   const [pickerKey, setPickerKey] = useState(0);
-  const [editing, setEditing] = useState<EntryCard>();
+  const [editing, setEditing] = useState<CrewEntry>();
   const [removing, setRemoving] = useState<EntryCard>();
-  const list = usePoll<{ entries: EntryCard[] }>("/api/crew/entries", { ...CREW_POLL, intervalMs: 5000 });
+  const list = usePoll<{ entries: CrewEntry[] }>("/api/crew/entries", { ...CREW_POLL, intervalMs: 5000 });
 
   const preview = useMemo(() => (photo ? URL.createObjectURL(photo) : undefined), [photo]);
   useEffect(() => () => {
@@ -31,6 +35,7 @@ export default function CrewEntriesPage() {
     setPhoto(undefined);
     setConsent(false);
     setTitle("");
+    setNames({});
     setEditing(undefined);
     setPickerKey((k) => k + 1);
   }
@@ -52,6 +57,10 @@ export default function CrewEntriesPage() {
     if (!editing || passes.length > 0) passes.forEach((p) => form.append("passIds[]", p.id));
     if (!editing) form.append("consent", consent ? "true" : "false");
     if (!editing || titleChanged) form.append("costumeTitle", title);
+    const changedNames = Object.fromEntries(
+      nameRows.filter((p) => (names[p.id] ?? "").trim() !== (p.firstName ?? "")).map((p) => [p.id, (names[p.id] ?? "").trim()]),
+    );
+    if (Object.keys(changedNames).length) form.append("firstNames", JSON.stringify(changedNames));
     try {
       if (editing) {
         await api(`/api/crew/entries/${editing.id}`, { method: "PATCH", form });
@@ -73,7 +82,14 @@ export default function CrewEntriesPage() {
   }
 
   const titleChanged = Boolean(editing) && title.trim() !== (editing?.costumeTitle ?? "");
-  const canSave = editing ? Boolean(photo) || passes.length > 0 || titleChanged : passes.length > 0 && photo && consent;
+  // Name rows: the passes being added, or, when editing, the entry's own passes.
+  const nameRows: { id: string; nickname: string; firstName: string | null }[] = editing
+    ? editing.passes
+    : passes.map((p) => ({ id: p.id, nickname: p.nickname, firstName: null }));
+  const namesChanged = nameRows.some((p) => (names[p.id] ?? "").trim() !== (p.firstName ?? ""));
+  const canSave = editing
+    ? Boolean(photo) || passes.length > 0 || titleChanged || namesChanged
+    : passes.length > 0 && photo && consent;
 
   return (
     <>
@@ -129,12 +145,36 @@ export default function CrewEntriesPage() {
           </p>
         </div>
 
+        {nameRows.length > 0 && (
+          <div>
+            <h2>4. First names (optional)</h2>
+            <p style={{ color: "var(--text-muted)", fontSize: 14, marginTop: 0 }}>
+              Shown instead of the nickname, e.g. “Ben as Superman”. First name only — leave blank if they&apos;d rather not.
+            </p>
+            {nameRows.map((p) => (
+              <label key={p.id} style={{ display: "grid", gap: 6, marginBottom: 12 }}>
+                <span>{p.nickname}</span>
+                <input
+                  value={names[p.id] ?? p.firstName ?? ""}
+                  onChange={(e) => setNames((n) => ({ ...n, [p.id]: e.target.value }))}
+                  maxLength={20}
+                  placeholder="e.g. Ben"
+                  autoComplete="off"
+                  autoCapitalize="words"
+                  spellCheck={false}
+                  aria-label={`First name for ${p.nickname} (optional)`}
+                />
+              </label>
+            ))}
+          </div>
+        )}
+
         {!editing && (
           <div>
-            <h2>4. Consent</h2>
+            <h2>5. Consent</h2>
             <label style={{ display: "flex", gap: 12, alignItems: "center", minHeight: 44 }}>
               <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} style={{ width: 28, height: 28 }} />
-              Student and parent agree this photo can be shown tonight
+              Student and parent agree this photo (and first name, if entered) can be shown tonight
             </label>
           </div>
         )}
@@ -153,7 +193,7 @@ export default function CrewEntriesPage() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={e.photo.thumb} alt={e.alt} width={72} height={72} style={{ objectFit: "cover", borderRadius: 8 }} />
             <span style={{ flex: 1, minWidth: 0 }}><EntryLabel entry={e} size="sm" /></span>
-            <button type="button" className="secondary" onClick={() => { reset(); setEditing(e); setTitle(e.costumeTitle ?? ""); window.scrollTo({ top: 0 }); }}>Edit</button>
+            <button type="button" className="secondary" onClick={() => { reset(); setEditing(e); setTitle(e.costumeTitle ?? ""); setNames(Object.fromEntries(e.passes.map((p) => [p.id, p.firstName ?? ""]))); window.scrollTo({ top: 0 }); }}>Edit</button>
             <button type="button" className="danger" onClick={() => setRemoving(e)}>Remove</button>
           </li>
         ))}

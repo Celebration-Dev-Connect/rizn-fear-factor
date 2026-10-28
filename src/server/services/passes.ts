@@ -59,20 +59,23 @@ export async function getPass(tx: DbOrTx, realm: Realm, id: string): Promise<Pas
   return row;
 }
 
-/** Crew lookup by nickname fragment or exact number (FR-015). */
+/** Crew lookup by nickname or first-name fragment, or exact number (FR-015, spec 003 FR-208). */
 export async function searchPasses(realm: Realm, q: string) {
   const trimmed = q.trim().replace(/^#/, "");
   const asNumber = /^\d+$/.test(trimmed) ? Number(trimmed) : null;
   const pattern = `%${trimmed.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
   const where = and(
     eq(passes.realm, realm),
-    asNumber !== null ? or(eq(passes.number, asNumber), ilike(passes.nickname, pattern)) : ilike(passes.nickname, pattern),
+    asNumber !== null
+      ? or(eq(passes.number, asNumber), ilike(passes.nickname, pattern))
+      : or(ilike(passes.nickname, pattern), ilike(passes.firstName, pattern)), // spec 003 FR-208
   );
   return db()
     .select({
       id: passes.id,
       number: passes.number,
       nickname: passes.nickname,
+      firstName: passes.firstName,
       origin: passes.origin,
       entryId: entryPasses.entryId,
     })
@@ -94,6 +97,7 @@ export async function passByNumber(realm: Realm, number: number) {
       id: passes.id,
       number: passes.number,
       nickname: passes.nickname,
+      firstName: passes.firstName,
       origin: passes.origin,
       entryId: entryPasses.entryId,
     })

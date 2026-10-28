@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray, isNull } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { isUniqueViolation } from "../db/errors";
 import { db, withTx, type DbOrTx } from "../db/client";
 import { entries, entryPasses, passes, votes } from "../db/schema";
@@ -8,12 +8,15 @@ import { bumpEntriesVersion, getContest, invalidate } from "./contest-state";
 import { deletePhoto, photoUrls, processUpload } from "./photos";
 import type { EntryCard, Realm } from "@/shared/types";
 
-/** Display name = the linked passes' nicknames joined with " & " (data-model.md). */
+/**
+ * Display name = each linked pass's first name if crew set one (spec 003), else its nickname,
+ * joined with " & " (data-model.md).
+ */
 export async function displayNames(tx: DbOrTx, entryIds: string[]): Promise<Map<string, string>> {
   const out = new Map<string, string>();
   if (entryIds.length === 0) return out;
   const rows = await tx
-    .select({ entryId: entryPasses.entryId, nickname: passes.nickname })
+    .select({ entryId: entryPasses.entryId, nickname: sql<string>`coalesce(${passes.firstName}, ${passes.nickname})` })
     .from(entryPasses)
     .innerJoin(passes, eq(passes.id, entryPasses.passId))
     .where(inArray(entryPasses.entryId, entryIds))
@@ -69,6 +72,47 @@ async function assertLinkablePasses(tx: DbOrTx, realm: Realm, passIds: string[],
   }
 }
 
+/** Crew-only: the passes in each entry, with first names, for the edit form (spec 003). */
+export async function entryPassList(entryIds: string[]) {
+  const out = new Map<string, { id: string; number: number; nickname: string; firstName: string | null }[]>();
+  if (entryIds.length === 0) return out;
+  const rows = await db()
+    .select({
+      entryId: entryPasses.entryId,
+      id: passes.id,
+      number: passes.number,
+      nickname: passes.nickname,
+      firstName: passes.firstName,
+    })
+    .from(entryPasses)
+    .innerJoin(passes, eq(passes.id, entryPasses.passId))
+    .where(inArray(entryPasses.entryId, entryIds))
+    .orderBy(asc(passes.number));
+  for (const { entryId, ...p } of rows) out.set(entryId, [...(out.get(entryId) ?? []), p]);
+  return out;
+}
+
+export type FirstNames = Record<string, string | null>;
+
+/**
+ * Sets or clears first names for passes of one entry (spec 003 FR-201/FR-205). Only that entry's
+ * passes may be named: consent was given for this entry. Returns pass ids for the audit log,
+ * which never stores the names themselves (FR-207).
+ */
+async function applyFirstNames(tx: DbOrTx, passIds: string[], names: FirstNames | undefined) {
+  const set: string[] = [];
+  const cleared: string[] = [];
+  if (!names) return { set, cleared };
+  for (const [passId, name] of Object.entries(names)) {
+    if (!passIds.includes(passId)) {
+      throw new AppError("invalid_request", 400, "First name only applies to students in this costume");
+    }
+    await tx.update(passes).set({ firstName: name }).where(eq(passes.id, passId));
+    (name ? set : cleared).push(passId);
+  }
+  return { set, cleared };
+}
+
 /** FR-015: crew-only entry with a consented photo. Retries are deduplicated by idempotency keys. */
 export async function createEntry(
   realm: Realm,
@@ -77,6 +121,7 @@ export async function createEntry(
   photo: Buffer,
   consent: boolean,
   costumeTitle: string | null = null,
+  firstNames?: FirstNames,
 ): Promise<{ entry: EntryCard; addedDuringVoting: boolean }> {
   if (!consent) throw new AppError("consent_required", 422, "Confirm student and parent consent first");
   const unique = [...new Set(passIds)];
@@ -89,6 +134,7 @@ export async function createEntry(
         .values({ realm, photoId, costumeTitle, consentConfirmedAt: new Date() })
         .returning();
       await tx.insert(entryPasses).values(unique.map((passId) => ({ entryId: e!.id, passId })));
+      const named = await applyFirstNames(tx, unique, firstNames);
       await bumpEntriesVersion(tx, realm);
       const c = await getContest(realm, tx);
       await record(tx, {
@@ -96,7 +142,7 @@ export async function createEntry(
         actorType: "crew",
         actorId: crewSessionId,
         action: "entry.create",
-        details: { entryId: e!.id, passIds: unique, costumeTitle },
+        details: { entryId: e!.id, passIds: unique, costumeTitle, firstNamesSet: named.set },
       });
       invalidate(realm);
       return { entry: await getEntryCard(tx, realm, e!.id), addedDuringVoting: c.stage === "voting_open" };
@@ -114,7 +160,7 @@ export async function updateEntry(
   realm: Realm,
   crewSessionId: string,
   entryId: string,
-  changes: { photo?: Buffer; passIds?: string[]; costumeTitle?: string | null },
+  changes: { photo?: Buffer; passIds?: string[]; costumeTitle?: string | null; firstNames?: FirstNames },
 ): Promise<EntryCard> {
   const newPhotoId = changes.photo ? await processUpload(changes.photo) : undefined;
   let oldPhotoId: string | undefined;
@@ -136,6 +182,10 @@ export async function updateEntry(
         oldPhotoId = e.photoId;
         await tx.update(entries).set({ photoId: newPhotoId, updatedAt: new Date() }).where(eq(entries.id, entryId));
       }
+      const linked = (
+        await tx.select({ passId: entryPasses.passId }).from(entryPasses).where(eq(entryPasses.entryId, entryId))
+      ).map((r) => r.passId);
+      const named = await applyFirstNames(tx, linked, changes.firstNames);
       const titleChanged = changes.costumeTitle !== undefined && changes.costumeTitle !== e.costumeTitle;
       if (titleChanged) {
         await tx
@@ -154,6 +204,8 @@ export async function updateEntry(
           photoReplaced: Boolean(newPhotoId),
           passIds: changes.passIds ?? null,
           ...(titleChanged ? { costumeTitle: { from: e.costumeTitle, to: changes.costumeTitle } } : {}),
+          ...(named.set.length ? { firstNamesSet: named.set } : {}),
+          ...(named.cleared.length ? { firstNamesCleared: named.cleared } : {}),
         },
       });
       return getEntryCard(tx, realm, entryId);
@@ -180,6 +232,11 @@ export async function removeEntry(realm: Realm, crewSessionId: string, entryId: 
       .for("update");
     if (!e) throw new AppError("not_found", 404, "Entry not found");
     await tx.update(entries).set({ removedAt: new Date() }).where(eq(entries.id, entryId));
+    // Spec 003 FR-205: the first names were given for this entry, so they go with it.
+    const linked = await tx.select({ passId: entryPasses.passId }).from(entryPasses).where(eq(entryPasses.entryId, entryId));
+    if (linked.length) {
+      await tx.update(passes).set({ firstName: null }).where(inArray(passes.id, linked.map((l) => l.passId)));
+    }
     await tx.delete(entryPasses).where(eq(entryPasses.entryId, entryId));
     const rel = await tx
       .update(votes)

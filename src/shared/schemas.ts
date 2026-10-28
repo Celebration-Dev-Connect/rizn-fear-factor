@@ -21,6 +21,33 @@ export const costumeTitleField = z
   .refine((v) => v.length <= 40, { message: "Keep the costume to 40 characters or fewer" })
   .transform((v) => (v === "" ? null : v));
 
+/**
+ * A contestant's first name (spec 003 FR-202, constitution v2.0.0): one given name, 1–20 letters
+ * with optional internal hyphens or apostrophes ("Mary-Kate", "D'Andre"). "" means "clear" (null).
+ */
+export const firstNameField = z
+  .string()
+  .max(100)
+  .transform((v) => v.trim())
+  .refine((v) => v === "" || (v.length <= 20 && /^\p{L}(?:\p{L}|['’-](?=\p{L}))*$/u.test(v)), {
+    message: "First name only: one name, letters only",
+  })
+  .transform((v) => (v === "" ? null : v));
+
+/** Multipart field `firstNames`: JSON `{ [passId]: firstName }`. */
+export const firstNamesField = z
+  .string()
+  .max(4000)
+  .transform((v, ctx) => {
+    try {
+      return JSON.parse(v) as unknown;
+    } catch {
+      ctx.addIssue({ code: "custom", message: "First name only: one name, letters only" });
+      return z.NEVER;
+    }
+  })
+  .pipe(z.record(z.uuid(), firstNameField));
+
 export const votingCloseBody = z.object({ at: z.iso.datetime({ offset: true }).nullable() });
 
 export const SCAN_CODE_PATTERN = /^NP1\.[LR]\.\d{1,6}\.[A-Z2-7]{12}$/;
