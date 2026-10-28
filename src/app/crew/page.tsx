@@ -3,7 +3,8 @@ import { useState } from "react";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { StageControls } from "@/components/StageControls";
 import { api } from "@/lib/api";
-import { edmontonTimeOnEventDate, formatEdmontonTime, fromEdmontonLocal, toEdmontonLocal } from "@/lib/time";
+import { serverNow } from "@/lib/useServerClock";
+import { formatEdmontonDayTime, fromEdmontonLocal, nextEdmontonOccurrence, toEdmontonLocal } from "@/lib/time";
 import { useCrew } from "./CrewContext";
 
 export default function CrewDashboard() {
@@ -19,7 +20,7 @@ export default function CrewDashboard() {
     setNote(undefined);
     try {
       await api("/api/crew/voting-close", { method: "PUT", json: { at } });
-      setNote(at ? `Countdown set: voting closes at ${formatEdmontonTime(at)}` : "Countdown cleared");
+      setNote(at ? `Countdown set: voting closes ${formatEdmontonDayTime(at)}` : "Countdown cleared");
       if (!at) setCloseAt("");
       refresh();
     } catch (err) {
@@ -48,7 +49,10 @@ export default function CrewDashboard() {
         </p>
         <p>
           {state.votingClosesAt ? (
-            <>Currently: <strong>{formatEdmontonTime(state.votingClosesAt)}</strong></>
+            <>
+              Currently: <strong>{formatEdmontonDayTime(state.votingClosesAt)}</strong>
+              {new Date(state.votingClosesAt).getTime() <= serverNow() && " — already passed, so the big screen says “closes any moment”"}
+            </>
           ) : (
             "No countdown set."
           )}
@@ -57,7 +61,8 @@ export default function CrewDashboard() {
           style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "end" }}
           onSubmit={(e) => {
             e.preventDefault();
-            if (closeAt) void saveClose(edmontonTimeOnEventDate(closeAt, state.event.start));
+            // The next time the clock reads this, using server time (today, or tomorrow if it has passed).
+            if (closeAt) void saveClose(nextEdmontonOccurrence(closeAt, serverNow()));
           }}
         >
           <label style={{ display: "grid", gap: 6 }}>

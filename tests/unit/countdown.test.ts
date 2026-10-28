@@ -47,9 +47,25 @@ describe("estimateOffset (FR-113, SC-104)", () => {
   });
 });
 
-describe("edmontonTimeOnEventDate (FR-111)", () => {
-  it("puts a crew-picked time on the event date in Edmonton (MDT, UTC-6)", async () => {
-    const { edmontonTimeOnEventDate } = await import("@/lib/time");
-    expect(edmontonTimeOnEventDate("20:45", "2026-10-30T18:30:00-06:00")).toBe("2026-10-31T02:45:00.000Z");
+describe("nextEdmontonOccurrence (FR-111)", () => {
+  const at = (iso: string) => new Date(iso).getTime();
+
+  it("uses today when the time is still ahead, whatever the event window says", async () => {
+    const { nextEdmontonOccurrence } = await import("@/lib/time");
+    // 10:52 am MDT on Oct 28 → 3:00 pm the same day.
+    expect(nextEdmontonOccurrence("15:00", at("2026-10-28T16:52:00Z"))).toBe("2026-10-28T21:00:00.000Z");
+    // Event night: 7:10 pm MDT → 8:45 pm.
+    expect(nextEdmontonOccurrence("20:45", at("2026-10-31T01:10:00Z"))).toBe("2026-10-31T02:45:00.000Z");
+  });
+
+  it("rolls to tomorrow when the time has already passed today", async () => {
+    const { nextEdmontonOccurrence } = await import("@/lib/time");
+    expect(nextEdmontonOccurrence("09:00", at("2026-10-28T16:52:00Z"))).toBe("2026-10-29T15:00:00.000Z");
+  });
+
+  it("handles a time after midnight UTC but the same Edmonton evening", async () => {
+    const { nextEdmontonOccurrence } = await import("@/lib/time");
+    // 11:30 pm MDT Oct 30 is 05:30Z Oct 31; 11:45 pm is still "today" in Edmonton.
+    expect(nextEdmontonOccurrence("23:45", at("2026-10-31T05:30:00Z"))).toBe("2026-10-31T05:45:00.000Z");
   });
 });
