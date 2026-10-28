@@ -357,7 +357,7 @@ within 5 s.
 
 ### Tests for User Story 5 ⚠️
 
-- [ ] T056 [US5] Add a `describe("own entry")` block to tests/integration/pass.test.ts. It covers:
+- [X] T056 [US5] Add a `describe("own entry")` block to tests/integration/pass.test.ts. It covers:
   - `GET /api/me` for a linked pass returns `ownEntry` (an EntryCard with `costumeTitle`) and `ownPlace: null` before the reveal;
   - the JSON contains no `votes` or count field in any stage;
   - after the reveal reaches that entry's place, `ownPlace` is `{ place, tied }`;
@@ -367,9 +367,9 @@ within 5 s.
 
 ### Implementation for User Story 5
 
-- [ ] T057 [US5] Add `revealedPlaceFor(realm, entryId)` to src/server/services/ranking.ts, derived from `publicResults(realm)` (only revealed places, so the rules are identical). In src/server/routes/pass.ts, `GET /api/me` fills `ownEntry` through `getEntryCard` (or `null` if removed) and `ownPlace` through `revealedPlaceFor`.
-- [ ] T058 [P] [US5] Create src/components/YourCostume.tsx (+ .module.css). It shows the thumbnail photo (alt from the card), the `EntryLabel`, and "You're in the costume contest!". When `ownPlace` is set, it adds "You placed {PLACE_LABELS[place]}!" or "Tied for {PLACE_LABELS[place]}!", with a celebratory style that is static under reduced motion. It never renders numbers of votes.
-- [ ] T059 [US5] In src/app/page.tsx, fetch `/api/me` when the pass is present, keyed on `state.version` and `state.entriesVersion` (refetch when either changes; no new poll), and render `<YourCostume>` under the pass when `me.ownEntry` is set. Run the tests and commit `feat: contestants see their own costume and placing on their pass (FR-121–FR-122)`.
+- [X] T057 [US5] Add `revealedPlaceFor(realm, entryId)` to src/server/services/ranking.ts, derived from `publicResults(realm)` (only revealed places, so the rules are identical). In src/server/routes/pass.ts, `GET /api/me` fills `ownEntry` through `getEntryCard` (or `null` if removed) and `ownPlace` through `revealedPlaceFor`.
+- [X] T058 [P] [US5] Create src/components/YourCostume.tsx (+ .module.css). It shows the thumbnail photo (alt from the card), the `EntryLabel`, and "You're in the costume contest!". When `ownPlace` is set, it adds "You placed {PLACE_LABELS[place]}!" or "Tied for {PLACE_LABELS[place]}!", with a celebratory style that is static under reduced motion. It never renders numbers of votes.
+- [X] T059 [US5] In src/app/page.tsx, fetch `/api/me` when the pass is present, keyed on `state.version` and `state.entriesVersion` (refetch when either changes; no new poll), and render `<YourCostume>` under the pass when `me.ownEntry` is set. Run the tests and commit `feat: contestants see their own costume and placing on their pass (FR-121–FR-122)`.
 
 **Checkpoint**: all six stories work. **Deploy.**
 

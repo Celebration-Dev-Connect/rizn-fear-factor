@@ -4,10 +4,11 @@ import { useEffect, useState } from "react";
 import { BrandMark, RiznYouthMark } from "@/components/BrandMark";
 import { PassBadge } from "@/components/PassBadge";
 import { Stickers } from "@/components/Stickers";
+import { YourCostume } from "@/components/YourCostume";
 import { usePublicState } from "@/components/StateProvider";
 import { api, ApiRequestError } from "@/lib/api";
 import { formatEdmontonTime } from "@/lib/time";
-import type { Pass } from "@/shared/types";
+import type { Me, Pass } from "@/shared/types";
 
 export default function NightPassPage() {
   const { state } = usePublicState();
@@ -17,6 +18,15 @@ export default function NightPassPage() {
   const rehearsal = state?.rehearsal ?? false;
   // Rehearsal and live use different passes, so a pass only counts for the mode it came from.
   const pass = issued?.rehearsal === rehearsal ? issued.pass : undefined;
+  const [me, setMe] = useState<Me>();
+
+  // Spec 002 FR-121: refetch the contestant card whenever entries or the stage change. No new poll:
+  // the shared /api/state poll moves these versions.
+  const meKey = pass && state ? `${rehearsal}-${state.entriesVersion}-${state.version}` : null;
+  useEffect(() => {
+    if (!meKey) return;
+    api<Me>("/api/me", { retries: 1 }).then(setMe).catch(() => {});
+  }, [meKey]);
 
   useEffect(() => {
     if (status !== "open" || pass) return;
@@ -57,6 +67,7 @@ export default function NightPassPage() {
       {pass ? (
         <>
           <PassBadge pass={pass} />
+          {me?.ownEntry && <YourCostume entry={me.ownEntry} place={me.ownPlace} />}
           <div style={{ display: "flex", justifyContent: "center" }}>
             <Link href="/contest" className="button" style={{ minWidth: 260 }}>
               <span aria-hidden="true">🎃</span> Costume Contest

@@ -74,3 +74,13 @@ export async function publicResults(realm: Realm): Promise<RevealedPlace[]> {
   const byId = await cards(realm, shown.flatMap((p) => p.entryIds));
   return shown.map((p) => ({ place: p.place, tied: p.tied, entries: p.entryIds.map((id) => byId.get(id)!) }));
 }
+
+/**
+ * The place an entry holds in the public results, only once the reveal has reached it (spec 002
+ * FR-122). Built from publicResults so the pass card and the big screen always agree. Never a count.
+ */
+export async function revealedPlaceFor(realm: Realm, entryId: string): Promise<{ place: 1 | 2 | 3; tied: boolean } | null> {
+  const places = await publicResults(realm);
+  const hit = places.find((p) => p.entries.some((e) => e.id === entryId));
+  return hit ? { place: hit.place, tied: hit.tied } : null;
+}

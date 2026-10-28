@@ -151,3 +151,54 @@ describe("pass QR code and crew scan (spec 002 US6, FR-123–FR-128)", () => {
     expect(again.body.pass.number).not.toBe(first.body.pass.number);
   });
 });
+
+describe("own entry on the pass (spec 002 US5, FR-121–FR-122)", () => {
+  beforeEach(resetDb);
+
+  async function stageTo(crew: Awaited<ReturnType<typeof newCrewAgent>>, target: string) {
+    for (let i = 0; i < 8; i++) {
+      const s = (await crew.get("/api/state").expect(200)).body;
+      if (`${s.stage}:${s.revealStep}` === target) return;
+      await crew.post("/api/crew/stage").set(idem()).send({ action: "advance", from: { stage: s.stage, revealStep: s.revealStep } }).expect(200);
+    }
+    throw new Error(`never reached ${target}`);
+  }
+
+  it("shows the contestant's own entry with no counts, and their place only once revealed", async () => {
+    const crew = await newCrewAgent();
+    const winner = await newPassAgent();
+    const runnerUp = await newPassAgent();
+    const voters = await Promise.all([newPassAgent(), newPassAgent(), newPassAgent()]);
+    const wEntry = await createEntry(crew, [await passIdByNumber(crew, winner.pass.number)]);
+    const rEntry = await createEntry(crew, [await passIdByNumber(crew, runnerUp.pass.number)]);
+
+    const before = (await runnerUp.agent.get("/api/me").expect(200)).body;
+    expect(before.ownEntry.id).toBe(rEntry.id);
+    expect(before.ownEntry).toHaveProperty("costumeTitle");
+    expect(before.ownPlace).toBeNull();
+
+    await stageTo(crew, "voting_open:0");
+    for (const v of voters.slice(0, 2)) await v.agent.post("/api/votes").set(idem()).send({ entryId: wEntry.id }).expect(201);
+    await voters[2]!.agent.post("/api/votes").set(idem()).send({ entryId: rEntry.id }).expect(201);
+    await stageTo(crew, "results_revealed:1"); // 2nd place (the runner-up) is revealed first
+
+    const winnerMe = (await winner.agent.get("/api/me").expect(200)).body;
+    expect(winnerMe.ownPlace).toBeNull(); // 1st not revealed yet
+    const runnerMe = (await runnerUp.agent.get("/api/me").expect(200)).body;
+    expect(runnerMe.ownPlace).toEqual({ place: 2, tied: false });
+    expect(JSON.stringify(runnerMe)).not.toMatch(/"votes"|"count"/);
+
+    await stageTo(crew, "results_revealed:2");
+    expect((await winner.agent.get("/api/me").expect(200)).body.ownPlace).toEqual({ place: 1, tied: false });
+  });
+
+  it("drops the card when the entry is removed, and shows none for a non-contestant", async () => {
+    const crew = await newCrewAgent();
+    const student = await newPassAgent();
+    const other = await newPassAgent();
+    const entry = await createEntry(crew, [await passIdByNumber(crew, student.pass.number)]);
+    expect((await other.agent.get("/api/me").expect(200)).body).toMatchObject({ ownEntry: null, ownPlace: null });
+    await crew.delete(`/api/crew/entries/${entry.id}`).set(idem()).expect(200);
+    expect((await student.agent.get("/api/me").expect(200)).body).toMatchObject({ ownEntryId: null, ownEntry: null, ownPlace: null });
+  });
+});

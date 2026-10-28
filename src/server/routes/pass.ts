@@ -8,7 +8,9 @@ import { cookieOptions, passCookieName, requirePass } from "../middleware/auth";
 import { AppError } from "../middleware/errors";
 import { getContest } from "../services/contest-state";
 import { eventStatus, getSettings } from "../services/realm";
+import { getEntryCard } from "../services/entries";
 import { issuePass, publicPass } from "../services/passes";
+import { revealedPlaceFor } from "../services/ranking";
 import { encodeScanCode } from "../services/scanCode";
 import type { Me } from "@/shared/types";
 
@@ -45,8 +47,9 @@ passRouter.get("/me", requirePass, async (req, res, next) => {
     const me: Me = {
       pass: publicPass(p),
       ownEntryId: own?.entryId ?? null,
-      ownEntry: null,
-      ownPlace: null,
+      // FR-121/FR-122: the contestant's own card, and their place once it has been revealed.
+      ownEntry: own ? await getEntryCard(db(), req.realm, own.entryId).catch(() => null) : null,
+      ownPlace: own ? await revealedPlaceFor(req.realm, own.entryId) : null,
       vote: vote ? { entryId: vote.entryId } : null,
       // FR-105: only a counted vote, and only while voting is open.
       voteChangeable: vote?.status === "counted" && (await getContest(req.realm)).stage === "voting_open",
