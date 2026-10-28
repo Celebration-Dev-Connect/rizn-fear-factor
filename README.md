@@ -8,8 +8,11 @@ Costume contest web app for RIZN Fear Factor at Celebration Church, Edmonton (gr
   costumes and cast one vote, which they can change until voting closes. Tapping the pass flips
   it to a QR code for crew, and contestants see their own costume on their pass.
 - **Crew** sign in with a shared passcode. They scan a student's pass, photograph the costume with
-  consent, add what it is ("Superman"), run the contest stages, review votes, and reveal 3rd, 2nd
+  consent, add what it is ("Superman") and optionally the student's first name, run the contest stages, review votes, and reveal 3rd, 2nd
   and 1st place.
+- **More about RIZN Youth** (`/rizn`) is a public page with the weekly details and next week's
+  event. Edit the wording in `src/content/rizn.ts`. To add the van photo, save it as
+  `media-bundle/van.jpg`, run `npm run brand:assets`, then commit and deploy.
 - **The big screen** shows a rotating gallery ("Midnight Gremlin *as* SUPERMAN"), the join QR
   code, live totals, a countdown to the crew-set voting close time, and the reveal.
 
@@ -111,7 +114,7 @@ Photos stop being served at `PHOTO_DELETE_AT` and are deleted automatically by a
 while the server runs. To complete deletion of all event data:
 
 ```bash
-docker compose exec app npm run purge -- --all   # deletes photo files and every pass, entry, vote, and log row
+docker compose exec app npm run purge -- --all   # deletes photo files and every pass (with first names), entry, vote, and log row
 docker compose down -v                           # removes the database and photo volumes
 ```
 

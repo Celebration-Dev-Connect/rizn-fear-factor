@@ -62,7 +62,7 @@ description: "Task list for First Names and RIZN Youth Info"
 
 ## Phase 4: Polish
 
-- [ ] T016 Update CLAUDE.md (first names allowed, crew-only, single given name; content file location) and README (deletion covers first names; van photo steps). Deploy and smoke-test production.
+- [X] T016 Update CLAUDE.md (first names allowed, crew-only, single given name; content file location) and README (deletion covers first names; van photo steps). Deploy and smoke-test production.
 
 ## Dependencies
 

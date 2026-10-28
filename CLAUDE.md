@@ -24,7 +24,8 @@ Commands (full list in `README.md`):
 - Single test: `npx vitest run tests/integration/votes.test.ts -t "self-vote"`
 - `npm run test:e2e`: Playwright (runs against the dev server; uses and wipes the rehearsal contest)
 - `npm run test:load`: autocannon (`LOAD_BASE_URL`, `CREW_PASSCODE`)
-- `npm run brand:assets`: rebuild `public/brand/*.webp` from `media-bundle/` (gitignored RIZN artwork)
+- `npm run brand:assets`: rebuild `public/brand/*.webp`, favicons, the share card, and the optional
+  van photo from `media-bundle/` (gitignored RIZN artwork)
 - Production deploy: GitHub Actions *Deploy* workflow (see `infra/README.md`); `./scripts/deploy.sh` is for other servers
 
 Rules the code has to keep:
@@ -46,7 +47,8 @@ Rules the code has to keep:
 - `.specify/memory/constitution.md`: the project's binding rules. Read it before planning or
   writing code; specs, plans, and PRs must comply.
 - `specs/NNN-feature-name/`: one directory per feature, holding `spec.md` and later `plan.md`
-  and `tasks.md`. The current feature is `specs/002-contest-polish/` (built on `specs/001-costume-contest/`).
+  and `tasks.md`. The current feature is `specs/003-names-and-rizn-info/` (built on 001 and 002). The `/rizn`
+  page copy lives in `src/content/rizn.ts`.
 - `.specify/feature.json`: gitignored pointer to the active feature directory, used by the
   Spec Kit scripts.
 
@@ -58,9 +60,10 @@ spec, plan, and tasks for consistency.
 
 Rules from the constitution that are easy to break while coding:
 
-- Never store student names, contact details, or any text a student types. Crew may type a short
-  costume title ("Superman"), never a person's name. Students are identified only by a generated
-  nickname and a first-party cookie.
+- Never store student last names, contact details, or any text a student types. Crew may type a
+  short costume title ("Superman") and, optionally, a contestant's single first name (constitution
+  v2.0.0, spec 003); names never go in the audit log and are cleared when the entry is removed.
+  Students are identified by a generated nickname and a first-party cookie.
 - Photos must stay private (no public URLs), served only to a valid pass, crew session, or
   big-screen link.
 - No third-party analytics, trackers, embeds, or other-origin scripts.
