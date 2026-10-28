@@ -262,26 +262,51 @@ is not committed) and writes optimized files to `public/brand/` (which is commit
 
 ## 10. Fonts
 
-**Decision**:
-- **Headings**: use **Cubano**, self-hosted through `next/font/local` from `public/fonts/` (or
-  `src/fonts/`), if RIZN supply the file in `media-bundle/Font/` with a licence that allows web
-  embedding. That folder was empty on 2026-10-27.
-- **Fallback**: **Lilita One** through `next/font/google`. It's open-licensed, chunky, and rounded
-  like Cubano, and `next/font` downloads it at build time and serves it from our own origin, as with
-  Creepster today.
+**What the design uses**: the font metadata in `Workfiles/Rizn Fear Factor.ai` lists three
+OpenType fonts.
+
+| Design font | Likely role in the artwork | Role in the app |
+|---|---|---|
+| **Cubano** Regular | "Grades 7–12" and other rounded display type | headings, nicknames, costume titles |
+| **Asket Condensed** ExtraBold | tight condensed caps | kickers, stage labels, countdown digits, pass number |
+| **Kuhlman** Regular | hand-drawn accents | optional accent only (for example the small "as") |
+
+Two of the three appear in the file as `.15493.otf` and `.62320.otf`. That is how Adobe Creative
+Cloud names fonts it has synced from **Adobe Fonts**. Adobe Fonts' licence does not allow
+self-hosting the font files on a website. Web use goes through Adobe's own font servers, which
+would be a third-party origin and is not allowed under constitution I and the CSP. The
+`media-bundle/Font/` folder was still empty on 2026-10-27.
+
+**Decision**: each design font gets its own slot, self-hosted with `next/font/local` from
+`src/fonts/`.
+- A font file is used only if RIZN provide it **and** its licence allows self-hosted web embedding
+  in a public repo. Desktop-only and Adobe Fonts licences don't qualify.
+- Otherwise the slot uses an open-licensed (OFL) look-alike, loaded with `next/font/google`.
+  `next/font` downloads it at build time and serves it from our own origin, as it does for Creepster
+  today.
+
+| Slot | CSS variable | Licensed original | OFL fallback |
+|---|---|---|---|
+| Display | `--font-display` | Cubano | **Lilita One** |
+| Condensed | `--font-condensed` | Asket Condensed ExtraBold | **Barlow Condensed** 800 |
+| Accent | `--font-accent` | Kuhlman | none: falls back to `--font-display` |
+| Body | `--font-body` | n/a | **Nunito** (unchanged) |
+
 - Creepster is retired.
-- **Body**: Nunito stays.
+- Swapping in a licensed file later is a one-line change per slot in `src/app/layout.tsx`.
 
 **Rationale**:
-- `next/font` self-hosts at build time, so there's no request to a font CDN and CSP `font-src 'self'`
-  holds.
-- Lilita One's weight and rounded caps are the closest open match to Cubano and to the poster's
-  "Grades 7–12" lettering, and it reads clearly at nickname sizes in a dim room. Creepster's dripping
-  letterforms clash with the collage style and are hard to read.
+- No request goes to a font CDN, so CSP `font-src 'self'` holds.
+- Lilita One and Barlow Condensed are the closest open matches in weight and shape. Both read
+  clearly at nickname sizes in a dim room. Creepster's dripping letterforms clash with the collage
+  style and are hard to read.
+- Keeping slots means the app looks right today and can match the poster exactly once licensed files
+  arrive.
 
 **Alternatives rejected**:
-- *Extracting Cubano from the `.ai` file*: it's only a subset, and the licence is unclear.
-- *A marker-style font*: harder to read at the sizes the nicknames use.
+- *Extracting fonts from the `.ai` file*: they're only subsets, and the licence forbids it.
+- *Adobe Fonts web kits*: a third-party script and stylesheet origin, forbidden by constitution I.
+- *Copying files from a designer's synced Creative Cloud fonts*: not licensed for web use.
 
 ## 11. Order of delivery
 

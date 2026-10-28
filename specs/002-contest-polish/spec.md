@@ -427,11 +427,11 @@ does not give access to the pass.
   - Black text on the orange and white text on the blue both pass AA.
   - White text on the orange and blue text on near-black do not pass for body text. Those pairings
     are kept to large text and surfaces.
-- **Fonts.** The bundle has a `Font/` folder, but it was empty on 2026-10-27; the file may not have
-  copied over.
-  - The design file references Cubano. Headings use the supplied font file once it is in the
-    bundle, provided its licence allows web use and self-hosting in a public repo. Otherwise they
-    use a similar bold, freely licensed display font, self-hosted.
+- **Fonts.** The design file uses Cubano, Asket Condensed ExtraBold, and Kuhlman. The bundle's
+  `Font/` folder was empty on 2026-10-27, and at least two of the fonts appear to come from Adobe
+  Fonts, whose licence doesn't allow self-hosting on a website.
+  - A font is used only when its file is supplied with a licence for self-hosted web use.
+  - Otherwise the app uses close, freely licensed, self-hosted look-alikes (research §10).
   - The poster's "RIZN FEAR FACTOR" lettering is hand-drawn artwork, so it is used as the logo image
     rather than as a typeface.
   - Body text stays the readable sans-serif from 001.

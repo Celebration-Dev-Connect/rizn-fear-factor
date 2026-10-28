@@ -120,7 +120,6 @@ scripts/
 
 public/
 ├── brand/                           # new files: logos and stickers (committed outputs)
-└── fonts/                           # new, only if RIZN supply Cubano with a web licence
 
 src/server/
 ├── db/schema.ts                     # vote_status + replaced; entries.costumeTitle; contest.votingClosesAt
@@ -159,7 +158,7 @@ src/components/
 └── VoteConfirm.tsx                  # "change from → to" variant
 
 src/app/
-├── layout.tsx                       # fonts: Cubano (local) or Lilita One; drop Creepster
+├── layout.tsx                       # font slots (research §10): display, condensed, accent, body; drop Creepster
 ├── page.tsx                         # flip pass + YourCostume
 ├── contest/page.tsx                 # Change my vote flow
 ├── crew/page.tsx                    # voting close time control
@@ -187,7 +186,7 @@ package.json                         # + jsqr; + "brand:assets" script
 
 **Structure Decision**: keep the existing single-process layout from 001: Express in `src/server`,
 Next.js pages in `src/app`, and shared code in `src/shared`. No new top-level directories except
-the output folders `public/brand` and (optionally) `public/fonts`.
+the output folder `public/brand`, plus `src/fonts/` if licensed font files are supplied.
 
 ## Delivery Order
 
