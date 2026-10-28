@@ -4,13 +4,16 @@ import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { api, ApiRequestError } from "@/lib/api";
 import { resizeImage } from "@/lib/resizeImage";
 import { usePoll, CREW_POLL } from "@/lib/usePoll";
-import { formatPassNumber, type EntryCard } from "@/shared/types";
+import { EntryLabel } from "@/components/EntryLabel";
+import { entryLabelText, formatPassNumber, type EntryCard } from "@/shared/types";
 import { PassPicker, type PassHit } from "../PassPicker";
 
 export default function CrewEntriesPage() {
   const [passes, setPasses] = useState<PassHit[]>([]);
   const [photo, setPhoto] = useState<Blob>();
   const [consent, setConsent] = useState(false);
+  /** Spec 002 FR-107: crew-typed costume, never a person's name. */
+  const [title, setTitle] = useState("");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ kind: "ok" | "error"; text: string }>();
   const [pickerKey, setPickerKey] = useState(0);
@@ -27,6 +30,7 @@ export default function CrewEntriesPage() {
     setPasses([]);
     setPhoto(undefined);
     setConsent(false);
+    setTitle("");
     setEditing(undefined);
     setPickerKey((k) => k + 1);
   }
@@ -47,6 +51,7 @@ export default function CrewEntriesPage() {
     if (photo) form.append("photo", photo, "costume.jpg");
     if (!editing || passes.length > 0) passes.forEach((p) => form.append("passIds[]", p.id));
     if (!editing) form.append("consent", consent ? "true" : "false");
+    if (!editing || titleChanged) form.append("costumeTitle", title);
     try {
       if (editing) {
         await api(`/api/crew/entries/${editing.id}`, { method: "PATCH", form });
@@ -67,11 +72,12 @@ export default function CrewEntriesPage() {
     }
   }
 
-  const canSave = editing ? Boolean(photo) || passes.length > 0 : passes.length > 0 && photo && consent;
+  const titleChanged = Boolean(editing) && title.trim() !== (editing?.costumeTitle ?? "");
+  const canSave = editing ? Boolean(photo) || passes.length > 0 || titleChanged : passes.length > 0 && photo && consent;
 
   return (
     <>
-      <h1>{editing ? `Edit ${editing.displayName}` : "Add a costume"}</h1>
+      <h1>{editing ? `Edit ${entryLabelText(editing)}` : "Add a costume"}</h1>
       <section className="card" style={{ display: "grid", gap: 20 }}>
         <div>
           <h2>1. Find the student</h2>
@@ -102,9 +108,30 @@ export default function CrewEntriesPage() {
           {preview && <img src={preview} alt="Preview of the costume photo" style={{ width: "100%", borderRadius: 12 }} />}
         </div>
 
+        <div>
+          <h2>3. What are they dressed as?</h2>
+          <label style={{ display: "grid", gap: 6 }}>
+            Costume <span style={{ color: "var(--text-muted)", fontSize: 14 }}>(optional)</span>
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              maxLength={40}
+              placeholder="e.g. Superman"
+              autoComplete="off"
+              autoCapitalize="words"
+              enterKeyHint="done"
+              aria-describedby="costume-hint"
+            />
+          </label>
+          <p id="costume-hint" style={{ color: "var(--text-muted)", fontSize: 14, display: "flex", justifyContent: "space-between", gap: 12 }}>
+            <span>Describe the costume — <strong>no real names</strong>. Shows as “nickname as costume”.</span>
+            <span aria-live="polite">{title.length}/40</span>
+          </p>
+        </div>
+
         {!editing && (
           <div>
-            <h2>3. Consent</h2>
+            <h2>4. Consent</h2>
             <label style={{ display: "flex", gap: 12, alignItems: "center", minHeight: 44 }}>
               <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} style={{ width: 28, height: 28 }} />
               Student and parent agree this photo can be shown tonight
@@ -125,8 +152,8 @@ export default function CrewEntriesPage() {
           <li key={e.id} className="card" style={{ display: "flex", gap: 12, alignItems: "center" }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={e.photo.thumb} alt={e.alt} width={72} height={72} style={{ objectFit: "cover", borderRadius: 8 }} />
-            <span style={{ flex: 1, fontWeight: 700 }}>{e.displayName}</span>
-            <button type="button" className="secondary" onClick={() => { reset(); setEditing(e); window.scrollTo({ top: 0 }); }}>Edit</button>
+            <span style={{ flex: 1, minWidth: 0 }}><EntryLabel entry={e} size="sm" /></span>
+            <button type="button" className="secondary" onClick={() => { reset(); setEditing(e); setTitle(e.costumeTitle ?? ""); window.scrollTo({ top: 0 }); }}>Edit</button>
             <button type="button" className="danger" onClick={() => setRemoving(e)}>Remove</button>
           </li>
         ))}
@@ -134,7 +161,7 @@ export default function CrewEntriesPage() {
 
       {removing && (
         <ConfirmDialog
-          title={`Remove ${removing.displayName}?`}
+          title={`Remove ${entryLabelText(removing)}?`}
           body={<p>The photo is deleted. Any votes for this costume are released, so those students can vote again while voting is open.</p>}
           confirmLabel="Remove entry"
           danger

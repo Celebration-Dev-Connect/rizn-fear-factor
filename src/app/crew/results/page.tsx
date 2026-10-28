@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { StageControls } from "@/components/StageControls";
 import { api } from "@/lib/api";
-import { PLACE_LABELS, type EntryCard } from "@/shared/types";
+import { entryLabelText, PLACE_LABELS, type EntryCard } from "@/shared/types";
 import { useCrew } from "../CrewContext";
 
 type Ranking = {
@@ -39,14 +39,14 @@ export default function CrewResultsPage() {
             p.entries.map((e) => (
               <tr key={e.id} style={{ borderTop: "1px solid var(--border)" }}>
                 <td>{PLACE_LABELS[p.place]} {p.tied && <strong>· TIE</strong>}</td>
-                <td>{e.displayName}</td>
+                <td>{entryLabelText(e)}</td>
                 <td>{p.votes}</td>
               </tr>
             )),
           )}
           {ranking?.unplaced.map((u) => (
             <tr key={u.entry.id} style={{ borderTop: "1px solid var(--border)", color: "var(--text-muted)" }}>
-              <td>—</td><td>{u.entry.displayName}</td><td>{u.votes}</td>
+              <td>—</td><td>{entryLabelText(u.entry)}</td><td>{u.votes}</td>
             </tr>
           ))}
         </tbody>

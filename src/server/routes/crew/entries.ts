@@ -4,7 +4,7 @@ import { requireCrew } from "../../middleware/auth";
 import { AppError } from "../../middleware/errors";
 import { idempotency } from "../../middleware/idempotency";
 import { createEntry, listEntries, removeEntry, updateEntry } from "../../services/entries";
-import { uuidSchema } from "@/shared/schemas";
+import { costumeTitleField, uuidSchema } from "@/shared/schemas";
 
 export const crewEntriesRouter = Router();
 
@@ -28,6 +28,13 @@ function passIdsFrom(req: Request): string[] | undefined {
   });
 }
 
+/** Spec 002 FR-107: undefined = not sent (leave as is), null = clear, string = set. */
+function costumeTitleFrom(req: Request): string | null | undefined {
+  const raw = req.body?.costumeTitle;
+  if (raw === undefined) return undefined;
+  return costumeTitleField.parse(String(raw));
+}
+
 crewEntriesRouter.get("/crew/entries", requireCrew, async (req, res, next) => {
   try {
     res.json(await listEntries(req.realm));
@@ -45,6 +52,7 @@ crewEntriesRouter.post("/crew/entries", requireCrew, idempotency, upload.single(
       passIdsFrom(req) ?? [],
       req.file.buffer,
       req.body?.consent === "true",
+      costumeTitleFrom(req) ?? null,
     );
     res.status(201).json({ entry, ...(addedDuringVoting ? { warning: "added_during_voting" } : {}) });
   } catch (err) {
@@ -58,6 +66,7 @@ crewEntriesRouter.patch("/crew/entries/:id", requireCrew, idempotency, upload.si
     const entry = await updateEntry(req.realm, req.crew!.id, id, {
       photo: req.file?.buffer,
       passIds: passIdsFrom(req),
+      costumeTitle: costumeTitleFrom(req),
     });
     res.json({ entry });
   } catch (err) {

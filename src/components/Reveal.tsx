@@ -1,5 +1,6 @@
+import { EntryLabel } from "./EntryLabel";
 import styles from "./Reveal.module.css";
-import { PLACE_LABELS, type RevealedPlace } from "@/shared/types";
+import { entryLabelText, PLACE_LABELS, type RevealedPlace } from "@/shared/types";
 
 /**
  * Winners, lowest place first (FR-031/FR-032). Celebratory CSS-only animation that the global
@@ -12,7 +13,7 @@ export function Reveal({ places, big = false }: { places: RevealedPlace[]; big?:
     <section className={`${styles.wrap} ${big ? styles.big : ""}`} aria-label="Costume contest results">
       <p className="visually-hidden" aria-live="polite">
         {newest.tied ? `Tied for ${PLACE_LABELS[newest.place]}` : `${PLACE_LABELS[newest.place]} place`}:{" "}
-        {newest.entries.map((e) => e.displayName).join(" and ")}
+        {newest.entries.map(entryLabelText).join(" and ")}
       </p>
       {[...places].reverse().map((p) => (
         <article key={p.place} className={`${styles.place} ${styles[`p${p.place}`]}`}>
@@ -28,7 +29,7 @@ export function Reveal({ places, big = false }: { places: RevealedPlace[]; big?:
               <li key={e.id} className={styles.winner}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={e.photo.full} alt={e.alt} className={styles.photo} />
-                <span className={styles.name}>{e.displayName}</span>
+                <EntryLabel entry={e} size={big ? "xl" : "md"} className={styles.name} />
               </li>
             ))}
           </ul>

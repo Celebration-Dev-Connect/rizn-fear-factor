@@ -145,7 +145,7 @@ and reveal show it. Edit it and clear it, and every screen updates within 5 s.
 
 ### Tests for User Story 2 ⚠️
 
-- [ ] T021 [US2] Create tests/integration/entries.test.ts, reusing the photo fixture from tests/integration/photos.test.ts. It covers:
+- [X] T021 [US2] Create tests/integration/entries.test.ts, reusing the photo fixture from tests/integration/photos.test.ts. It covers:
   - `POST /api/crew/entries` with `costumeTitle=" Super   man "` stores `"Super man"`;
   - 41 characters returns `400 invalid_request`;
   - a control character returns `400`;
@@ -158,11 +158,11 @@ and reveal show it. Edit it and clear it, and every screen updates within 5 s.
 
 ### Implementation for User Story 2
 
-- [ ] T022 [US2] In src/server/routes/crew/entries.ts, parse the optional multipart field `costumeTitle` with `costumeTitleField` on POST and PATCH. Pass it to `createEntry`/`updateEntry` in src/server/services/entries.ts, which persist it (an empty value is stored as `NULL`), include it in the `entry.create` and `entry.update` audit details (`costumeTitle: { from, to }` only when it changed), and call `bumpEntriesVersion` on a title-only edit.
-- [ ] T023 [US2] Add a single-line text input to the add and edit forms in src/app/crew/entries/page.tsx, labelled "Costume (what are they dressed as?)", with helper text "Describe the costume — no real names", `maxLength={40}`, a live character count, `autoComplete="off"`, and placeholder "e.g. Superman". Send it as `costumeTitle` in the FormData. Show existing titles in the entry list with `EntryLabel size="sm"`.
-- [ ] T024 [P] [US2] Replace the bare `displayName` rendering with `EntryLabel` in src/components/Gallery.tsx (`md`), src/components/ScreenGallery.tsx (`xl`), src/components/Reveal.tsx (`xl` when `big`, else `md`), src/components/VoteConfirm.tsx, and src/app/crew/results/page.tsx.
-- [ ] T025 [P] [US2] Return `costumeTitle` on every entry in the crew ranking and public results (`crewRanking` and `publicResults` in src/server/services/ranking.ts) by reusing `toCard`.
-- [ ] T026 [US2] Run `npm run test:integration` and `npm run test:e2e`, check the a11y suite still passes, and commit `feat: crew-entered costume titles shown as "nickname as title" (FR-107–FR-110)`.
+- [X] T022 [US2] In src/server/routes/crew/entries.ts, parse the optional multipart field `costumeTitle` with `costumeTitleField` on POST and PATCH. Pass it to `createEntry`/`updateEntry` in src/server/services/entries.ts, which persist it (an empty value is stored as `NULL`), include it in the `entry.create` and `entry.update` audit details (`costumeTitle: { from, to }` only when it changed), and call `bumpEntriesVersion` on a title-only edit.
+- [X] T023 [US2] Add a single-line text input to the add and edit forms in src/app/crew/entries/page.tsx, labelled "Costume (what are they dressed as?)", with helper text "Describe the costume — no real names", `maxLength={40}`, a live character count, `autoComplete="off"`, and placeholder "e.g. Superman". Send it as `costumeTitle` in the FormData. Show existing titles in the entry list with `EntryLabel size="sm"`.
+- [X] T024 [P] [US2] Replace the bare `displayName` rendering with `EntryLabel` in src/components/Gallery.tsx (`md`), src/components/ScreenGallery.tsx (`xl`), src/components/Reveal.tsx (`xl` when `big`, else `md`), src/components/VoteConfirm.tsx, and src/app/crew/results/page.tsx.
+- [X] T025 [P] [US2] Return `costumeTitle` on every entry in the crew ranking and public results (`crewRanking` and `publicResults` in src/server/services/ranking.ts) by reusing `toCard`.
+- [X] T026 [US2] Run `npm run test:integration` and `npm run test:e2e`, check the a11y suite still passes, and commit `feat: crew-entered costume titles shown as "nickname as title" (FR-107–FR-110)`.
 
 **Checkpoint**: US1 and US2 both work. **Deploy.** This is the minimum shippable set.
 

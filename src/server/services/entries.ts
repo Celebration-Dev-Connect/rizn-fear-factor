@@ -76,6 +76,7 @@ export async function createEntry(
   passIds: string[],
   photo: Buffer,
   consent: boolean,
+  costumeTitle: string | null = null,
 ): Promise<{ entry: EntryCard; addedDuringVoting: boolean }> {
   if (!consent) throw new AppError("consent_required", 422, "Confirm student and parent consent first");
   const unique = [...new Set(passIds)];
@@ -85,7 +86,7 @@ export async function createEntry(
     return await withTx(async (tx) => {
       const [e] = await tx
         .insert(entries)
-        .values({ realm, photoId, consentConfirmedAt: new Date() })
+        .values({ realm, photoId, costumeTitle, consentConfirmedAt: new Date() })
         .returning();
       await tx.insert(entryPasses).values(unique.map((passId) => ({ entryId: e!.id, passId })));
       await bumpEntriesVersion(tx, realm);
@@ -95,7 +96,7 @@ export async function createEntry(
         actorType: "crew",
         actorId: crewSessionId,
         action: "entry.create",
-        details: { entryId: e!.id, passIds: unique },
+        details: { entryId: e!.id, passIds: unique, costumeTitle },
       });
       invalidate(realm);
       return { entry: await getEntryCard(tx, realm, e!.id), addedDuringVoting: c.stage === "voting_open" };
@@ -113,7 +114,7 @@ export async function updateEntry(
   realm: Realm,
   crewSessionId: string,
   entryId: string,
-  changes: { photo?: Buffer; passIds?: string[] },
+  changes: { photo?: Buffer; passIds?: string[]; costumeTitle?: string | null },
 ): Promise<EntryCard> {
   const newPhotoId = changes.photo ? await processUpload(changes.photo) : undefined;
   let oldPhotoId: string | undefined;
@@ -135,13 +136,25 @@ export async function updateEntry(
         oldPhotoId = e.photoId;
         await tx.update(entries).set({ photoId: newPhotoId, updatedAt: new Date() }).where(eq(entries.id, entryId));
       }
+      const titleChanged = changes.costumeTitle !== undefined && changes.costumeTitle !== e.costumeTitle;
+      if (titleChanged) {
+        await tx
+          .update(entries)
+          .set({ costumeTitle: changes.costumeTitle, updatedAt: new Date() })
+          .where(eq(entries.id, entryId));
+      }
       await bumpEntriesVersion(tx, realm);
       await record(tx, {
         realm,
         actorType: "crew",
         actorId: crewSessionId,
         action: "entry.update",
-        details: { entryId, photoReplaced: Boolean(newPhotoId), passIds: changes.passIds ?? null },
+        details: {
+          entryId,
+          photoReplaced: Boolean(newPhotoId),
+          passIds: changes.passIds ?? null,
+          ...(titleChanged ? { costumeTitle: { from: e.costumeTitle, to: changes.costumeTitle } } : {}),
+        },
       });
       return getEntryCard(tx, realm, entryId);
     });

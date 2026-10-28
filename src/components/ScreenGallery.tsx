@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { EntryLabel } from "@/components/EntryLabel";
 import styles from "@/app/screen/screen.module.css";
 import type { EntryCard } from "@/shared/types";
 
@@ -19,7 +20,7 @@ export function ScreenGallery({ entries }: { entries: EntryCard[] }) {
     <figure className={styles.figure} key={e.id}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={e.photo.full} alt={e.alt} className={styles.photo} />
-      <figcaption className={styles.caption}>{e.displayName}</figcaption>
+      <figcaption className={styles.caption}><EntryLabel entry={e} size="xl" /></figcaption>
     </figure>
   );
 }
