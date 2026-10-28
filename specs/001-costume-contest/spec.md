@@ -323,9 +323,9 @@ passes, entries, votes, or photos remain and the contest is back at setup.
 - **FR-009**: System MUST enforce one counted vote per pass on the server; repeated or duplicate
   submissions MUST NOT create additional votes.
 - **FR-010**: System MUST reject a vote for an entry linked to the voting pass.
-- **FR-011**: Students MUST confirm their choice before the vote is cast; once cast, it is final
+- **FR-011**: *(Superseded by [002](../002-contest-polish/spec.md#changes-to-001).)* Students MUST confirm their choice before the vote is cast; once cast, it is final
   and cannot be changed by the student.
-- **FR-012**: After voting, the student MUST see a thank-you state showing which costume they
+- **FR-012**: *(Superseded by [002](../002-contest-polish/spec.md#changes-to-001).)* After voting, the student MUST see a thank-you state showing which costume they
   voted for, and no voting controls.
 - **FR-013**: Per-costume vote counts and rankings MUST NOT be visible to students or on the big
   screen before results are revealed.
@@ -339,7 +339,7 @@ passes, entries, votes, or photos remain and the contest is back at setup.
 - **FR-015**: Crew MUST be able to create an entry by selecting one or more passes (searchable by
   nickname or pass number), taking a photo with the device camera, and confirming student and
   parent consent; saving MUST be blocked until consent is confirmed.
-- **FR-016**: Crew MUST be able to create a crew-created pass for a student without a phone; it
+- **FR-016**: *(Superseded by [002](../002-contest-polish/spec.md#changes-to-001).)* Crew MUST be able to create a crew-created pass for a student without a phone; it
   gets a generated nickname like any other pass and is marked crew-created. Crew MUST NOT be able
   to type a free-text name or label for any contestant.
 - **FR-017**: Photos MUST be resized before upload, and entry saves MUST be safe to retry without
@@ -411,7 +411,7 @@ passes, entries, votes, or photos remain and the contest is back at setup.
 - **FR-040**: All photos MUST be deleted automatically on 2026-11-02 (three days after the
   event), and all passes, votes, and logs following the documented data-deletion procedure.
 - **FR-041**: The app MUST NOT include third-party analytics, ad trackers, or social embeds.
-- **FR-042**: Every screen MUST use the RIZN Halloween look (dark purple and pumpkin orange, a
+- **FR-042**: *(Superseded by [002](../002-contest-polish/spec.md#changes-to-001).)* Every screen MUST use the RIZN Halloween look (dark purple and pumpkin orange, a
   spooky display font for headings, a readable body font) while meeting WCAG AA contrast,
   44×44 px minimum tap targets, descriptive alt text, no information conveyed by color alone,
   and reduced-motion support.

@@ -377,11 +377,11 @@ within 5 s.
 
 ## Phase 9: Polish & Cross-Cutting Concerns
 
-- [ ] T060 [P] Update CLAUDE.md:
+- [X] T060 [P] Update CLAUDE.md:
   - change "crew can't type contestant names either" to "crew may type a short costume title, but never a person's name";
   - add `npm run brand:assets` to the command list;
   - note that a pass has at most one `counted` vote, and that changes mark the old row `replaced`.
-- [ ] T061 [P] Update README.md (commands and features) and specs/001-costume-contest/spec.md. In the 001 spec, add a one-line note at the top of the FR-011, FR-012, FR-016, and FR-042 entries: "Superseded by specs/002-contest-polish (see its Changes to 001 table)".
+- [X] T061 [P] Update README.md (commands and features) and specs/001-costume-contest/spec.md. In the 001 spec, add a one-line note at the top of the FR-011, FR-012, FR-016, and FR-042 entries: "Superseded by specs/002-contest-polish (see its Changes to 001 table)".
 - [ ] T062 [P] Extend scripts/load-test.ts with a scenario where 10% of voters call `PUT /api/votes/mine` once. Run `LOAD_BASE_URL=<prod> npm run test:load` against production after the final deploy, and confirm p95 < 300 ms with 0 errors.
 - [ ] T063 Run the full suite (`npm run typecheck && npm run lint && npm test && npm run test:integration && npm run test:e2e`) and deploy the final build with GitHub → Actions → *Deploy*.
 - [ ] T064 Run the production rehearsal (001 T087), including quickstart.md scenarios 1–7 in rehearsal mode on production. Record the results in specs/001-costume-contest/checklists/rehearsal.md, wipe the rehearsal data, and confirm no rehearsal records remain. This must be done before 2026-10-30 18:30.

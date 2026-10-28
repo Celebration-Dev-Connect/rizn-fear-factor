@@ -1,5 +1,5 @@
 // SC-005 load check (T082): 400 phones polling /api/state for 60 s while 350 passes each cast
-// one vote. Runs in the rehearsal contest and wipes it afterward, so live data is untouched.
+// one vote, and every 10th voter changes it once (spec 002 FR-101). Runs in the rehearsal contest and wipes it afterward, so live data is untouched.
 //   LOAD_BASE_URL=https://fear.example.org CREW_PASSCODE=... npm run test:load
 import { randomUUID } from "node:crypto";
 import autocannon from "autocannon";
@@ -65,6 +65,7 @@ async function main() {
   });
 
   let voteErrors = 0;
+  let changes = 0;
   const errorStatuses = new Map<string, number>();
   const voteLatencies: number[] = [];
   const voting = (async () => {
@@ -86,6 +87,20 @@ async function main() {
             voteErrors++;
             const key = `${passRes.status}/${res.status} ${(await res.text()).slice(0, 60)}`;
             errorStatuses.set(key, (errorStatuses.get(key) ?? 0) + 1);
+          } else if (i % 10 === 0) {
+            const t1 = performance.now();
+            const change = await fetch(`${BASE}/api/votes/mine`, {
+              method: "PUT",
+              headers: { cookie, "Content-Type": "application/json", ...idem() },
+              body: JSON.stringify({ entryId: entries[(i + 1) % 2] }),
+            });
+            voteLatencies.push(performance.now() - t1);
+            changes++;
+            if (change.status !== 200) {
+              voteErrors++;
+              const key = `change ${change.status} ${(await change.text()).slice(0, 60)}`;
+              errorStatuses.set(key, (errorStatuses.get(key) ?? 0) + 1);
+            }
           }
         }
       }),
@@ -103,7 +118,7 @@ async function main() {
   const pollP95 = result.latency.p97_5 ?? 0; // autocannon reports p97.5, stricter than p95
   const pollErrors = result.errors + result.non2xx;
   console.log(`poll: ${Math.round(result.requests.average)} req/s, p97.5 ${pollP95} ms, errors ${pollErrors}`);
-  console.log(`votes: ${voteLatencies.length} cast, p95 ${voteP95.toFixed(0)} ms, errors ${voteErrors}, counted ${totals.totals.votesCounted}`);
+  console.log(`votes: ${VOTERS} cast + ${changes} changed, p95 ${voteP95.toFixed(0)} ms, errors ${voteErrors}, counted ${totals.totals.votesCounted}`);
 
   if (errorStatuses.size) console.log("vote error statuses (pass/vote):", Object.fromEntries(errorStatuses));
   const failures = [
@@ -117,7 +132,7 @@ async function main() {
     console.error(`❌ Load test failed:\n  ${failures.join("\n  ")}`);
     process.exit(1);
   }
-  console.log("✅ Load test passed (SC-002, SC-005)");
+  console.log("✅ Load test passed (SC-002, SC-005, spec 002 SC-102)");
 }
 
 main().catch((err) => {

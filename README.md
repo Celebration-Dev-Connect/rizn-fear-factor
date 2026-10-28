@@ -5,14 +5,19 @@ Costume contest web app for RIZN Fear Factor at Celebration Church, Edmonton (gr
 
 - **Students** scan a QR code and get an anonymous Night Pass: a generated spooky nickname and
   a pass number. There is no install, no account and no personal information. They browse the
-  costumes and cast one vote.
-- **Crew** sign in with a shared passcode. They photograph costumes with consent, run the contest
-  stages, review votes, and reveal 3rd, 2nd and 1st place.
-- **The big screen** shows a rotating gallery, the join QR code, live totals, and the reveal.
+  costumes and cast one vote, which they can change until voting closes. Tapping the pass flips
+  it to a QR code for crew, and contestants see their own costume on their pass.
+- **Crew** sign in with a shared passcode. They scan a student's pass, photograph the costume with
+  consent, add what it is ("Superman"), run the contest stages, review votes, and reveal 3rd, 2nd
+  and 1st place.
+- **The big screen** shows a rotating gallery ("Midnight Gremlin *as* SUPERMAN"), the join QR
+  code, live totals, a countdown to the crew-set voting close time, and the reveal.
 
 Governing documents: [constitution](.specify/memory/constitution.md) ·
 [spec](specs/001-costume-contest/spec.md) · [plan](specs/001-costume-contest/plan.md) ·
-[API contract](specs/001-costume-contest/contracts/api.md)
+[API contract](specs/001-costume-contest/contracts/api.md) · contest polish (vote changes,
+costume titles, countdown, brand, pass QR): [spec](specs/002-contest-polish/spec.md) ·
+[plan](specs/002-contest-polish/plan.md) · [API changes](specs/002-contest-polish/contracts/api.md)
 
 ## Stack
 
@@ -43,6 +48,7 @@ npm run dev                   # http://localhost:3000  (crew: /crew, screen link
 | `npm run test:e2e` | Playwright on iPhone (WebKit) and Pixel (Chromium); needs `npm run dev` running |
 | `npm run test:load` | 400 polling phones plus 350 votes. Set `LOAD_BASE_URL` and `CREW_PASSCODE` |
 | `npm run check:nicknames` | Prints all 1,600 nicknames for staff review |
+| `npm run brand:assets` | Rebuilds `public/brand/*.webp` from the RIZN `media-bundle/` folder (not in git) |
 
 The constitution requires `npm run test:integration` to pass before any change to voting,
 stages, photos or rehearsal is merged.
@@ -88,10 +94,13 @@ Re-run `./scripts/deploy.sh` to ship an update. Migrations run automatically whe
    turned on again once live voting has started.
 2. **Big screen.** Copy the screen link from the dashboard into the projector browser. Never
    share it with students.
-3. **Entries.** Crew use `/crew/entries` to find the student's pass, take the photo, tick
+3. **Entries.** Crew use `/crew/entries`: tap **Scan pass** and point at the student's flipped
+   pass (or search by nickname), take the photo, type what the costume is (never a name), tick
    consent, and save. A student without a phone gets **create a pass**.
-4. **Voting.** Press **Open voting** on the dashboard, and **Close voting** when the program
-   moves on. Every change can be undone.
+4. **Voting.** Optionally set **Voting closes at** on the dashboard so the big screen counts
+   down. Press **Open voting**, and **Close voting** when the program moves on; the countdown
+   never closes voting by itself. Students can change their vote until then. Every change can be
+   undone.
 5. **Reveal.** On `/crew/results`, check the private ranking (ties share a place), press
    **Start results reveal**, then **Reveal next place** for 3rd, 2nd and 1st.
 6. **If the app fails**, fall back to a show of hands. The app has no offline mode.
