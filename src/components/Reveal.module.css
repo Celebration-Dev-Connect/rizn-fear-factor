@@ -56,8 +56,8 @@
   opacity: 0;
   animation: fall 2.4s ease-in 200ms both;
 }
-.confetti i:nth-child(3n) { background: #b98cff; }
-.confetti i:nth-child(3n + 1) { background: #6ee7a8; }
+.confetti i:nth-child(3n) { background: var(--accent-2); }
+.confetti i:nth-child(3n + 1) { background: #ffe066; }
 .confetti i:nth-child(1) { left: 5%; animation-delay: 0.1s; }
 .confetti i:nth-child(2) { left: 12%; animation-delay: 0.4s; }
 .confetti i:nth-child(3) { left: 19%; animation-delay: 0.2s; }

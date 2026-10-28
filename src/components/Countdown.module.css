@@ -34,5 +34,4 @@
 .at {
   font-size: clamp(16px, 2vh, 32px);
   font-weight: 700;
-  opacity: 0.92;
 }

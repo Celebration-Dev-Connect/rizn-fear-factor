@@ -111,7 +111,7 @@ export default function CrewEntriesPage() {
         <div>
           <h2>3. What are they dressed as?</h2>
           <label style={{ display: "grid", gap: 6 }}>
-            Costume <span style={{ color: "var(--text-muted)", fontSize: 14 }}>(optional)</span>
+            <span>Costume <span style={{ color: "var(--text-muted)", fontSize: 14 }}>(optional)</span></span>
             <input
               value={title}
               onChange={(e) => setTitle(e.target.value)}

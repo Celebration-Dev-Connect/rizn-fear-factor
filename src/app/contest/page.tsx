@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { EntryLabel } from "@/components/EntryLabel";
 import { Gallery } from "@/components/Gallery";
 import { Reveal } from "@/components/Reveal";
+import { Stickers } from "@/components/Stickers";
 import { usePublicState } from "@/components/StateProvider";
 import { VoteConfirm } from "@/components/VoteConfirm";
 import { api, ApiRequestError } from "@/lib/api";
@@ -110,6 +111,7 @@ export default function ContestPage() {
 
   return (
     <main className="page">
+      <Stickers layout="contest" />
       <p><Link href="/">← My Night Pass</Link></p>
       <h1>Costume Contest</h1>
       <p className="notice" role="status">

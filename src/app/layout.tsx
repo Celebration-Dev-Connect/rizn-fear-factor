@@ -1,11 +1,20 @@
 import type { Metadata, Viewport } from "next";
-import { Creepster, Nunito } from "next/font/google";
+import { Barlow_Condensed, Lilita_One, Nunito } from "next/font/google";
 import { RehearsalBanner } from "@/components/RehearsalBanner";
 import { StateProvider } from "@/components/StateProvider";
 import "@/styles/globals.css";
 
-// Self-hosted at build time: no request goes to Google at runtime (Constitution I).
-const creepster = Creepster({ weight: "400", subsets: ["latin"], variable: "--font-creepster" });
+// Font slots (spec 002 research §10). next/font downloads these at build time and serves them from
+// our own origin, so no request goes to Google at runtime (Constitution I).
+//
+// The poster uses Cubano (display), Asket Condensed ExtraBold (condensed), and Kuhlman (accent).
+// Those come from Adobe Fonts, whose licence doesn't allow self-hosting, so open-licensed
+// look-alikes fill the slots. If RIZN supply a font file licensed for self-hosted web use, put it
+// in src/fonts/ and swap the slot to next/font/local, keeping the variable name, e.g.:
+//   import localFont from "next/font/local";
+//   const display = localFont({ src: "../fonts/Cubano-Regular.woff2", variable: "--font-display-face" });
+const display = Lilita_One({ weight: "400", subsets: ["latin"], variable: "--font-display-face" });
+const condensed = Barlow_Condensed({ weight: ["700", "800"], subsets: ["latin"], variable: "--font-condensed-face" });
 const nunito = Nunito({ subsets: ["latin"], weight: ["400", "700", "800", "900"], variable: "--font-nunito" });
 
 export const metadata: Metadata = {
@@ -17,12 +26,12 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#1a0b2e",
+  themeColor: "#0a0e1a",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${creepster.variable} ${nunito.variable}`}>
+    <html lang="en" className={`${display.variable} ${condensed.variable} ${nunito.variable}`}>
       <body>
         <StateProvider>
           <RehearsalBanner />

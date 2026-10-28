@@ -230,7 +230,7 @@ Axe passes, no other origins appear in the network panel, and `/brand/` bytes on
 
 ### Tests for User Story 4 ⚠️
 
-- [ ] T037 [P] [US4] Extend tests/e2e/a11y.spec.ts:
+- [X] T037 [P] [US4] Extend tests/e2e/a11y.spec.ts:
   - run axe (WCAG 2 AA) on `/`, `/contest` (voted and changeable), and `/screen` (voting_open with the countdown);
   - assert every request URL's origin equals the app origin;
   - sum `transferSize` of `/brand/` responses on `/` and assert ≤ 256 000 bytes (SC-107);
@@ -239,7 +239,7 @@ Axe passes, no other origins appear in the network panel, and `/brand/` bytes on
 
 ### Implementation for User Story 4
 
-- [ ] T038 [US4] Replace the palette in src/styles/tokens.css with the research §8 table:
+- [X] T038 [US4] Replace the palette in src/styles/tokens.css with the research §8 table:
   - `--bg #0A0E1A`, `--surface #141B2E`, `--surface-2 #1E2840`, `--border #5A6E9C`, `--text #F5F7FF`, `--text-muted #B8C2DC`;
   - `--accent #F94003`, `--accent-strong #FF6A33`, `--on-accent #0A0E1A`;
   - new tokens `--accent-2 #0069FB`, `--on-accent-2 #FFFFFF`, `--accent-2-text #5B9DFF`;
@@ -247,26 +247,26 @@ Axe passes, no other origins appear in the network panel, and `/brand/` bytes on
   - update the header comment with the contrast ratios.
 
   Grep src for any leftover purple or hard-coded colours (`#1a0b2e`, `#2a1548`, `#3a1f60`, `#6b4c96`) and replace them with tokens. This includes the QR colour in src/server/routes/qr.ts, which becomes `#0A0E1A`.
-- [ ] T039 [US4] Set up the font slots in src/app/layout.tsx, per research §10. Remove Creepster, and keep the existing pattern of `next/font` variables on `<html>`:
+- [X] T039 [US4] Set up the font slots in src/app/layout.tsx, per research §10. Remove Creepster, and keep the existing pattern of `next/font` variables on `<html>`:
   - `--font-display`: `Lilita_One` (weight 400);
   - `--font-condensed`: `Barlow_Condensed` (weight 800);
   - `--font-accent`: aliased to `--font-display`;
   - `--font-body`: Nunito.
 
   Add `--font-condensed` and `--font-accent` to src/styles/tokens.css. Above the font imports, add a comment explaining how to switch a slot to `next/font/local` with a file in src/fonts/ when RIZN supply licensed Cubano, Asket Condensed, or Kuhlman files.
-- [ ] T040 [P] [US4] Switch src/components/BrandMark.tsx (+ BrandMark.module.css) to the logo image:
+- [X] T040 [P] [US4] Switch src/components/BrandMark.tsx (+ BrandMark.module.css) to the logo image:
   - `<img src="/brand/fear-factor-logo.webp" srcSet="… 1x, /brand/fear-factor-logo@2x.webp 2x" alt="RIZN Fear Factor" width height decoding="async">`, sized by the `size` prop;
   - remove the text wordmark;
   - add a `RiznYouthMark` export using `/brand/rizn-youth-white.webp` with alt "RIZN Youth".
-- [ ] T041 [P] [US4] Create src/components/Stickers.tsx (+ Stickers.module.css). It takes a `layout` prop (`pass | contest | screen | crew`), renders absolutely positioned, rotated `<span aria-hidden="true">` elements with `background-image: url(/brand/sticker-*.webp)`, uses `pointer-events: none`, and never overlaps text, buttons, or the QR code. A gentle float animation runs only inside `@media (prefers-reduced-motion: no-preference)`. The pass layout uses at most 3 stickers to stay within the byte budget.
-- [ ] T042 [US4] Apply the look to student pages:
+- [X] T041 [P] [US4] Create src/components/Stickers.tsx (+ Stickers.module.css). It takes a `layout` prop (`pass | contest | screen | crew`), renders absolutely positioned, rotated `<span aria-hidden="true">` elements with `background-image: url(/brand/sticker-*.webp)`, uses `pointer-events: none`, and never overlaps text, buttons, or the QR code. A gentle float animation runs only inside `@media (prefers-reduced-motion: no-preference)`. The pass layout uses at most 3 stickers to stay within the byte budget.
+- [X] T042 [US4] Apply the look to student pages:
   - src/app/page.tsx (logo, Stickers `pass`, RIZN Youth sign-off in the footer, and the "doors open" and "ended" screens);
   - src/app/contest/page.tsx (Stickers `contest`);
   - src/styles/globals.css: headings use `--font-display`; kickers and labels use `--font-condensed`; primary buttons are orange with `--on-accent` text; secondary buttons are blue (`--accent-2`) with `--on-accent-2` text; links use `--accent-2-text`;
   - src/components/PassBadge.module.css: an orange header band and a blue number strip, echoing the poster's orange and blue blocks.
-- [ ] T043 [US4] Apply the look to the big screen in src/app/screen/page.tsx and screen.module.css: the `/brand/fear-factor-banner.webp` banner across the top replaces the BrandMark header, with Stickers `screen` around the gallery and countdown and a RIZN Youth mark in a corner. Totals use `--font-condensed`.
-- [ ] T044 [P] [US4] Apply tokens to crew screens in src/app/crew/crew.module.css and src/components/StageControls.module.css. Keep crew screens plain (no stickers) for speed, with only the small logo in src/app/crew/layout.tsx.
-- [ ] T045 [US4] Run `npm run test:e2e` (a11y and budget), then do quickstart scenario 4 by hand: Slow 4G shows the nickname before the logo, and reduced motion shows no animation. Commit `feat: RIZN Fear Factor brand palette, logos, stickers, and fonts (FR-116–FR-120)`.
+- [X] T043 [US4] Apply the look to the big screen in src/app/screen/page.tsx and screen.module.css: the `/brand/fear-factor-banner.webp` banner across the top replaces the BrandMark header, with Stickers `screen` around the gallery and countdown and a RIZN Youth mark in a corner. Totals use `--font-condensed`.
+- [X] T044 [P] [US4] Apply tokens to crew screens in src/app/crew/crew.module.css and src/components/StageControls.module.css. Keep crew screens plain (no stickers) for speed, with only the small logo in src/app/crew/layout.tsx.
+- [X] T045 [US4] Run `npm run test:e2e` (a11y and budget), then do quickstart scenario 4 by hand: Slow 4G shows the nickname before the logo, and reduced motion shows no animation. Commit `feat: RIZN Fear Factor brand palette, logos, stickers, and fonts (FR-116–FR-120)`.
 
 **Checkpoint**: US4 works alone. **Deploy.** Ask RIZN staff to sign off (SC-108).
 

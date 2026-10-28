@@ -13,7 +13,7 @@ qrRouter.get("/qr.svg", async (_req, res, next) => {
       type: "svg",
       margin: 1,
       errorCorrectionLevel: "M",
-      color: { dark: "#1a0b2e", light: "#ffffff" },
+      color: { dark: "#0a0e1a", light: "#ffffff" },
     });
     res.setHeader("Cache-Control", "public, max-age=3600");
     res.type("image/svg+xml").send(cached);

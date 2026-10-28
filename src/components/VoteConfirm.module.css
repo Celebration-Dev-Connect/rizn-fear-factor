@@ -8,7 +8,7 @@
   text-align: center;
 }
 .dialog::backdrop {
-  background: rgb(10 4 20 / 0.8);
+  background: rgb(10 14 26 / 0.85);
 }
 .photo {
   width: 100%;

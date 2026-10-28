@@ -33,7 +33,7 @@ button.card:disabled {
 .selected {
   border-color: var(--accent);
   border-width: 4px;
-  box-shadow: 0 0 0 3px rgb(255 122 26 / 0.3);
+  box-shadow: 0 0 0 3px rgb(249 64 3 / 0.35);
 }
 .photo {
   width: 100%;

@@ -1,9 +1,10 @@
 "use client";
 import { useEffect, useState } from "react";
-import { BrandMark } from "@/components/BrandMark";
+import { BrandMark, RiznYouthMark } from "@/components/BrandMark";
 import { Countdown } from "@/components/Countdown";
 import { Reveal } from "@/components/Reveal";
 import { ScreenGallery } from "@/components/ScreenGallery";
+import { Stickers } from "@/components/Stickers";
 import { usePublicState } from "@/components/StateProvider";
 import { api } from "@/lib/api";
 import { CREW_POLL, usePoll } from "@/lib/usePoll";
@@ -47,8 +48,10 @@ export default function ScreenPage() {
 
   return (
     <main className={styles.screen}>
+      <Stickers layout="screen" />
       <header className={styles.top}>
-        <BrandMark size="md" />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/brand/fear-factor-banner.webp" alt="RIZN Fear Factor, grades 7 to 12" width={1080} height={360} className={styles.banner} />
         <h1 className={styles.title}>Costume Contest</h1>
         {totals.data && (
           <p className={styles.totals}>
@@ -77,6 +80,7 @@ export default function ScreenPage() {
           </aside>
         </div>
       )}
+      <RiznYouthMark className={styles.youth} />
     </main>
   );
 }

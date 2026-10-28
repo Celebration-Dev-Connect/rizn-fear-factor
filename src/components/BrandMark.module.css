@@ -1,25 +1,16 @@
-.wordmark {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  line-height: 1;
+.logo {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  margin: 0 auto;
 }
-.rizn {
-  font-family: var(--font-body);
-  font-weight: 900;
-  letter-spacing: 0.3em;
-  color: var(--text);
+.sm { height: 48px; margin: 0; }
+.md { height: 120px; }
+.lg { height: min(42vh, 300px); }
+.youth {
+  display: block;
+  height: auto;
+  width: min(180px, 50vw);
+  margin: 0 auto;
+  opacity: 0.9;
 }
-.ff {
-  font-family: var(--font-display);
-  color: var(--accent);
-}
-.sm .rizn { font-size: 12px; }
-.sm .ff { font-size: 20px; }
-.md .rizn { font-size: 16px; }
-.md .ff { font-size: 34px; }
-.lg .rizn { font-size: 28px; }
-.lg .ff { font-size: 72px; }
-.logo.sm { height: 32px; }
-.logo.md { height: 56px; }
-.logo.lg { height: 120px; }

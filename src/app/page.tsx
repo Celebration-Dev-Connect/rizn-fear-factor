@@ -1,8 +1,9 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { BrandMark } from "@/components/BrandMark";
+import { BrandMark, RiznYouthMark } from "@/components/BrandMark";
 import { PassBadge } from "@/components/PassBadge";
+import { Stickers } from "@/components/Stickers";
 import { usePublicState } from "@/components/StateProvider";
 import { api, ApiRequestError } from "@/lib/api";
 import { formatEdmontonTime } from "@/lib/time";
@@ -30,24 +31,29 @@ export default function NightPassPage() {
   if (status === "before") {
     return (
       <main className="page" style={{ textAlign: "center" }}>
+        <Stickers layout="pass" />
         <BrandMark size="lg" />
         <h1 style={{ marginTop: 32 }}>Doors open soon</h1>
         <p>Night Passes unlock at <strong>{formatEdmontonTime(state!.event.start)}</strong>.</p>
         <p>Come back then and reload this page.</p>
+        <footer style={{ marginTop: 40 }}><RiznYouthMark /></footer>
       </main>
     );
   }
   if (status === "ended") {
     return (
       <main className="page" style={{ textAlign: "center" }}>
+        <Stickers layout="pass" />
         <BrandMark size="lg" />
         <h1 style={{ marginTop: 32 }}>Fear Factor has ended</h1>
         <p>Thanks for coming! See you at RIZN.</p>
+        <footer style={{ marginTop: 40 }}><RiznYouthMark /></footer>
       </main>
     );
   }
   return (
     <main className="page">
+      <Stickers layout="pass" />
       {pass ? (
         <>
           <PassBadge pass={pass} />
@@ -62,6 +68,7 @@ export default function NightPassPage() {
       ) : (
         <p style={{ textAlign: "center", marginTop: 80 }} role="status">Summoning your Night Pass…</p>
       )}
+      <footer style={{ marginTop: 40 }}><RiznYouthMark /></footer>
     </main>
   );
 }

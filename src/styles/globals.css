@@ -25,14 +25,14 @@ h2,
 h3 {
   font-family: var(--font-display);
   font-weight: 400;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
   line-height: 1.15;
   color: var(--accent);
   margin: 0 0 var(--space-3);
 }
 
 a {
-  color: var(--accent-strong);
+  color: var(--accent-2-text);
 }
 
 button,
@@ -61,11 +61,12 @@ a.button {
   text-decoration: none;
 }
 
+/* Brand blue, like the poster's "FEAR FACTOR" panel. White on blue is 4.8:1. */
 button.secondary,
 .button.secondary {
-  background: transparent;
-  color: var(--text);
-  border-color: var(--border);
+  background: var(--accent-2);
+  color: var(--on-accent-2);
+  border-color: var(--accent-2);
 }
 
 button.danger {
@@ -94,6 +95,14 @@ select {
   box-shadow: var(--focus);
 }
 
+/* Small uppercase labels in the condensed brand face. */
+.kicker {
+  font-family: var(--font-condensed);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;
@@ -104,6 +113,8 @@ select {
 }
 
 .page {
+  position: relative;
+  isolation: isolate;
   max-width: 720px;
   margin: 0 auto;
   padding: var(--space-5) var(--space-4) var(--space-6);
