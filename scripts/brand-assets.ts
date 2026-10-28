@@ -2,7 +2,7 @@
 // public/brand/ (committed), plus the favicons (src/app/icon.png, apple-icon.png, favicon.ico) and
 // the social share card (public/brand/og-image.jpg). Run with `npm run brand:assets` whenever the
 // bundle changes. Size targets and choices: specs/002-contest-polish/research.md §9.
-import { existsSync, mkdirSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import sharp, { type Sharp } from "sharp";
 
@@ -165,6 +165,22 @@ async function main() {
     writeFileSync(path.resolve(file), buf);
     console.log(`${file.padEnd(28)} ${(buf.length / 1024).toFixed(1)} KB`);
   }
+
+  // Spec 003: the VANAGEDDON photo is optional. Drop media-bundle/van.(jpg|jpeg|png|webp) in and
+  // rerun; the /rizn page shows it once src/content/van.json says { "photo": true }.
+  const van = readdirSync(SRC).find((f) => /^van\.(jpe?g|png|webp)$/i.test(f));
+  if (van) {
+    let buf = Buffer.alloc(0);
+    for (let q = 80; q >= 40; q -= 8) {
+      buf = await sharp(path.join(SRC, van)).rotate().resize({ width: 1080, withoutEnlargement: true }).webp({ quality: q }).toBuffer();
+      if (buf.length <= 150 * 1024) break;
+    }
+    writeFileSync(path.join(OUT, "van.webp"), buf);
+    console.log(`${"van.webp".padEnd(28)} ${(buf.length / 1024).toFixed(1)} KB`);
+  } else {
+    console.log("van photo                    none (add media-bundle/van.jpg to show it on /rizn)");
+  }
+  writeFileSync(path.resolve("src/content/van.json"), `${JSON.stringify({ photo: Boolean(van) })}\n`);
 }
 
 main().catch((err) => {

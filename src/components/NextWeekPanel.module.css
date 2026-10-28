@@ -1,0 +1,39 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 2vh;
+  padding: 2vh 1.5vw;
+  border-radius: 20px;
+  background: var(--accent-2);
+  color: var(--on-accent-2);
+}
+.text p {
+  margin: 0;
+}
+.kicker {
+  font-family: var(--font-condensed);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: clamp(18px, 2.4vh, 36px);
+}
+.heading {
+  font-family: var(--font-display);
+  font-size: clamp(32px, 3.6vw, 80px);
+  line-height: 1;
+}
+.line {
+  font-weight: 700;
+  font-size: clamp(16px, 2.2vh, 32px);
+}
+.qr {
+  height: clamp(140px, 28vh, 300px);
+  width: auto;
+  aspect-ratio: 1;
+  background: #fff;
+  border-radius: 14px;
+  padding: 8px;
+}

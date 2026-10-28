@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { BrandMark, RiznYouthMark } from "@/components/BrandMark";
 import { Countdown } from "@/components/Countdown";
+import { NextWeekPanel } from "@/components/NextWeekPanel";
 import { Reveal } from "@/components/Reveal";
 import { ScreenGallery } from "@/components/ScreenGallery";
 import { Stickers } from "@/components/Stickers";
@@ -61,10 +62,15 @@ export default function ScreenPage() {
         )}
       </header>
       {revealing ? (
-        <section className={styles.reveal}>
-          {shownPlaces.length === 0 ? <p className={styles.instructions}>The winners are…</p> : <Reveal places={shownPlaces} big />}
-        </section>
-      ) : (
+        <div className={shownPlaces.some((p) => p.place === 1) ? styles.body : styles.revealOnly}>
+          <section className={styles.reveal}>
+            {shownPlaces.length === 0 ? <p className={styles.instructions}>The winners are…</p> : <Reveal places={shownPlaces} big />}
+          </section>
+          {/* Spec 003 FR-213: once 1st place is out, point the room at next week. */}
+          {shownPlaces.some((p) => p.place === 1) && <NextWeekPanel />}
+        </div>
+      ) : null}
+      {revealing ? null : (
         <div className={styles.body}>
           <ScreenGallery entries={entries.data?.entries ?? []} />
           <aside className={styles.join}>

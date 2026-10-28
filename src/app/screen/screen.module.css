@@ -125,7 +125,13 @@
 }
 .reveal {
   flex: 1;
+  min-height: 0;
   overflow: auto;
+}
+.revealOnly {
+  flex: 1;
+  display: flex;
+  min-height: 0;
 }
 @keyframes fade {
   from { opacity: 0; }

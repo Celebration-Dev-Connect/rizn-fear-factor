@@ -8,6 +8,7 @@ import { YourCostume } from "@/components/YourCostume";
 import { usePublicState } from "@/components/StateProvider";
 import { api, ApiRequestError } from "@/lib/api";
 import { formatEdmontonTime } from "@/lib/time";
+import { RIZN_INFO } from "@/content/rizn";
 import type { Me, Pass } from "@/shared/types";
 
 export default function NightPassPage() {
@@ -57,6 +58,9 @@ export default function NightPassPage() {
         <BrandMark size="lg" />
         <h1 style={{ marginTop: 32 }}>Fear Factor has ended</h1>
         <p>Thanks for coming! See you at RIZN.</p>
+        <p className="kicker" style={{ marginTop: 32, color: "var(--accent-2-text)" }}>{RIZN_INFO.nextWeek.kicker}</p>
+        <h2 style={{ fontSize: 44, margin: "4px 0 16px" }}>{RIZN_INFO.nextWeek.heading}</h2>
+        <Link href="/rizn" className="button">More about RIZN Youth</Link>
         <footer style={{ marginTop: 40 }}><RiznYouthMark /></footer>
       </main>
     );
@@ -71,6 +75,11 @@ export default function NightPassPage() {
           <div style={{ display: "flex", justifyContent: "center" }}>
             <Link href="/contest" className="button" style={{ minWidth: 260 }}>
               <span aria-hidden="true">🎃</span> Costume Contest
+            </Link>
+          </div>
+          <div style={{ display: "flex", justifyContent: "center", marginTop: 16 }}>
+            <Link href="/rizn" className="button secondary" style={{ minWidth: 260 }}>
+              More about RIZN Youth
             </Link>
           </div>
         </>

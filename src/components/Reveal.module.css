@@ -43,8 +43,10 @@
 .name {
   margin-top: var(--space-2);
 }
-.big .label { font-size: 64px; }
+.big .label { font-size: clamp(40px, 6vh, 64px); }
 .big .winner { width: min(100%, 420px); }
+/* Keep photo + "Ben as SUPERMAN" on one projector screen. */
+.big .photo { max-height: 42vh; width: auto; max-width: 100%; margin: 0 auto; }
 
 .confetti i {
   position: absolute;

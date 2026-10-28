@@ -130,3 +130,20 @@ test("stickers stay still under reduced motion (FR-119)", async ({ browser }) =>
     await ctx.close();
   }
 });
+
+test("the RIZN Youth page is public, accessible, and linked from the pass (spec 003 US2)", async ({ browser }) => {
+  const ctx = await browser.newContext(); // no pass, no crew cookie
+  const page = await ctx.newPage();
+  try {
+    await checkPage(page, "/rizn");
+    await expect(page.getByRole("heading", { name: "VANAGEDDON" })).toBeVisible();
+    await expect(page.getByText("Fridays, 7:00–9:30pm")).toBeVisible();
+    await page.goto("/");
+    await expect(page.getByText("Your nickname tonight")).toBeVisible();
+    await page.getByRole("link", { name: "More about RIZN Youth" }).click();
+    await expect(page).toHaveURL(/\/rizn$/);
+    await expect(page.getByRole("heading", { name: "Thanks for coming to Fear Factor!" })).toBeVisible();
+  } finally {
+    await ctx.close();
+  }
+});

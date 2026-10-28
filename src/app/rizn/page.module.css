@@ -1,0 +1,63 @@
+.intro {
+  text-align: center;
+  margin: var(--space-5) 0;
+}
+/* Blue block like the poster's "FEAR FACTOR" panel, with the event name in orange-on-black. */
+.next {
+  margin: var(--space-5) 0;
+  padding: var(--space-5) var(--space-4);
+  border-radius: 22px;
+  background: var(--accent-2);
+  color: var(--on-accent-2);
+  text-align: center;
+  box-shadow: 10px 10px 0 var(--accent);
+}
+.next p {
+  margin: var(--space-3) 0 0;
+  font-weight: 700;
+}
+.nextKicker {
+  margin: 0 !important;
+  font-size: 16px;
+}
+.vanageddon {
+  margin: var(--space-2) 0 var(--space-4);
+  display: inline-block;
+  padding: var(--space-2) var(--space-4);
+  background: var(--on-accent);
+  color: var(--accent);
+  font-size: clamp(40px, 12vw, 68px);
+  line-height: 1;
+  transform: rotate(-2deg);
+}
+.vanPhoto {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 14px;
+  border: 4px solid var(--on-accent);
+}
+.collage {
+  position: relative;
+  height: 150px;
+}
+.collage span {
+  position: absolute;
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+  filter: drop-shadow(0 6px 10px rgb(0 0 0 / 0.4));
+}
+.spray { background-image: url(/brand/sticker-cube.webp); width: 110px; height: 140px; left: 8%; top: 4px; transform: rotate(-10deg); }
+.phone { background-image: url(/brand/sticker-phone.webp); width: 110px; height: 145px; left: 40%; top: 0; transform: rotate(8deg); }
+.stars { background-image: url(/brand/sticker-stars.webp); width: 120px; height: 120px; right: 6%; top: 14px; transform: rotate(-6deg); }
+.weekly .when {
+  font-size: 18px;
+}
+.signOff {
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 32px;
+  color: var(--accent);
+  margin: var(--space-5) 0 0;
+}

@@ -44,17 +44,17 @@ description: "Task list for First Names and RIZN Youth Info"
 
 ## Phase 3: User Story 2 - "More about RIZN Youth" page (P1)
 
-- [ ] T009 [P] [US2] Create src/content/rizn.ts with the page copy: the thank-you, the weekly RIZN Youth details (Fridays 7:00–9:30pm), and VANAGEDDON on Friday, November 6, 2026, worded from the leaders' message. Create src/content/van.json `{ "photo": false }`.
-- [ ] T010 [US2] In scripts/brand-assets.ts, if `media-bundle/van.(jpg|jpeg|png|webp)` exists, write `public/brand/van.webp` (1080 px wide, ≤ 150 KB) and set src/content/van.json `{ "photo": true }`; otherwise set it to `{ "photo": false }`.
-- [ ] T011 [US2] Create src/app/rizn/page.tsx (+ page.module.css), a server component with:
+- [X] T009 [P] [US2] Create src/content/rizn.ts with the page copy: the thank-you, the weekly RIZN Youth details (Fridays 7:00–9:30pm), and VANAGEDDON on Friday, November 6, 2026, worded from the leaders' message. Create src/content/van.json `{ "photo": false }`.
+- [X] T010 [US2] In scripts/brand-assets.ts, if `media-bundle/van.(jpg|jpeg|png|webp)` exists, write `public/brand/van.webp` (1080 px wide, ≤ 150 KB) and set src/content/van.json `{ "photo": true }`; otherwise set it to `{ "photo": false }`.
+- [X] T011 [US2] Create src/app/rizn/page.tsx (+ page.module.css), a server component with:
   - the logo, the thank-you, a "Every Friday" section, and a "Next Friday: VANAGEDDON" section showing the van photo when `van.json.photo` is true, otherwise a sticker collage panel;
   - the RIZN Youth sign-off and a "Back to my Night Pass" link;
   - page metadata with the title "More about RIZN Youth" and a description;
   - no pass needed. Confirm Express and the security middleware don't gate it.
-- [ ] T012 [US2] Support `?to=rizn` in src/server/routes/qr.ts, encoding `PUBLIC_URL + "/rizn"` with a separate cache. Any other value returns the join QR code.
-- [ ] T013 [US2] In src/app/page.tsx, add a "More about RIZN Youth" link button under the pass, and on the "event has ended" screen show the VANAGEDDON headline plus the link.
-- [ ] T014 [US2] Create src/components/NextWeekPanel.tsx and render it in src/app/screen/page.tsx when the revealed places include 1st place. It shows a "Next Friday: VANAGEDDON" headline, one line, and the `/api/qr.svg?to=rizn` QR code.
-- [ ] T015 [US2] E2E in tests/e2e/a11y.spec.ts and student.spec.ts:
+- [X] T012 [US2] Support `?to=rizn` in src/server/routes/qr.ts, encoding `PUBLIC_URL + "/rizn"` with a separate cache. Any other value returns the join QR code.
+- [X] T013 [US2] In src/app/page.tsx, add a "More about RIZN Youth" link button under the pass, and on the "event has ended" screen show the VANAGEDDON headline plus the link.
+- [X] T014 [US2] Create src/components/NextWeekPanel.tsx and render it in src/app/screen/page.tsx when the revealed places include 1st place. It shows a "Next Friday: VANAGEDDON" headline, one line, and the `/api/qr.svg?to=rizn` QR code.
+- [X] T015 [US2] E2E in tests/e2e/a11y.spec.ts and student.spec.ts:
   - `/rizn` loads in a fresh context with no pass and passes axe;
   - the pass page link navigates to it.
 
