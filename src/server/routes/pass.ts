@@ -4,6 +4,7 @@ import { db } from "../db/client";
 import { entryPasses, votes } from "../db/schema";
 import { cookieOptions, passCookieName, requirePass } from "../middleware/auth";
 import { AppError } from "../middleware/errors";
+import { getContest } from "../services/contest-state";
 import { eventStatus, getSettings } from "../services/realm";
 import { issuePass, publicPass } from "../services/passes";
 import type { Me } from "@/shared/types";
@@ -35,7 +36,7 @@ passRouter.get("/me", requirePass, async (req, res, next) => {
     const p = req.pass!;
     const [own] = await db().select({ entryId: entryPasses.entryId }).from(entryPasses).where(eq(entryPasses.passId, p.id));
     const [vote] = await db()
-      .select({ entryId: votes.entryId })
+      .select({ entryId: votes.entryId, status: votes.status })
       .from(votes)
       .where(and(eq(votes.passId, p.id), inArray(votes.status, ["counted", "voided"])));
     const me: Me = {
@@ -44,7 +45,8 @@ passRouter.get("/me", requirePass, async (req, res, next) => {
       ownEntry: null,
       ownPlace: null,
       vote: vote ? { entryId: vote.entryId } : null,
-      voteChangeable: false,
+      // FR-105: only a counted vote, and only while voting is open.
+      voteChangeable: vote?.status === "counted" && (await getContest(req.realm)).stage === "voting_open",
     };
     res.json(me);
   } catch (err) {

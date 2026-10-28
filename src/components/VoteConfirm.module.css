@@ -18,10 +18,40 @@
   background: var(--bg);
 }
 .name {
-  font-family: var(--font-display);
-  font-size: 30px;
-  color: var(--accent);
   margin: var(--space-3) 0 var(--space-1);
+}
+.from {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  grid-template-areas: "label label" "thumb name";
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  margin-bottom: var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  text-align: left;
+}
+.from > :last-child {
+  grid-area: name;
+  align-items: flex-start;
+  text-align: left;
+}
+.fromLabel {
+  grid-area: label;
+  margin: 0;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.thumb {
+  grid-area: thumb;
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 8px;
 }
 .warn {
   color: var(--text-muted);

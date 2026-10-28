@@ -4,8 +4,8 @@ import { db } from "../../db/client";
 import { auditEvents } from "../../db/schema";
 import { requireCrew } from "../../middleware/auth";
 import { idempotency } from "../../middleware/idempotency";
-import { castVote, listVotes, restoreVote, voidVote } from "../../services/voting";
-import { assistedVoteBody, uuidSchema, voteListQuery } from "@/shared/schemas";
+import { castVote, changeVote, listVotes, restoreVote, voidVote } from "../../services/voting";
+import { assistedVoteBody, changeVoteBody, uuidSchema, voteListQuery } from "@/shared/schemas";
 
 export const crewVotesRouter = Router();
 
@@ -39,6 +39,17 @@ crewVotesRouter.post("/crew/assisted-votes", requireCrew, idempotency, async (re
   try {
     const { passId, entryId } = assistedVoteBody.parse(req.body);
     res.status(201).json({ vote: await castVote(req.realm, passId, entryId, req.crew!.id) });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Spec 002 FR-106: change an assisted vote under the same rules; marked crew-assisted.
+crewVotesRouter.put("/crew/assisted-votes/:passId", requireCrew, idempotency, async (req, res, next) => {
+  try {
+    const passId = uuidSchema.parse(req.params.passId);
+    const { entryId } = changeVoteBody.parse(req.body);
+    res.json(await changeVote(req.realm, passId, entryId, req.crew!.id));
   } catch (err) {
     next(err);
   }

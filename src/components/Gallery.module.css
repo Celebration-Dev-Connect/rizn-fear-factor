@@ -44,9 +44,7 @@ button.card:disabled {
   background: var(--surface-2);
 }
 .name {
-  font-size: 15px;
-  line-height: 1.25;
-  overflow-wrap: anywhere;
+  padding: 0 var(--space-1);
 }
 .tag {
   font-size: 13px;

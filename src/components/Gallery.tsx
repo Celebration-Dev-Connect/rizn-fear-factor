@@ -1,6 +1,7 @@
 "use client";
+import { EntryLabel } from "./EntryLabel";
 import styles from "./Gallery.module.css";
-import type { EntryCard } from "@/shared/types";
+import { entryLabelText, type EntryCard } from "@/shared/types";
 
 type Props = {
   entries: EntryCard[];
@@ -20,11 +21,12 @@ export function Gallery({ entries, onSelect, ownEntryId, selectedId, votedId }: 
     <ul className={styles.grid}>
       {entries.map((e) => {
         const isOwn = e.id === ownEntryId;
+        const label = entryLabelText(e);
         const content = (
           <>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={e.photo.thumb} alt={e.alt} width={480} height={480} loading="lazy" decoding="async" className={styles.photo} />
-            <span className={styles.name}>{e.displayName}</span>
+            <EntryLabel entry={e} size="md" className={styles.name} />
             {isOwn && <span className={styles.tag}><span aria-hidden="true">🙋</span> That&apos;s you!</span>}
             {votedId === e.id && <span className={styles.tag}><span aria-hidden="true">✔</span> Your vote</span>}
           </>
@@ -38,7 +40,13 @@ export function Gallery({ entries, onSelect, ownEntryId, selectedId, votedId }: 
                 onClick={() => onSelect(e)}
                 disabled={isOwn}
                 aria-pressed={selectedId === e.id}
-                aria-label={isOwn ? `${e.displayName} — your own costume, can't vote` : `Vote for ${e.displayName}`}
+                aria-label={
+                  isOwn
+                    ? `${label} — your own costume, can't vote`
+                    : votedId === e.id
+                      ? `${label} — your current vote`
+                      : `Vote for ${label}`
+                }
               >
                 {content}
               </button>

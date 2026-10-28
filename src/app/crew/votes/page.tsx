@@ -4,18 +4,24 @@ import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { api } from "@/lib/api";
 import { formatEdmontonDateTime } from "@/lib/time";
 import { CREW_POLL, usePoll } from "@/lib/usePoll";
-import { formatPassNumber } from "@/shared/types";
+import { entryLabelText, formatPassNumber } from "@/shared/types";
 
 type VoteRow = {
   id: string;
   castAt: string;
-  status: "counted" | "voided" | "released";
+  status: "counted" | "voided" | "released" | "replaced";
+  statusChangedAt: string;
   assisted: boolean;
   pass: { number: number; nickname: string; createdAt: string; origin: "self" | "crew" };
-  entry: { id: string; displayName: string };
+  entry: { id: string; displayName: string; costumeTitle: string | null };
 };
 
-const STATUS: Record<VoteRow["status"], string> = { counted: "✔ Counted", voided: "✖ Voided", released: "↺ Released" };
+const STATUS: Record<VoteRow["status"], string> = {
+  counted: "✔ Counted",
+  voided: "✖ Voided",
+  released: "↺ Released",
+  replaced: "⇄ Replaced", // the student changed their vote (spec 002 FR-104)
+};
 
 export default function VoteLogPage() {
   const [sort, setSort] = useState<"cast_at" | "pass_created_at">("cast_at");
@@ -29,7 +35,8 @@ export default function VoteLogPage() {
     <>
       <h1>Vote log</h1>
       <p>
-        Sort by <strong>pass created</strong> to spot many passes made seconds apart that all voted for the same costume. Nothing
+        A changed vote shows its earlier choices as <strong>Replaced</strong>; only the latest counts. Sort by{" "}
+        <strong>pass created</strong> to spot many passes made seconds apart that all voted for the same costume. Nothing
         is flagged automatically — use your judgment.
       </p>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 12, margin: "16px 0" }}>
@@ -51,6 +58,7 @@ export default function VoteLogPage() {
             <option value="counted">Counted</option>
             <option value="voided">Voided</option>
             <option value="released">Released</option>
+            <option value="replaced">Replaced (changed vote)</option>
           </select>
         </label>
       </div>
@@ -76,8 +84,11 @@ export default function VoteLogPage() {
                   {v.assisted && " · assisted"}
                 </td>
                 <td>{formatEdmontonDateTime(v.pass.createdAt)}</td>
-                <td>{v.entry.displayName}</td>
-                <td>{STATUS[v.status]}</td>
+                <td>{entryLabelText(v.entry)}</td>
+                <td>
+                  {STATUS[v.status]}
+                  {v.status === "replaced" && <> at {formatEdmontonDateTime(v.statusChangedAt)}</>}
+                </td>
                 <td>
                   {v.status === "counted" && <button type="button" className="danger" onClick={() => setActing({ vote: v, action: "void" })}>Void</button>}
                   {v.status === "voided" && <button type="button" className="secondary" onClick={() => setActing({ vote: v, action: "restore" })}>Restore</button>}
@@ -91,7 +102,7 @@ export default function VoteLogPage() {
       {acting && (
         <ConfirmDialog
           title={acting.action === "void" ? "Void this vote?" : "Restore this vote?"}
-          body={<p>{formatPassNumber(acting.vote.pass.number)} {acting.vote.pass.nickname} → {acting.vote.entry.displayName}. {acting.action === "void" ? "It stops counting, and this pass can't vote again." : "It counts again."}</p>}
+          body={<p>{formatPassNumber(acting.vote.pass.number)} {acting.vote.pass.nickname} → {entryLabelText(acting.vote.entry)}. {acting.action === "void" ? "It stops counting, and this pass can't vote again." : "It counts again."}</p>}
           confirmLabel={acting.action === "void" ? "Void" : "Restore"}
           danger={acting.action === "void"}
           onConfirm={async () => {

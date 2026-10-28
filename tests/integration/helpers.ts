@@ -26,7 +26,7 @@ export async function resetDb(): Promise<void> {
     sql`truncate votes, entry_passes, entries, passes, audit_events, idempotency_keys, crew_sessions restart identity cascade`,
   );
   await db().execute(
-    sql`update contest set stage = 'setup', reveal_step = 0, version = 0, entries_version = 0`,
+    sql`update contest set stage = 'setup', reveal_step = 0, version = 0, entries_version = 0, voting_closes_at = null`,
   );
   await db().execute(
     sql`update settings set rehearsal_mode = false, event_start = ${config().EVENT_START}, event_end = ${config().EVENT_END}`,

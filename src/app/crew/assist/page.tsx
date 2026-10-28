@@ -4,17 +4,20 @@ import { Gallery } from "@/components/Gallery";
 import { VoteConfirm } from "@/components/VoteConfirm";
 import { api, ApiRequestError } from "@/lib/api";
 import { usePoll } from "@/lib/usePoll";
-import { formatPassNumber, type EntryCard } from "@/shared/types";
+import { entryLabelText, formatPassNumber, type EntryCard } from "@/shared/types";
 import { useCrew } from "../CrewContext";
 import { PassPicker, type PassHit } from "../PassPicker";
 
-/** FR-020: a student without a phone votes on a crew device with their crew-created pass. */
+/**
+ * FR-020: a student without a phone votes on a crew device with their crew-created pass. Uses the
+ * change endpoint, so a pass that already voted moves its vote instead (spec 002 FR-106).
+ */
 export default function AssistPage() {
   const { dashboard } = useCrew();
   const [pass, setPass] = useState<PassHit>();
   const [selected, setSelected] = useState<EntryCard | null>(null);
   const [busy, setBusy] = useState(false);
-  const [done, setDone] = useState<string>();
+  const [done, setDone] = useState<{ label: string; changed: boolean }>();
   const [error, setError] = useState<string>();
   const entries = usePoll<{ entries: EntryCard[] }>(pass ? `/api/entries?v=${dashboard.state.entriesVersion}` : null, { intervalMs: 15000, jitterMs: 1000 });
 
@@ -32,8 +35,8 @@ export default function AssistPage() {
   if (done) {
     return (
       <section className="card" style={{ textAlign: "center" }}>
-        <h1>Thanks for voting!</h1>
-        <p>Your vote for <strong>{done}</strong> is in.</p>
+        <h1>{done.changed ? "Vote changed!" : "Thanks for voting!"}</h1>
+        <p>Your vote {done.changed ? "is now" : "is in"} for <strong>{done.label}</strong>.</p>
         <button type="button" onClick={finish}>Done — back to crew</button>
       </section>
     );
@@ -52,7 +55,10 @@ export default function AssistPage() {
   return (
     <>
       <h1>Pick your favourite costume</h1>
-      <p>Voting as <strong>{pass.nickname}</strong> {formatPassNumber(pass.number)}.</p>
+      <p>
+        Voting as <strong>{pass.nickname}</strong> {formatPassNumber(pass.number)}. If this pass already voted, picking a
+        costume changes its vote.
+      </p>
       {error && <p className="notice error" role="alert">{error}</p>}
       {entries.data && <Gallery entries={entries.data.entries} onSelect={setSelected} ownEntryId={pass.entryId} selectedId={selected?.id} />}
       <button type="button" className="secondary" style={{ marginTop: 16 }} onClick={finish}>Cancel</button>
@@ -65,10 +71,19 @@ export default function AssistPage() {
             setBusy(true);
             setError(undefined);
             try {
-              await api("/api/crew/assisted-votes", { method: "POST", json: { passId: pass.id, entryId: selected.id } });
-              setDone(selected.displayName);
+              const r = await api<{ changed: boolean }>(`/api/crew/assisted-votes/${pass.id}`, {
+                method: "PUT",
+                json: { entryId: selected.id },
+              });
+              setDone({ label: entryLabelText(selected), changed: r.changed });
             } catch (e) {
-              setError(e instanceof ApiRequestError ? (e.code === "already_voted" ? "This pass has already voted." : e.message) : "Failed");
+              setError(
+                e instanceof ApiRequestError
+                  ? e.code === "vote_voided"
+                    ? "This pass's vote was voided, so it can't vote again."
+                    : e.message
+                  : "Failed",
+              );
             } finally {
               setBusy(false);
               setSelected(null);

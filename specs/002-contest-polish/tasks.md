@@ -90,7 +90,7 @@ vote, for B. The log shows A as replaced, and the totals are unchanged.
 
 ### Tests for User Story 1 ⚠️ (write first, must fail)
 
-- [ ] T011 [US1] Add a `describe("vote change")` block to tests/integration/votes.test.ts, using the existing helpers in tests/integration/helpers.ts. It covers:
+- [X] T011 [US1] Add a `describe("vote change")` block to tests/integration/votes.test.ts, using the existing helpers in tests/integration/helpers.ts. It covers:
   - (a) A → B leaves one `counted` row for B and one `replaced` row for A, with `status_changed_at` set;
   - (b) `PUT /api/votes/mine` to the current entry returns `changed: false` and writes no new row or audit event;
   - (c) with no prior vote it behaves as a first vote;
@@ -107,7 +107,7 @@ vote, for B. The log shows A as replaced, and the totals are unchanged.
 
 ### Implementation for User Story 1
 
-- [ ] T012 [US1] Implement `changeVote(realm, passId, entryId, assistedByCrewSessionId?)` in src/server/services/voting.ts, per research §1. In one `withTx`:
+- [X] T012 [US1] Implement `changeVote(realm, passId, entryId, assistedByCrewSessionId?)` in src/server/services/voting.ts, per research §1. In one `withTx`:
   - lock the contest row `FOR UPDATE` and require `voting_open`;
   - check the entry exists in the realm and is not removed;
   - reject a self-vote;
@@ -118,18 +118,18 @@ vote, for B. The log shows A as replaced, and the totals are unchanged.
     - otherwise: update the old row to `status: "replaced", statusChangedAt: now, statusChangedByCrewSessionId: assisted ?? null`, insert the new `counted` row (with `assistedByCrewSessionId`), and `record` `vote.change`.
 
   Map `isUniqueViolation` to `already_voted` as `castVote` does.
-- [ ] T013 [US1] Add `PUT /api/votes/mine` (`requirePass`, `idempotency`, `changeVoteBody`) to src/server/routes/votes.ts. It returns `200 { vote: { entryId }, changed }`.
-- [ ] T014 [P] [US1] Add `PUT /api/crew/assisted-votes/:passId` (`requireCrew`, `idempotency`, `changeVoteBody`, `uuidSchema` for the param) to src/server/routes/crew/votes.ts, calling `changeVote(req.realm, passId, entryId, req.crew!.id)`.
-- [ ] T015 [US1] In src/server/routes/pass.ts, have `GET /api/me` return `voteChangeable: true` only when the contest stage is `voting_open` (via `getContest`) and the pass's vote status is `counted`. `vote` stays the `counted`/`voided` row only, never a `replaced` one.
-- [ ] T016 [US1] Extend `listVotes` in src/server/services/voting.ts to accept `status` `"replaced"` and return `statusChangedAt` and `entry.costumeTitle`. In src/app/crew/votes/page.tsx, add a "Replaced" filter option and a "replaced" badge (as text, not colour alone), hide the void/restore buttons on replaced rows, and label entries with `EntryLabel size="sm"`.
-- [ ] T017 [P] [US1] Add a `change` variant to src/components/VoteConfirm.tsx. When given `current: EntryCard` and `next: EntryCard`, it shows "Change your vote from {current} to {next}?" using `EntryLabel`, with Confirm and Cancel buttons; Cancel changes nothing.
-- [ ] T018 [US1] Update src/app/contest/page.tsx:
+- [X] T013 [US1] Add `PUT /api/votes/mine` (`requirePass`, `idempotency`, `changeVoteBody`) to src/server/routes/votes.ts. It returns `200 { vote: { entryId }, changed }`.
+- [X] T014 [P] [US1] Add `PUT /api/crew/assisted-votes/:passId` (`requireCrew`, `idempotency`, `changeVoteBody`, `uuidSchema` for the param) to src/server/routes/crew/votes.ts, calling `changeVote(req.realm, passId, entryId, req.crew!.id)`.
+- [X] T015 [US1] In src/server/routes/pass.ts, have `GET /api/me` return `voteChangeable: true` only when the contest stage is `voting_open` (via `getContest`) and the pass's vote status is `counted`. `vote` stays the `counted`/`voided` row only, never a `replaced` one.
+- [X] T016 [US1] Extend `listVotes` in src/server/services/voting.ts to accept `status` `"replaced"` and return `statusChangedAt` and `entry.costumeTitle`. In src/app/crew/votes/page.tsx, add a "Replaced" filter option and a "replaced" badge (as text, not colour alone), hide the void/restore buttons on replaced rows, and label entries with `EntryLabel size="sm"`.
+- [X] T017 [P] [US1] Add a `change` variant to src/components/VoteConfirm.tsx. When given `current: EntryCard` and `next: EntryCard`, it shows "Change your vote from {current} to {next}?" using `EntryLabel`, with Confirm and Cancel buttons; Cancel changes nothing.
+- [X] T018 [US1] Update src/app/contest/page.tsx:
   - The thank-you state names the current choice with `EntryLabel`. When `me.voteChangeable`, it shows a "Change my vote" button (≥ 44 px) that returns to the gallery in "changing" mode, with the current choice marked "Your vote" and own entries still disabled.
   - Picking a different entry opens `VoteConfirm` in the change variant, which calls `PUT /api/votes/mine` with an Idempotency-Key, then refetches `/api/me`.
   - On `voting_not_open`, it shows "Voting has closed — your vote for {current} stands".
   - The button disappears when `state.stage` leaves `voting_open` (within one poll).
-- [ ] T019 [US1] Update src/app/crew/assist/page.tsx so that when the chosen crew pass already has a counted vote during `voting_open`, crew can pick a new entry and confirm, calling `PUT /api/crew/assisted-votes/:passId`.
-- [ ] T020 [US1] Add a Playwright test to tests/e2e/student.spec.ts: vote A, then "Change my vote", pick B, confirm, and see the thank-you state for B. Close voting from a crew context and assert "Change my vote" is gone within 5 s. Run `npm run test:integration` and `npm run test:e2e`, and commit `feat: students can change their vote while voting is open (FR-101–FR-106)`.
+- [X] T019 [US1] Update src/app/crew/assist/page.tsx so that when the chosen crew pass already has a counted vote during `voting_open`, crew can pick a new entry and confirm, calling `PUT /api/crew/assisted-votes/:passId`.
+- [X] T020 [US1] Add a Playwright test to tests/e2e/student.spec.ts: vote A, then "Change my vote", pick B, confirm, and see the thank-you state for B. Close voting from a crew context and assert "Change my vote" is gone within 5 s. Run `npm run test:integration` and `npm run test:e2e`, and commit `feat: students can change their vote while voting is open (FR-101–FR-106)`.
 
 **Checkpoint**: US1 works alone. **Deploy.**
 
