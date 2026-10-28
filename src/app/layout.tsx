@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 import { Barlow_Condensed, Lilita_One, Nunito } from "next/font/google";
 import { RehearsalBanner } from "@/components/RehearsalBanner";
 import { StateProvider } from "@/components/StateProvider";
@@ -17,11 +18,39 @@ const display = Lilita_One({ weight: "400", subsets: ["latin"], variable: "--fon
 const condensed = Barlow_Condensed({ weight: ["700", "800"], subsets: ["latin"], variable: "--font-condensed-face" });
 const nunito = Nunito({ subsets: ["latin"], weight: ["400", "700", "800", "900"], variable: "--font-nunito" });
 
-export const metadata: Metadata = {
-  title: "RIZN Fear Factor",
-  description: "Night Pass and costume contest",
-  robots: { index: false, follow: false },
-};
+const TITLE = "RIZN Fear Factor · Night Pass";
+const DESCRIPTION =
+  "Get your Night Pass and vote in the RIZN Fear Factor costume contest. Friday, October 30 at Celebration Church, grades 7–12.";
+
+/**
+ * Share-card tags (Open Graph and Twitter/X) need absolute URLs, but the image is built before the
+ * domain is known, so the origin comes from the request (Caddy forwards Host and the scheme).
+ * Favicons come from src/app/icon.png, apple-icon.png, and favicon.ico (`npm run brand:assets`).
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const h = await headers();
+  const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3000";
+  const proto = h.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
+  const image = { url: "/brand/og-image.jpg", width: 1200, height: 630, alt: "RIZN Fear Factor, grades 7 to 12: Night Pass and costume contest" };
+  return {
+    metadataBase: new URL(`${proto}://${host}`),
+    title: TITLE,
+    description: DESCRIPTION,
+    applicationName: "RIZN Fear Factor",
+    // Link previews still work; the app just stays out of search results.
+    robots: { index: false, follow: false },
+    openGraph: {
+      type: "website",
+      siteName: "RIZN Fear Factor",
+      title: TITLE,
+      description: DESCRIPTION,
+      url: "/",
+      locale: "en_CA",
+      images: [image],
+    },
+    twitter: { card: "summary_large_image", title: TITLE, description: DESCRIPTION, images: [image] },
+  };
+}
 
 export const viewport: Viewport = {
   width: "device-width",

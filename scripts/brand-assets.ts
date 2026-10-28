@@ -1,6 +1,7 @@
 // Turns the RIZN media bundle (media-bundle/, gitignored, ~74 MB) into small WebP files in
-// public/brand/ (committed). Run with `npm run brand:assets` whenever the bundle changes.
-// Size targets and choices: specs/002-contest-polish/research.md §9.
+// public/brand/ (committed), plus the favicons (src/app/icon.png, apple-icon.png, favicon.ico) and
+// the social share card (public/brand/og-image.jpg). Run with `npm run brand:assets` whenever the
+// bundle changes. Size targets and choices: specs/002-contest-polish/research.md §9.
 import { existsSync, mkdirSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import sharp, { type Sharp } from "sharp";
@@ -51,6 +52,87 @@ async function render(job: Job): Promise<Buffer> {
   throw new Error(`${job.out} is over ${job.maxKb} KB even at low quality`);
 }
 
+const ORANGE = "#f94003";
+const INK = "#0a0e1a";
+
+/** The asterisk from the RIZN Youth logo, black on transparent. */
+async function asterisk(): Promise<Buffer> {
+  return sharp(path.join(SRC, "fearfactorlogos/IMG_4716.PNG"))
+    .extract({ left: 0, top: 0, width: 625, height: 693 })
+    .trim()
+    .png()
+    .toBuffer();
+}
+
+/** Black asterisk on a brand-orange tile, like the poster's orange panel. */
+async function iconTile(size: number, radius: number): Promise<Buffer> {
+  const mark = await sharp(await asterisk())
+    .resize({ width: Math.round(size * 0.7), height: Math.round(size * 0.7), fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
+    .png()
+    .toBuffer();
+  const tile = Buffer.from(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}"><rect width="${size}" height="${size}" rx="${radius}" fill="${ORANGE}"/></svg>`,
+  );
+  return sharp(tile).composite([{ input: mark, gravity: "center" }]).png({ compressionLevel: 9 }).toBuffer();
+}
+
+/** A .ico holding PNG images (valid in every current browser). */
+function ico(pngs: { size: number; data: Buffer }[]): Buffer {
+  const header = Buffer.alloc(6 + 16 * pngs.length);
+  header.writeUInt16LE(0, 0);
+  header.writeUInt16LE(1, 2);
+  header.writeUInt16LE(pngs.length, 4);
+  let offset = header.length;
+  pngs.forEach((p, i) => {
+    const e = 6 + 16 * i;
+    header.writeUInt8(p.size >= 256 ? 0 : p.size, e);
+    header.writeUInt8(p.size >= 256 ? 0 : p.size, e + 1);
+    header.writeUInt16LE(1, e + 4); // colour planes
+    header.writeUInt16LE(32, e + 6); // bits per pixel
+    header.writeUInt32LE(p.data.length, e + 8);
+    header.writeUInt32LE(offset, e + 12);
+    offset += p.data.length;
+  });
+  return Buffer.concat([header, ...pngs.map((p) => p.data)]);
+}
+
+/** 1200×630 share card for link previews: the event banner, stickers, and the date. */
+async function ogImage(): Promise<Buffer> {
+  const W = 1200;
+  const H = 630;
+  const bg = Buffer.from(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">
+      <defs>
+        <radialGradient id="o" cx="0.12" cy="0" r="0.8"><stop offset="0" stop-color="${ORANGE}" stop-opacity="0.35"/><stop offset="1" stop-color="${ORANGE}" stop-opacity="0"/></radialGradient>
+        <radialGradient id="b" cx="0.9" cy="1" r="0.8"><stop offset="0" stop-color="#0069fb" stop-opacity="0.45"/><stop offset="1" stop-color="#0069fb" stop-opacity="0"/></radialGradient>
+      </defs>
+      <rect width="${W}" height="${H}" fill="${INK}"/>
+      <rect width="${W}" height="${H}" fill="url(#o)"/>
+      <rect width="${W}" height="${H}" fill="url(#b)"/>
+      <text x="600" y="512" text-anchor="middle" font-family="Arial Black, Helvetica, sans-serif" font-weight="900" font-size="54" fill="${ORANGE}">NIGHT PASS · COSTUME CONTEST</text>
+      <text x="600" y="572" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-weight="700" font-size="32" fill="#f5f7ff">Friday, October 30 · Celebration Church · Grades 7–12</text>
+    </svg>`,
+  );
+  const banner = await sharp(path.join(SRC, "fearfactorlogos/Rizn Fear Factor WebsiteBanner_2026.png"))
+    .resize({ width: 1000 })
+    .png()
+    .toBuffer();
+  const sticker = async (src: string, width: number, rotate: number) =>
+    sharp(await sharp(path.join(SRC, src)).trim().png().toBuffer())
+      .resize({ width })
+      .rotate(rotate, { background: { r: 0, g: 0, b: 0, alpha: 0 } })
+      .png()
+      .toBuffer();
+  return sharp(bg)
+    .composite([
+      { input: banner, top: 50, left: 100 },
+      { input: await sticker("Graphic elements/Stars.png", 150, -14), top: 10, left: 10 },
+      { input: await sticker("Graphic elements/Red horse.png", 110, 12), top: 8, left: 1078 },
+    ])
+    .jpeg({ quality: 82, mozjpeg: true })
+    .toBuffer();
+}
+
 async function main() {
   if (!existsSync(SRC)) {
     console.error("media-bundle/ not found. Put the RIZN media bundle at the repo root first.");
@@ -63,6 +145,25 @@ async function main() {
     writeFileSync(file, buf);
     const { width, height } = await sharp(buf).metadata();
     console.log(`${job.out.padEnd(28)} ${width}x${height}  ${(statSync(file).size / 1024).toFixed(1)} KB`);
+  }
+
+  // Favicons use Next.js file conventions in src/app/, which add the <link> tags automatically.
+  const outputs: [string, Buffer][] = [
+    ["src/app/icon.png", await iconTile(512, 96)],
+    ["src/app/apple-icon.png", await iconTile(180, 0)], // iOS rounds the corners itself
+    [
+      "src/app/favicon.ico",
+      ico([
+        { size: 16, data: await iconTile(16, 3) },
+        { size: 32, data: await iconTile(32, 6) },
+        { size: 48, data: await iconTile(48, 9) },
+      ]),
+    ],
+    ["public/brand/og-image.jpg", await ogImage()],
+  ];
+  for (const [file, buf] of outputs) {
+    writeFileSync(path.resolve(file), buf);
+    console.log(`${file.padEnd(28)} ${(buf.length / 1024).toFixed(1)} KB`);
   }
 }
 
