@@ -27,5 +27,11 @@ export const RIZN_INFO = {
     ],
     photoAlt: "The RIZN minivan that will be destroyed at VANAGEDDON",
   },
+  instagram: {
+    heading: "Wanna see what we're doing each week?",
+    body: "Follow us on Instagram!",
+    handle: "@riznyouth",
+    url: "https://www.instagram.com/riznyouth/",
+  },
   signOff: "See you Friday!",
 } as const;

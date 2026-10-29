@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 };
 
 export default function RiznInfoPage() {
-  const { thanks, weekly, nextWeek, signOff } = RIZN_INFO;
+  const { thanks, weekly, nextWeek, instagram, signOff } = RIZN_INFO;
   return (
     <main className="page">
       <p><Link href="/">← My Night Pass</Link></p>
@@ -43,6 +43,15 @@ export default function RiznInfoPage() {
           {weekly.where} · {weekly.grades}
         </p>
         {weekly.body.map((p) => <p key={p}>{p}</p>)}
+      </section>
+
+      {/* A plain link, not an embed: Instagram embeds load Meta scripts and trackers (Constitution I). */}
+      <section className={styles.instagram} aria-labelledby="instagram">
+        <h2 id="instagram">{instagram.heading}</h2>
+        <p>{instagram.body}</p>
+        <a href={instagram.url} className="button" target="_blank" rel="noopener noreferrer">
+          Follow {instagram.handle} on Instagram
+        </a>
       </section>
 
       <p className={styles.signOff}>{signOff}</p>

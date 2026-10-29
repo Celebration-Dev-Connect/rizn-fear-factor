@@ -40,6 +40,17 @@
 .weekly .when {
   font-size: 18px;
 }
+.instagram {
+  margin: var(--space-6) 0 0;
+  text-align: center;
+}
+.instagram h2 {
+  font-size: 28px;
+}
+.instagram p {
+  margin: 0 0 var(--space-4);
+  font-weight: 700;
+}
 .signOff {
   text-align: center;
   font-family: var(--font-display);

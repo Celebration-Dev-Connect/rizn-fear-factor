@@ -138,6 +138,9 @@ test("the RIZN Youth page is public, accessible, and linked from the pass (spec 
     await checkPage(page, "/rizn");
     await expect(page.getByRole("heading", { name: "VANAGEDDON" })).toBeVisible();
     await expect(page.getByText("Fridays, 7:00–9:30pm")).toBeVisible();
+    // A plain link to Instagram, never an embed (Constitution I).
+    await expect(page.getByRole("link", { name: "Follow @riznyouth on Instagram" })).toHaveAttribute("href", "https://www.instagram.com/riznyouth/");
+    expect(await page.locator("iframe, script[src*='instagram']").count()).toBe(0);
     await page.goto("/");
     await expect(page.getByText("Your nickname tonight")).toBeVisible();
     await page.getByRole("link", { name: "More about RIZN Youth" }).click();
