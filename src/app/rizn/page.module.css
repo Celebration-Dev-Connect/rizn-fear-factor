@@ -30,14 +30,13 @@
   line-height: 1;
   transform: rotate(-2deg);
 }
-/* The cut-out van breaks out of the panel a little, tilted like a sticker on the poster. */
+/* The cut-out van, tilted like a sticker on the poster, with 1rem of space all around. */
 .vanPhoto {
   display: block;
-  width: calc(100% + 2 * var(--space-4));
-  max-width: none;
+  width: 100%;
   height: auto;
-  aspect-ratio: 1200 / 614;
-  margin: var(--space-2) calc(-1 * var(--space-4)) var(--space-3);
+  padding: 1rem;
+  margin: var(--space-2) 0 var(--space-3);
   transform: rotate(-3deg);
   filter: drop-shadow(0 14px 14px rgb(0 0 0 / 0.45));
 }
