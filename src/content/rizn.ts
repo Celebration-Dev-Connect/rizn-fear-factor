@@ -25,7 +25,7 @@ export const RIZN_INFO = {
       "Remember the minivan from tonight's halftime game? Next week we're going to DESTROY it.",
       "Spray paint, golf clubs, baseball bats: you'll get to help absolutely wreck the van. Bring a friend!",
     ],
-    photoAlt: "The RIZN minivan that will be destroyed at VANAGEDDON",
+    photoAlt: "The RIZN minivan, spray-painted with \"RIZN Fear Factor\", that will be destroyed at VANAGEDDON",
   },
   instagram: {
     heading: "Wanna see what we're doing each week?",

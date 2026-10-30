@@ -30,7 +30,7 @@ export default function RiznInfoPage() {
         <h2 id="next-week" className={styles.vanageddon}>{nextWeek.heading}</h2>
         {van.photo && (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src="/brand/van.webp" alt={nextWeek.photoAlt} className={styles.vanPhoto} loading="lazy" decoding="async" />
+          <img src="/brand/van.webp" alt={nextWeek.photoAlt} width={1200} height={614} className={styles.vanPhoto} decoding="async" />
         )}
         {nextWeek.body.map((p) => <p key={p}>{p}</p>)}
       </section>

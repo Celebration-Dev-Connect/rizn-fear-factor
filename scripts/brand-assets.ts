@@ -133,6 +133,47 @@ async function ogImage(): Promise<Buffer> {
     .toBuffer();
 }
 
+/**
+ * Makes a cut-out on a plain white background transparent: near-white pixels connected to the
+ * image edge become transparent, so white areas inside the subject (like the cross on the van)
+ * stay. Images that already have transparency are only trimmed and resized.
+ */
+async function removeEdgeBackground(file: string, width: number): Promise<Buffer> {
+  const meta = await sharp(file).metadata();
+  const resized = sharp(file).rotate().resize({ width, withoutEnlargement: true });
+  if (meta.hasAlpha) return resized.trim().png().toBuffer();
+  const { data, info } = await resized.ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  const w = info.width;
+  const h = info.height;
+  const nearWhite = (i: number) => data[i]! > 232 && data[i + 1]! > 232 && data[i + 2]! > 232;
+  const seen = new Uint8Array(w * h);
+  const stack: number[] = [];
+  for (let x = 0; x < w; x++) stack.push(x, (h - 1) * w + x);
+  for (let y = 0; y < h; y++) stack.push(y * w, y * w + w - 1);
+  while (stack.length) {
+    const p = stack.pop()!;
+    if (seen[p] || !nearWhite(p * 4)) continue;
+    seen[p] = 1;
+    data[p * 4 + 3] = 0;
+    const x = p % w;
+    if (x > 0) stack.push(p - 1);
+    if (x < w - 1) stack.push(p + 1);
+    if (p >= w) stack.push(p - w);
+    if (p < w * (h - 1)) stack.push(p + w);
+  }
+  // Soften the cut edge: pixels next to removed background get partial alpha by how white they are.
+  for (let p = 0; p < w * h; p++) {
+    if (seen[p]) continue;
+    const x = p % w;
+    const nearBg = (x > 0 && seen[p - 1]) || (x < w - 1 && seen[p + 1]) || (p >= w && seen[p - w]) || (p < w * (h - 1) && seen[p + w]);
+    if (!nearBg) continue;
+    const i = p * 4;
+    const whiteness = Math.min(data[i]!, data[i + 1]!, data[i + 2]!);
+    if (whiteness > 200) data[i + 3] = Math.round(255 * (1 - (whiteness - 200) / 55));
+  }
+  return sharp(data, { raw: { width: w, height: h, channels: 4 } }).trim().png().toBuffer();
+}
+
 async function main() {
   if (!existsSync(SRC)) {
     console.error("media-bundle/ not found. Put the RIZN media bundle at the repo root first.");
@@ -166,17 +207,20 @@ async function main() {
     console.log(`${file.padEnd(28)} ${(buf.length / 1024).toFixed(1)} KB`);
   }
 
-  // Spec 003: the VANAGEDDON photo is optional. Drop media-bundle/van.(jpg|jpeg|png|webp) in and
-  // rerun; the /rizn page shows it once src/content/van.json says { "photo": true }.
-  const van = readdirSync(SRC).find((f) => /^van\.(jpe?g|png|webp)$/i.test(f));
+  // Spec 003: the VANAGEDDON photo is optional. Drop media-bundle/van.(jpg|jpeg|png|webp) (or the
+  // designer's Subject.png cut-out) in and rerun; the /rizn page shows it once src/content/van.json
+  // says { "photo": true }.
+  const van = readdirSync(SRC).find((f) => /^(van|subject)\.(jpe?g|png|webp)$/i.test(f));
   if (van) {
+    const cutout = await removeEdgeBackground(path.join(SRC, van), 1200);
     let buf = Buffer.alloc(0);
-    for (let q = 80; q >= 40; q -= 8) {
-      buf = await sharp(path.join(SRC, van)).rotate().resize({ width: 1080, withoutEnlargement: true }).webp({ quality: q }).toBuffer();
+    for (let q = 82; q >= 40; q -= 8) {
+      buf = await sharp(cutout).webp({ quality: q, alphaQuality: 90, effort: 6 }).toBuffer();
       if (buf.length <= 150 * 1024) break;
     }
     writeFileSync(path.join(OUT, "van.webp"), buf);
-    console.log(`${"van.webp".padEnd(28)} ${(buf.length / 1024).toFixed(1)} KB`);
+    const { width, height } = await sharp(buf).metadata();
+    console.log(`${"van.webp".padEnd(28)} ${width}x${height}  ${(buf.length / 1024).toFixed(1)} KB`);
   } else {
     console.log("van photo                    none (add media-bundle/van.jpg to show it on /rizn)");
   }
