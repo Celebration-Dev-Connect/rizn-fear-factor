@@ -33,12 +33,17 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment: production
-    # Skips cleanly until the static-site infrastructure exists (infra/README.md).
-    if: vars.SITE_BUCKET != '' && vars.SITE_DISTRIBUTION_ID != ''
     env:
       SITE_URL: https://${{ vars.SITE_DOMAIN || vars.DOMAIN || 'fearfactor.riznyouth.com' }}
       NEXT_TELEMETRY_DISABLED: "1"
     steps:
+      # Checked in a step: a job-level `if` runs before the production environment's variables load.
+      - name: Check setup
+        if: vars.SITE_BUCKET == '' || vars.SITE_DISTRIBUTION_ID == ''
+        run: |
+          echo "::error::Set SITE_BUCKET and SITE_DISTRIBUTION_ID in the production environment first (infra/README.md)."
+          exit 1
+
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
