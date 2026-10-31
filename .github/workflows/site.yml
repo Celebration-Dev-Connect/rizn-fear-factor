@@ -1,0 +1,77 @@
+name: Publish site
+
+# Builds the off-season static site (site/, spec 004) and uploads it to S3 behind CloudFront.
+# A failed build or check stops before the upload, so the live page stays as it was.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "site/**"
+      - "src/content/**"
+      - "src/styles/**"
+      - "src/components/BrandMark*"
+      - "src/lib/nextEvent.ts"
+      - "public/brand/**"
+      - "src/app/favicon.ico"
+      - "src/app/icon.png"
+      - "src/app/apple-icon.png"
+      - "scripts/site-assets.ts"
+      - "scripts/check-site.ts"
+      - ".github/workflows/site.yml"
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: site
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: production
+    # Skips cleanly until the static-site infrastructure exists (infra/README.md).
+    if: vars.SITE_BUCKET != '' && vars.SITE_DISTRIBUTION_ID != ''
+    env:
+      SITE_URL: https://${{ vars.SITE_DOMAIN || vars.DOMAIN || 'fearfactor.riznyouth.com' }}
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npx vitest run --project unit tests/unit/nextEvent.test.ts
+      - run: npm run site:build
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION || 'ca-central-1' }}
+
+      - name: Upload
+        env:
+          BUCKET: ${{ vars.SITE_BUCKET }}
+        run: |
+          # Hashed build assets never change: cache for a year.
+          aws s3 sync site/out/_next "s3://$BUCKET/_next" --delete \
+            --cache-control "public, max-age=31536000, immutable"
+          # Pages and Next's .txt payloads: one minute, so edits show quickly.
+          aws s3 sync site/out "s3://$BUCKET" --delete --exclude "_next/*" --exclude "brand/*" \
+            --exclude "*.ico" --exclude "*.png" --cache-control "public, max-age=60"
+          # Images and icons: one day.
+          aws s3 sync site/out "s3://$BUCKET" --delete --exclude "*" --include "brand/*" \
+            --include "*.ico" --include "*.png" --cache-control "public, max-age=86400"
+
+      - name: Refresh CloudFront
+        run: aws cloudfront create-invalidation --distribution-id "${{ vars.SITE_DISTRIBUTION_ID }}" --paths "/*" --query Invalidation.Id --output text
+
+      - name: Summary
+        run: echo "Published to $SITE_URL (live in a few minutes)." >> "$GITHUB_STEP_SUMMARY"

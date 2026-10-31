@@ -101,7 +101,7 @@ headers, and no `Set-Cookie`.
   - no `<script src=` or `<link href=` points at another origin.
 
   It exits non-zero on failure.
-- [ ] T010 [P] [US1] Create infra/static-site/ (main.tf, variables.tf, outputs.tf, providers with a
+- [X] T010 [P] [US1] Create infra/static-site/ (main.tf, variables.tf, outputs.tf, providers with a
   `us_east_1` alias, an S3 backend like infra/lightsail, and `default_tags { app = "rizn-fear-factor" }`):
   - **Bucket**: `aws_s3_bucket` named `${name}-site-${account}`, with versioning, AES256, all
     public access blocked, and `aws_s3_bucket_policy` allowing `s3:GetObject` only to
@@ -121,7 +121,7 @@ headers, and no `Set-Cookie`.
     - viewer certificate from the validation, `sni-only`, `TLSv1.2_2021`.
   - **Outputs**: `validation_records` (name/type/value), `bucket`, `distribution_id`,
     `distribution_domain`.
-- [ ] T011 [US1] Extend infra/bootstrap/main.tf permissions for the GitHub role:
+- [X] T011 [US1] Extend infra/bootstrap/main.tf permissions for the GitHub role:
   - `s3:*` on `arn:aws:s3:::rizn-fear-factor-site-*` and `/*`;
   - `cloudfront:*` and `acm:*` (CloudFront and ACM have limited resource-level IAM; matches the
     Lightsail approach);
@@ -129,13 +129,13 @@ headers, and no `Set-Cookie`.
 
   Note in infra/README.md that this needs a local `terraform apply` by an admin **(user or admin
   credentials)**.
-- [ ] T012 [P] [US1] Create .github/workflows/site-infra.yml, modelled on infra.yml:
+- [X] T012 [P] [US1] Create .github/workflows/site-infra.yml, modelled on infra.yml:
   - manual trigger with inputs `action` (plan/apply/destroy), `confirm`, and `cert_validated`
     (boolean);
   - OIDC in the production environment, then `terraform -chdir=infra/static-site` init (state key
     `static-site/terraform.tfstate`) / plan / apply;
   - the job summary prints the validation CNAME and the distribution domain.
-- [ ] T013 [US1] Create .github/workflows/site.yml:
+- [X] T013 [US1] Create .github/workflows/site.yml:
   - manual trigger, plus pushes to main touching `site/**`, `src/content/**`, `public/brand/**`,
     `src/styles/**`, or `src/components/BrandMark*`;
   - steps: `npm ci`, `npm run typecheck`, `npm run site:build` (with `SITE_URL` from the `PUBLIC_URL`

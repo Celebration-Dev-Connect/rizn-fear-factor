@@ -128,6 +128,22 @@ data "aws_iam_policy_document" "permissions" {
     actions   = ["route53:ListHostedZones", "route53:ListHostedZonesByName", "route53:GetChange"]
     resources = ["*"]
   }
+  # Off-season static site (spec 004, infra/static-site): its own bucket, CloudFront, and the ACM
+  # certificate. CloudFront and ACM have little resource-level IAM, so those are account-wide,
+  # like Lightsail above.
+  statement {
+    sid     = "SiteBucket"
+    actions = ["s3:*"]
+    resources = [
+      "arn:aws:s3:::${var.name}-site-${data.aws_caller_identity.current.account_id}",
+      "arn:aws:s3:::${var.name}-site-${data.aws_caller_identity.current.account_id}/*",
+    ]
+  }
+  statement {
+    sid       = "SiteCdn"
+    actions   = ["cloudfront:*", "acm:*"]
+    resources = ["*"]
+  }
   statement {
     sid       = "StateList"
     actions   = ["s3:ListBucket"]

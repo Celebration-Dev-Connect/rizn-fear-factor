@@ -1,0 +1,94 @@
+name: Static site infrastructure
+
+# Plans, applies, or destroys infra/static-site (S3 + CloudFront + ACM) for the off-season site,
+# spec 004. Run by hand. Two steps the first time (infra/README.md, "Off-season static site"):
+#   1. apply with cert_validated = false → add the printed CNAME at the riznyouth.com DNS host
+#   2. apply with cert_validated = true  → creates CloudFront; set SITE_BUCKET / SITE_DISTRIBUTION_ID
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: What to do
+        type: choice
+        options: [plan, apply, destroy]
+        default: plan
+      cert_validated:
+        description: The validation CNAME is in place at the DNS host (step 2)
+        type: boolean
+        default: false
+      confirm:
+        description: For destroy only, type the word destroy
+        type: string
+        required: false
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: site-infra
+  cancel-in-progress: false
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60 # certificate validation can wait up to 45 minutes
+    environment: production
+    defaults:
+      run:
+        working-directory: infra/static-site
+    env:
+      TF_IN_AUTOMATION: "1"
+      TF_VAR_region: ${{ vars.AWS_REGION || 'ca-central-1' }}
+      TF_VAR_domain: ${{ vars.SITE_DOMAIN || vars.DOMAIN || 'fearfactor.riznyouth.com' }}
+      TF_VAR_cert_validated: ${{ inputs.cert_validated }}
+    steps:
+      - name: Guard destroy
+        if: inputs.action == 'destroy' && inputs.confirm != 'destroy'
+        run: |
+          echo "::error::Destroy takes the off-season site offline. Type destroy in 'confirm' to proceed."
+          exit 1
+
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION || 'ca-central-1' }}
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - run: terraform fmt -check
+      - run: >
+          terraform init -input=false
+          -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}"
+          -backend-config="key=static-site.tfstate"
+          -backend-config="region=${{ vars.AWS_REGION || 'ca-central-1' }}"
+      - run: terraform validate
+
+      - name: Plan
+        run: terraform plan -input=false -out=tfplan ${{ inputs.action == 'destroy' && '-destroy' || '' }}
+
+      - name: Apply
+        if: inputs.action != 'plan'
+        run: terraform apply -input=false tfplan
+
+      - name: Summary
+        if: inputs.action == 'apply'
+        run: |
+          {
+            echo "### Off-season static site"
+            echo "**1. Certificate validation**: add at the riznyouth.com DNS host and leave it there:"
+            echo '```'
+            terraform output -json validation_records | jq -r '.[] | "\(.type)  \(.name)  →  \(.value)"'
+            echo '```'
+            echo "- SITE_BUCKET: \`$(terraform output -raw bucket)\`"
+            if [ -n "$(terraform output -raw distribution_id)" ]; then
+              echo "- SITE_DISTRIBUTION_ID: \`$(terraform output -raw distribution_id)\`"
+              echo "- CloudFront domain: \`$(terraform output -raw distribution_domain)\` (check https://$(terraform output -raw distribution_domain)/ first; then CNAME the site's DNS record here)"
+            else
+              echo "- CloudFront: not yet. Once the certificate is Issued, run apply again with cert_validated checked."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
