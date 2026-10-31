@@ -13,7 +13,7 @@ import type { EntryCard, RevealedPlace, Stage } from "@/shared/types";
 import styles from "./screen.module.css";
 
 const INSTRUCTIONS: Record<Stage, string> = {
-  setup: "Get your Night Pass, then find a crew member to enter your costume!",
+  setup: "Get your Night Pass, then line up in the costume contest line to enter your costume!",
   voting_open: "Voting is OPEN — scan, tap your favourite costume, and vote!",
   voting_closed: "Voting is closed. The results are coming…",
   results_revealed: "And the winners are…",
