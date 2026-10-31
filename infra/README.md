@@ -165,3 +165,61 @@ To let Terraform own the record instead, use a Route 53 hosted zone:
    event data.
 5. Optional, to remove everything: empty the state bucket and run `terraform destroy` in
    `infra/bootstrap`. Keep it if you'll run the event again next year.
+
+## Off-season static site
+
+After the event, the address serves one static page (`site/`, spec 004) from a private S3 bucket
+behind CloudFront. It costs about $0 a month, against about $12 for the Lightsail server.
+Terraform: `infra/static-site`. Workflows: *Static site infrastructure* and *Publish site*.
+
+### One-time setup
+
+1. **Permissions (admin, local).** The GitHub role needs the site bucket, CloudFront, and ACM:
+
+   ```bash
+   cd infra/bootstrap && terraform apply
+   ```
+
+2. **Step 1, the certificate.** Actions → *Static site infrastructure* → `apply`, with
+   *cert_validated* unchecked. The run summary prints a `CNAME` record. Add it at the riznyouth.com
+   DNS host and **leave it there**, so the certificate keeps renewing.
+3. **Step 2, CloudFront.** Once ACM shows the certificate as *Issued* (usually under 10 minutes),
+   run `apply` again with *cert_validated* checked. The summary prints `SITE_BUCKET`,
+   `SITE_DISTRIBUTION_ID`, and the CloudFront domain:
+
+   ```bash
+   gh variable set SITE_BUCKET          --env production --body <bucket>
+   gh variable set SITE_DISTRIBUTION_ID --env production --body <distribution id>
+   ```
+
+4. **Publish.** Actions → *Publish site* (it also runs on every push that changes the page).
+5. **Check it before switching DNS**:
+
+   ```bash
+   D=<distribution domain>
+   for p in / /contest /crew "/screen?t=x" /api/state /rizn; do curl -s -o /dev/null -w "$p %{http_code}\n" "https://$D$p"; done
+   curl -sI --connect-to fearfactor.riznyouth.com:443:$D:443 https://fearfactor.riznyouth.com/ | grep -iE "^HTTP|content-security|x-robots"
+   ```
+
+### Switching over
+
+1. At the DNS host, change `fearfactor` from `A 3.98.19.181` to `CNAME <distribution domain>`.
+2. `dig +short fearfactor.riznyouth.com` returns CloudFront addresses. Open the site on a phone.
+
+### Shutting down the event server
+
+Do this only after the switch, when the address is serving the static page.
+
+1. Delete the event data (the documented procedure):
+
+   ```bash
+   ssh -i ~/.ssh/rizn-deploy ubuntu@3.98.19.181 \
+     'cd /opt/rizn && docker compose exec -T app npm run purge -- --all && docker compose down -v'
+   ```
+
+2. Actions → *Infrastructure* → `destroy`, typing `destroy`. This deletes the instance, its disks,
+   the static IP, and the firewall rules.
+3. Record the date and the operator in `specs/001-costume-contest/checklists/deletion.md`.
+4. Remove the GitHub variables `SERVER_IP` and `SSH_KNOWN_HOSTS`. Optionally delete the
+   `rizn-fear-factor` package in GitHub → Packages (it holds code only).
+5. Keep the bootstrap (state bucket and OIDC role). The site and next year's event use it.

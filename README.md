@@ -1,5 +1,19 @@
 # RIZN Fear Factor Night Pass
 
+> **Off-season (since November 2026):** https://fearfactor.riznyouth.com serves a single static
+> RIZN Youth page from S3 + CloudFront ([spec 004](specs/004-off-season-static-site/spec.md)). The
+> contest app below is dormant until next year's event, and no server holding student data runs.
+>
+> - **Change the page wording**: edit `src/content/offseason.ts` (instructions at the top), commit,
+>   and push to `main`. *Publish site* uploads it in about 3 minutes. A broken edit fails the
+>   build, and the live page stays as it was.
+> - **Build or preview locally**: `npm run site:build`, then `npm run site:preview`
+>   (http://localhost:4100). The tests are `npx playwright test --project=site`.
+> - **Hosting**: `infra/static-site` (Terraform). The setup and the event-server shutdown steps are
+>   in [infra/README.md](infra/README.md#off-season-static-site).
+> - **Bringing the contest back**: redeploy the app with `infra/lightsail` and the *Deploy*
+>   workflow, then point the DNS record back at the server.
+
 Costume contest web app for RIZN Fear Factor at Celebration Church, Edmonton (grades 7–12),
 **Friday, October 30, 2026, 7:00–10:00 pm**.
 

@@ -182,7 +182,7 @@ publishes.
 **Independent Test**: change the Friday time, push, and see it live. Push a syntax error and the
 workflow fails before upload, leaving the page unchanged.
 
-- [ ] T018 [US4] Add a top-of-file guide to src/content/offseason.ts explaining what each field is,
+- [X] T018 [US4] Add a top-of-file guide to src/content/offseason.ts explaining what each field is,
   how to remove VANAGEDDON (`nextEvent: null`), how to add next year's date, and "push to main and
   the site updates in about 3 minutes". Add an "Updating the off-season page" section to README.md.
 
@@ -211,7 +211,7 @@ longer exists, and the deletion is recorded.
 
 ## Phase 7: Polish
 
-- [ ] T023 [P] Update README.md (an off-season notice at the top: what's live, where the content
+- [X] T023 [P] Update README.md (an off-season notice at the top: what's live, where the content
   lives, how to publish, how to bring the contest back), infra/README.md (the static-site stack,
   DNS records, and shutdown runbook), and CLAUDE.md (`site/` and its commands; the contest app is
   dormant).

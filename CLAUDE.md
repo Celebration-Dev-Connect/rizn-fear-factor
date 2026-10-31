@@ -4,6 +4,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
+**Off-season (since November 2026):** production is the static page in `site/` (spec 004), a
+Next.js `output: "export"` app built with `npm run site:build` that imports shared content and
+styles from `src/`. It's hosted on S3 + CloudFront (`infra/static-site`, *Publish site* workflow).
+The contest app in `src/` is dormant until next year. Page wording: `src/content/offseason.ts`.
+
 RIZN Fear Factor Night Pass: a small mobile web app for one youth event (RIZN Youth, Celebration
 Church, Edmonton, grades 7–12) on **Friday, October 30, 2026**. The first release is a costume
 contest only: students get an anonymous Night Pass and vote once; crew add costume photos, run
