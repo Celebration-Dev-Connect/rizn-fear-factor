@@ -18,6 +18,15 @@ static page at the same address, so posters, QR codes, and shared links keep wor
 It costs almost nothing and holds no student data. The contest app's code stays in the repo for
 next year.
 
+## Clarifications
+
+### Session 2026-10-31
+
+- Q: Do the crew and big-screen tools need to keep working off-season? → A: No. Nothing dynamic
+  is hosted year-round, so no app or database server. The crew pages may stop working entirely.
+  Old public links should still land on the static page.
+- Q: Which static hosting? → A: S3 + CloudFront.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Anyone opening the old link sees RIZN Youth info (Priority: P1)
@@ -202,7 +211,9 @@ the new time within 10 minutes.
   wording is changed to the past tense.
 - No costume photos or winners appear on the public page. The consent was for "tonight", and the
   photo archive is offline only (constitution v3.0.0).
-- The crew and big-screen tools are not needed until next year, so they are not hosted.
+- The crew and big-screen tools are not needed until next year, so they are not hosted, and no
+  server or database runs off-season. Showing the static page for their old links is enough;
+  they don't need to work.
 - Shutting down the server is also how the server-side deletion is done. The automatic photo
   deletion on November 2 still runs if the server is up until then.
 - Search engines stay excluded, as now. Organizers can opt in later.
