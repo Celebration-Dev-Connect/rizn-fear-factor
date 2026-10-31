@@ -1,3 +1,6 @@
+# OFF-SEASON (since 2026-10-31): destroyed; nothing from this stack exists. Kept to bring the
+# contest back next year (infra/README.md). Production is the static site in infra/static-site.
+#
 # The event server: one Lightsail instance, a static IP, firewall rules, and the DNS record.
 # Applied by .github/workflows/infra.yml (or locally; see infra/README.md).
 # Nothing here is secret: the SSH key is public, and app secrets are written by the deploy workflow.

@@ -197,17 +197,17 @@ longer exists, and the deletion is recorded.
   `A 3.98.19.181` to `CNAME <distribution_domain>`. Then verify with
   `dig +short fearfactor.riznyouth.com` and run the hosting contract checks against the real
   domain.
-- [ ] T020 [US3] **(user approval)** Run the deletion procedure on the server:
+- [X] T020 [US3] **(user approval)** Run the deletion procedure on the server:
   `docker compose exec app npm run purge -- --all && docker compose down -v` in /opt/rizn. Then run
   Actions → *Infrastructure* → `destroy`, and confirm that
   `aws lightsail get-instances --region ca-central-1` no longer lists `rizn-fear-factor`.
-- [ ] T021 [US3] Create specs/001-costume-contest/checklists/deletion.md recording the date, the
+- [X] T021 [US3] Create specs/001-costume-contest/checklists/deletion.md recording the date, the
   operator, the steps run (purge, compose down -v, Terraform destroy), and the verification
   output. Note the offline photo archive (constitution v3.0.0) and its location as RIZN-controlled
   storage.
-- [ ] T022 [P] [US3] Clean up: delete the GitHub variables `SERVER_IP` and `SSH_KNOWN_HOSTS`, and
+- [X] T022 [P] [US3] Clean up: delete the GitHub variables `SERVER_IP` and `SSH_KNOWN_HOSTS`, and
   the GHCR package `rizn-fear-factor` **(user approval)**. Keep `deploy.yml` and `infra/lightsail`
-  for next year, and add a header comment saying they're off-season.
+  for next year, and add a header comment saying they're off-season. (GHCR package left: deleting it needs a `delete:packages` token; it holds code only.)
 
 ## Phase 7: Polish
 
@@ -215,7 +215,7 @@ longer exists, and the deletion is recorded.
   lives, how to publish, how to bring the contest back), infra/README.md (the static-site stack,
   DNS records, and shutdown runbook), and CLAUDE.md (`site/` and its commands; the contest app is
   dormant).
-- [ ] T024 Run `npm run typecheck && npm run lint && npm test && npm run site:build && npx playwright test --project=site`,
+- [X] T024 Run `npm run typecheck && npm run lint && npm test && npm run site:build && npx playwright test --project=site`,
   then commit and push.
 
 ## Dependencies & Execution Order

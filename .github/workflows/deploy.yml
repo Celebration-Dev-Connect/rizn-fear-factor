@@ -1,5 +1,9 @@
 name: Deploy
 
+# OFF-SEASON (since 2026-10-31): the Lightsail server is destroyed and production is the static
+# site (site/, *Publish site*). Kept for next year: run *Infrastructure* → apply, set SERVER_IP and
+# SSH_KNOWN_HOSTS again, then deploy (infra/README.md).
+#
 # Tests, builds the image into GHCR, and starts it on the Lightsail server. Run by hand from the
 # Actions tab; a deploy restarts the app for a few seconds, so avoid it during the event.
 # Secrets come from the "production" environment and are written only to /opt/rizn/.env on the
