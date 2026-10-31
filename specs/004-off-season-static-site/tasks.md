@@ -144,10 +144,10 @@ headers, and no `Set-Cookie`.
     (two passes: `_next/static/*` immutable; HTML/txt `max-age=60`; the rest one day);
   - then `aws cloudfront create-invalidation --paths "/*"`;
   - it runs only when the `SITE_BUCKET` and `SITE_DISTRIBUTION_ID` variables are set.
-- [ ] T014 [US1] Run the site infrastructure, part 1 **(user approval)**: apply with
+- [X] T014 [US1] Run the site infrastructure, part 1 **(user approval)**: apply with
   `cert_validated=false`, then give the user the validation CNAME to add at the riznyouth.com DNS
   host **(user)**.
-- [ ] T015 [US1] Once the certificate is issued, run apply with `cert_validated=true`. Set the GitHub
+- [X] T015 [US1] Once the certificate is issued, run apply with `cert_validated=true`. Set the GitHub
   variables `SITE_BUCKET` and `SITE_DISTRIBUTION_ID`, run *Publish site*, and verify per
   quickstart.md "Verify before switching DNS" (all contract paths return 200 with the page, the
   headers are present, and there's no Set-Cookie).
