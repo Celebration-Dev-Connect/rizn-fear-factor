@@ -193,7 +193,7 @@ workflow fails before upload, leaving the page unchanged.
 **Independent Test**: `dig` shows CloudFront, the site works on a phone, the Lightsail instance no
 longer exists, and the deletion is recorded.
 
-- [ ] T019 [US3] **(user)** At the riznyouth.com DNS host, change `fearfactor` from
+- [X] T019 [US3] **(user)** At the riznyouth.com DNS host, change `fearfactor` from
   `A 3.98.19.181` to `CNAME <distribution_domain>`. Then verify with
   `dig +short fearfactor.riznyouth.com` and run the hosting contract checks against the real
   domain.
