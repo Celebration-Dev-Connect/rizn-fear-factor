@@ -16,7 +16,12 @@ The audience is students in grades 7–12. Their safety outranks every feature a
 - Costume photos MUST be taken by adult crew members only.
 - Photos MUST be stored privately with no public URLs, and MUST be served only to requests
   holding a valid pass, crew session, or big-screen link.
-- Photos and first names MUST be deleted automatically after the event.
+- Photos and first names MUST be deleted automatically from the app's servers after the event.
+  The one exception is a single offline archive of live-event costume photos, exported by the
+  project owner (see the 2026-10-31 review below). The archive MUST hold image files only, with
+  no names, nicknames, pass numbers, votes, or other data linking a photo to a student. It MUST be
+  stored only on storage controlled by RIZN Youth leadership, and MUST NOT be published or posted
+  without fresh consent from that student's parent.
 - Third-party analytics, ad trackers, and social embeds MUST NOT be included.
 
 Rationale: a single privacy failure involving minors at a church event is unacceptable, and the
@@ -36,6 +41,19 @@ nickname. Considered:
   wording covers the name, never shown to search engines, deleted on 2026-11-02 with the photos,
   and leaders can leave it blank for any student.
 - *Decision*: accepted by the project owner for this event.
+
+**Child-safety review (2026-10-31, v3.0.0).** The project owner asked to keep all live-event
+costume photos permanently. Considered:
+- *Consent gap*: the consent given at photo time said "shown tonight". Keeping the photos goes
+  beyond that, and this amendment can't change it after the fact. Leaders SHOULD tell parents the
+  photos were kept and delete any photo a parent asks to have removed.
+- *Exposure*: a permanent copy outside the app is not covered by the automatic deletion, and it
+  outlives the app's access controls.
+- *Mitigations*: one archive, image files only (EXIF already stripped at upload, nothing linking a
+  photo to a name or pass), kept on leadership-controlled storage, never published without fresh
+  parental consent. Rehearsal photos and removed entries are excluded. Server copies are still
+  deleted on 2026-11-02.
+- *Decision*: accepted by the project owner.
 
 ### II. Mobile-First and Zero-Install
 - Every student feature MUST work in the phone's default browser (iOS Safari and Android Chrome,
@@ -126,8 +144,9 @@ tribal knowledge.
   that holds no student data. Anything else is out of scope until it is specified through the
   normal workflow.
 - **Browsers**: iOS Safari and Android Chrome, latest two versions each.
-- **Retention**: all student-related data, first names, and photos MUST be deleted after the
-  event, following the documented deletion procedure, with deletion verified and recorded.
+- **Retention**: all student-related data, first names, and photos MUST be deleted from the app's
+  servers after the event, following the documented deletion procedure, with deletion verified and
+  recorded. The only exception is the photo-only offline archive in Principle I.
 
 ## Development Workflow and Quality Gates
 
@@ -156,4 +175,4 @@ This constitution supersedes other practices and conventions for this project.
   compliance. Any exception MUST be recorded in the plan's complexity or justification section
   with the reason and a simpler alternative that was rejected.
 
-**Version**: 2.0.0 | **Ratified**: 2026-10-17 | **Last Amended**: 2026-10-28
+**Version**: 3.0.0 | **Ratified**: 2026-10-17 | **Last Amended**: 2026-10-31
