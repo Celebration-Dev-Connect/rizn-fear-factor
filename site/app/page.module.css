@@ -1,0 +1,73 @@
+.intro {
+  text-align: center;
+  margin: var(--space-5) 0;
+}
+/* Blue block like the poster's "FEAR FACTOR" panel, with the event name in orange-on-black. */
+.next {
+  margin: var(--space-5) 0;
+  padding: var(--space-5) var(--space-4);
+  border-radius: 22px;
+  background: var(--accent-2);
+  color: var(--on-accent-2);
+  text-align: center;
+  box-shadow: 10px 10px 0 var(--accent);
+}
+.next p {
+  margin: var(--space-3) 0 0;
+  font-weight: 700;
+}
+.nextKicker {
+  margin: 0 !important;
+  font-size: 16px;
+}
+.vanageddon {
+  margin: var(--space-2) 0 var(--space-4);
+  display: inline-block;
+  padding: var(--space-2) var(--space-4);
+  background: var(--on-accent);
+  color: var(--accent);
+  font-size: clamp(40px, 12vw, 68px);
+  line-height: 1;
+  transform: rotate(-2deg);
+}
+/* The cut-out van, tilted like a sticker on the poster, with 1rem of space all around. */
+.vanPhoto {
+  display: block;
+  width: 100%;
+  height: auto;
+  padding: 1rem;
+  margin: var(--space-2) 0 var(--space-3);
+  transform: rotate(-3deg);
+  filter: drop-shadow(0 14px 14px rgb(0 0 0 / 0.45));
+}
+.weekly .when {
+  font-size: 18px;
+}
+.instagram {
+  margin: var(--space-6) 0 0;
+  text-align: center;
+}
+.instagram h2 {
+  font-size: 28px;
+}
+.instagram p {
+  margin: 0 0 var(--space-4);
+  font-weight: 700;
+}
+.signOff {
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 32px;
+  color: var(--accent);
+  margin: var(--space-5) 0 0;
+}
+.back {
+  margin: var(--space-6) 0 0;
+  text-align: center;
+}
+.back h2 {
+  font-size: 30px;
+}
+.back p {
+  margin: 0;
+}

@@ -18,17 +18,17 @@ apply, and approving production actions. These are marked **(user)**.
 
 ## Phase 1: Setup
 
-- [ ] T001 Amend .specify/memory/constitution.md to v3.1.0 (MINOR):
+- [X] T001 Amend .specify/memory/constitution.md to v3.1.0 (MINOR):
   - Event Scope adds the off-season static page (spec 004), with no student data, and says no
     server holding student data runs off-season.
   - Principle IX's deploy and deletion rules cover the static site.
   - Add a dated note to the Governance record.
-- [ ] T002 [P] Create site/next.config.ts with `output: "export"`, `images: { unoptimized: true }`,
+- [X] T002 [P] Create site/next.config.ts with `output: "export"`, `images: { unoptimized: true }`,
   `trailingSlash: false`, `poweredByHeader: false`, and `turbopack: { root: path.resolve(__dirname, "..") }`.
   Create site/tsconfig.json extending ../tsconfig.json, with `"paths": { "@/*": ["../src/*"] }` and
   `include` covering `app/**` and `../src/content/**`, `../src/components/BrandMark*`, and
   `../src/styles/**`.
-- [ ] T003 [P] Add package.json scripts:
+- [X] T003 [P] Add package.json scripts:
   - `"site:assets": "tsx scripts/site-assets.ts"`
   - `"site:build": "npm run site:assets && next build site && tsx scripts/check-site.ts"`
   - `"site:preview": "npx --yes serve site/out -l 4100"`
@@ -38,7 +38,7 @@ apply, and approving production actions. These are marked **(user)**.
 
 ## Phase 2: Foundational (blocks all stories)
 
-- [ ] T004 Create src/content/offseason.ts per data-model.md, exporting `OFFSEASON`:
+- [X] T004 Create src/content/offseason.ts per data-model.md, exporting `OFFSEASON`:
   - `title: "RIZN Youth"` and a description;
   - `thanks` in the past tense ("Thanks for coming to Fear Factor 2026!");
   - `weekly` and `instagram` imported from `RIZN_INFO` in src/content/rizn.ts (single source);
@@ -46,18 +46,18 @@ apply, and approving production actions. These are marked **(user)**.
   - `nextEvent: { kicker: "Friday, November 6", heading: "VANAGEDDON", body: [...dateless wording], photoAlt, endsAt: "2026-11-06T21:30:00-07:00" } | null`.
 
   Constraint: no text may say "next week", "next Friday", or "tonight" (FR-307).
-- [ ] T005 [P] Create src/lib/nextEvent.ts exporting `isEventOver(endsAt: string, nowMs: number): boolean`,
+- [X] T005 [P] Create src/lib/nextEvent.ts exporting `isEventOver(endsAt: string, nowMs: number): boolean`,
   and tests/unit/nextEvent.test.ts covering:
   - before → false;
   - exactly at → true;
   - after → true;
   - a bad date → false (keep showing rather than crash).
-- [ ] T006 [P] Create scripts/site-assets.ts. It copies into site/public/:
+- [X] T006 [P] Create scripts/site-assets.ts. It copies into site/public/:
   - public/brand/fear-factor-logo.webp and @2x, rizn-youth-white.webp, van.webp, og-image.jpg;
   - src/app/favicon.ico, icon.png, apple-icon.png (to site/public root).
 
   It fails clearly if any source is missing.
-- [ ] T007 Create site/app/layout.tsx:
+- [X] T007 Create site/app/layout.tsx:
   - the same fonts as src/app/layout.tsx (Lilita One, Barlow Condensed, Nunito via next/font/google);
   - import `@/styles/globals.css`;
   - static `metadata` with `metadataBase: new URL(process.env.SITE_URL ?? "https://fearfactor.riznyouth.com")`;
@@ -79,7 +79,7 @@ data.
 `/api/state`, and `/api/photos/x/full` all return 200 with the RIZN Youth page and the required
 headers, and no `Set-Cookie`.
 
-- [ ] T008 [US1] Create site/app/page.tsx (+ page.module.css, adapted from src/app/rizn/page.module.css).
+- [X] T008 [US1] Create site/app/page.tsx (+ page.module.css, adapted from src/app/rizn/page.module.css).
   It renders, in this order:
   - BrandMark;
   - the thank-you;
@@ -92,7 +92,7 @@ headers, and no `Set-Cookie`.
 
   No links to the contest, crew, or pass. Create site/app/not-found.tsx rendering the same page
   component, so 404.html matches.
-- [ ] T009 [P] [US1] Create scripts/check-site.ts. It asserts:
+- [X] T009 [P] [US1] Create scripts/check-site.ts. It asserts:
   - site/out contains index.html, 404.html, favicon.ico, icon.png, apple-icon.png,
     brand/og-image.jpg, and brand/van.webp;
   - index.html contains `og:image` with `https://fearfactor.riznyouth.com/brand/og-image.jpg`, and
@@ -159,12 +159,12 @@ headers, and no `Set-Cookie`.
 **Independent Test**: in the built site, with the browser clock mocked before and after `endsAt`,
 the section is present before and gone after. With JavaScript disabled, it still reads sensibly.
 
-- [ ] T016 [US2] Create site/app/NextEventGate.tsx (a client component). It renders its children
+- [X] T016 [US2] Create site/app/NextEventGate.tsx (a client component). It renders its children
   until `isEventOver(endsAt, Date.now())`, re-checks every 60 s, and renders nothing after that. On
   the server and in the export it renders the children, so the no-JS HTML keeps the dateless
   section. Wrap the VANAGEDDON section in site/app/page.tsx with it, and render nothing when
   `OFFSEASON.nextEvent` is null.
-- [ ] T017 [US2] Add tests/e2e/site.spec.ts in a separate Playwright project, `site`, in
+- [X] T017 [US2] Add tests/e2e/site.spec.ts in a separate Playwright project, `site`, in
   playwright.config.ts. Its `webServer` is `npx serve site/out -l 4100` and its baseURL
   `http://localhost:4100`. It checks:
   - with `page.clock.setFixedTime("2026-11-06T20:00:00-07:00")`, the VANAGEDDON heading and van

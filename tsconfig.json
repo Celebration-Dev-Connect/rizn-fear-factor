@@ -39,6 +39,8 @@
     "scripts/**/*.ts",
     "tests/**/*.ts",
     "*.config.ts",
+    "site/app/**/*.ts",
+    "site/app/**/*.tsx",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ],

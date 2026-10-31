@@ -21,7 +21,10 @@
     "purge": "tsx --env-file-if-exists=.env scripts/purge.ts",
     "seed:dev": "tsx --env-file-if-exists=.env scripts/seed-dev.ts",
     "check:nicknames": "tsx scripts/check-nicknames.ts",
-    "brand:assets": "tsx scripts/brand-assets.ts"
+    "brand:assets": "tsx scripts/brand-assets.ts",
+    "site:assets": "tsx scripts/site-assets.ts",
+    "site:build": "npm run site:assets && next build site && tsx scripts/check-site.ts",
+    "site:preview": "npx --yes serve site/out -l 4100"
   },
   "dependencies": {
     "cookie-parser": "^1.4.7",

@@ -132,6 +132,8 @@ abilities.
 - A documented one-command deploy MUST exist.
 - A documented data-deletion procedure MUST exist and cover the database, stored photos, and
   backups.
+- These rules apply to the off-season static site too: one documented publish action, hosting
+  defined in the repository, and no secrets committed.
 
 Rationale: whoever deploys this may be a volunteer under time pressure; nothing should need
 tribal knowledge.
@@ -143,6 +145,9 @@ tribal knowledge.
 - **First release**: costume contest only, plus a static "More about RIZN Youth" page (spec 003)
   that holds no student data. Anything else is out of scope until it is specified through the
   normal workflow.
+- **Off-season** (spec 004): after the event, the address serves a single static RIZN Youth page
+  holding no student data. No server that stores or serves student data runs off-season. The
+  contest app returns only by a deliberate redeploy for the next event.
 - **Browsers**: iOS Safari and Android Chrome, latest two versions each.
 - **Retention**: all student-related data, first names, and photos MUST be deleted from the app's
   servers after the event, following the documented deletion procedure, with deletion verified and
@@ -175,4 +180,4 @@ This constitution supersedes other practices and conventions for this project.
   compliance. Any exception MUST be recorded in the plan's complexity or justification section
   with the reason and a simpler alternative that was rejected.
 
-**Version**: 3.0.0 | **Ratified**: 2026-10-17 | **Last Amended**: 2026-10-31
+**Version**: 3.1.0 | **Ratified**: 2026-10-17 | **Last Amended**: 2026-10-31

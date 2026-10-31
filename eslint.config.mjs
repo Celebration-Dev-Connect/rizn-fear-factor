@@ -25,6 +25,9 @@ const config = [
       "next-env.d.ts",
       ".specify/**",
       ".claude/**",
+      "site/out/**",
+      "site/.next/**",
+      "site/next-env.d.ts",
     ],
   },
 ];

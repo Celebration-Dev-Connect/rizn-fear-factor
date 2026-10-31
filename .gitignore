@@ -63,3 +63,8 @@ id_ed25519*
 .claude/worktrees/
 
 media-bundle/
+# off-season static site (spec 004): build output and copied assets
+site/out/
+site/.next/
+site/public/
+site/next-env.d.ts
